@@ -1,0 +1,11 @@
+bot:
+  scrapper_url: http://localhost:8080/
+client:
+  dial_timeout_seconds: 5
+  dial_keep_alive_seconds: 30
+  max_idle_conns: 100
+  idle_conn_timeout_seconds: 90
+  tls_handshake_timeout_seconds: 10
+  expect_continue_timeout_seconds: 1
+  timeout: 30
+  
