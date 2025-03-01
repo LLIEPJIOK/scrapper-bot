@@ -1,30 +1,30 @@
 package fsm
 
-type Builder[TData any, TResult any] struct {
-	fsm *FSM[TData, TResult]
+type Builder[TData any] struct {
+	fsm *FSM[TData]
 }
 
-func NewBuilder[TData any, TResult any]() *Builder[TData, TResult] {
-	return &Builder[TData, TResult]{
-		fsm: New[TData, TResult](),
+func NewBuilder[TData any]() *Builder[TData] {
+	return &Builder[TData]{
+		fsm: New[TData](),
 	}
 }
 
-func (b *Builder[TData, TResult]) AddState(
+func (b *Builder[TData]) AddState(
 	state State,
-	handler StateHandler[TData, TResult],
-) *Builder[TData, TResult] {
+	handler StateHandler[TData],
+) *Builder[TData] {
 	b.fsm.RegisterHandler(state, handler)
 	return b
 }
 
-func (b *Builder[TData, TResult]) AddTransition(
+func (b *Builder[TData]) AddTransition(
 	from, to State,
-) *Builder[TData, TResult] {
+) *Builder[TData] {
 	b.fsm.AddTransition(from, to)
 	return b
 }
 
-func (b *Builder[TData, TResult]) Build() *FSM[TData, TResult] {
+func (b *Builder[TData]) Build() *FSM[TData] {
 	return b.fsm
 }

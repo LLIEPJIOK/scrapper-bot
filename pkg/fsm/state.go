@@ -8,13 +8,13 @@ func (s State) String() string {
 	return string(s)
 }
 
-type StateHandler[TData any, TResult any] interface {
-	Handle(ctx context.Context, data TData, prev *Result[TResult]) *Result[TResult]
+type StateHandler[TData any] interface {
+	Handle(ctx context.Context, data TData) *Result[TData]
 	AutoTransition() bool
 }
 
-type Result[TResult any] struct {
-	NextState *State
-	Result    TResult
+type Result[TData any] struct {
+	NextState State
+	Result    TData
 	Error     error
 }
