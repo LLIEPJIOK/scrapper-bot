@@ -14,6 +14,7 @@ type Config struct {
 	Bot      Bot      `yaml:"bot"`
 	Scrapper Scrapper `yaml:"scrapper"`
 	Client   Client   `yaml:"client"`
+	GitHub   GitHub   `yaml:"github"`
 }
 
 type App struct {
@@ -37,6 +38,10 @@ type Client struct {
 	TLSHandshakeTimeout   time.Duration `yaml:"tls_handshake_timeout"`
 	ExpectContinueTimeout time.Duration `yaml:"expect_continue_timeout"`
 	Timeout               time.Duration `yaml:"timeout"`
+}
+
+type GitHub struct {
+	Token string
 }
 
 func Load(path string) (*Config, error) {
@@ -73,6 +78,7 @@ func Load(path string) (*Config, error) {
 	}
 
 	config.Bot.APIToken = os.Getenv("BOT_API_TOKEN")
+	config.GitHub.Token = os.Getenv("GITHUB_TOKEN")
 
 	return config, nil
 }

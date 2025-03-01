@@ -12,3 +12,4 @@ client:
   tls_handshake_timeout_seconds: 10s
   expect_continue_timeout_seconds: 1s
   timeout: 30s
+github:
