@@ -11,14 +11,14 @@ import (
 )
 
 type TrackSaver struct {
-	channels Channels
 	client   Client
+	channels Channels
 }
 
-func NewTrackSaver(channels Channels, client Client) *TrackSaver {
+func NewTrackSaver(client Client, channels Channels) *TrackSaver {
 	return &TrackSaver{
-		channels: channels,
 		client:   client,
+		channels: channels,
 	}
 }
 
@@ -42,7 +42,7 @@ func (h *TrackSaver) Handle(ctx context.Context, state *State) *fsm.Result[*Stat
 
 	err := h.client.AddLink(ctx, link)
 	if err != nil {
-		state.ShowError = "не удалось добавить ссылку"
+		state.ShowError = "ошибка при добавлении ссылки"
 
 		return &fsm.Result[*State]{
 			NextState:        fail,

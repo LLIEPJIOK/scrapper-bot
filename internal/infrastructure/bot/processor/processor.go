@@ -14,7 +14,7 @@ const numWorkers = 10
 type Client interface {
 	RegisterChat(ctx context.Context, id int64) error
 	AddLink(ctx context.Context, link *domain.Link) error
-	DeleteLink(ctx context.Context, link *domain.Link) error
+	DeleteLink(ctx context.Context, chatID int64, linkURL string) error
 	GetLinks(ctx context.Context, chatID int64) ([]*domain.Link, error)
 }
 
@@ -36,18 +36,25 @@ func New(client Client, channels Channels) *Processor {
 		AddState(callback, NewCallbacker(channels)).
 		AddState(command, NewCommander()).
 		AddState(start, NewStater(client, channels)).
+		AddState(help, NewHelper(channels)).
 		AddState(track, NewTracker(channels)).
 		AddState(trackAddLink, NewTrackLinkAdder(channels)).
 		AddState(trackAddFilters, NewTrackFilterAdder(channels)).
 		AddState(trackAddTags, NewTrackTagAdder(channels)).
-		AddState(trackSave, NewTrackSaver(channels, client)).
+		AddState(trackSave, NewTrackSaver(client, channels)).
+		AddState(trackList, NewTrackLister(client, channels)).
+		AddState(untrack, NewUntracker(channels)).
+		AddState(untrackDeleteLink, NewUntrackLinkDeleter(client, channels)).
 		AddState(fail, NewFailer(channels)).
 		AddTransition(callback, trackAddTags).
 		AddTransition(callback, trackAddFilters).
 		AddTransition(callback, trackSave).
 		AddTransition(callback, fail).
 		AddTransition(command, start).
+		AddTransition(command, help).
 		AddTransition(command, track).
+		AddTransition(command, trackList).
+		AddTransition(command, untrack).
 		AddTransition(command, fail).
 		AddTransition(start, fail).
 		AddTransition(track, trackAddLink).
@@ -58,7 +65,10 @@ func New(client Client, channels Channels) *Processor {
 		AddTransition(trackAddFilters, callback).
 		AddTransition(trackAddTags, trackSave).
 		AddTransition(trackAddTags, callback).
-		AddTransition(trackSave, fail)
+		AddTransition(trackSave, fail).
+		AddTransition(trackList, fail).
+		AddTransition(untrack, untrackDeleteLink).
+		AddTransition(untrackDeleteLink, fail)
 
 	return &Processor{
 		client:   client,
@@ -98,6 +108,7 @@ func (p *Processor) Run(ctx context.Context) error {
 				}
 
 				state.Message = req.Message
+				state.MessageID = 0
 				workCh <- state
 
 			case domain.Command:

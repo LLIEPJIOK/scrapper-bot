@@ -90,8 +90,8 @@ func (s *Scrapper) AddLink(ctx context.Context, link *domain.Link) error {
 	}
 }
 
-func (s *Scrapper) DeleteLink(ctx context.Context, link *domain.Link) error {
-	parsedURL, err := url.Parse(link.URL)
+func (s *Scrapper) DeleteLink(ctx context.Context, chatID int64, linkURL string) error {
+	parsedURL, err := url.Parse(linkURL)
 	if err != nil {
 		return fmt.Errorf("failed to parse url: %w", err)
 	}
@@ -99,7 +99,7 @@ func (s *Scrapper) DeleteLink(ctx context.Context, link *domain.Link) error {
 	rawResp, err := s.client.LinksDelete(ctx, &scrapper.RemoveLinkRequest{
 		Link: scrapper.NewOptURI(*parsedURL),
 	}, scrapper.LinksDeleteParams{
-		TgChatID: link.ChatID,
+		TgChatID: chatID,
 	})
 
 	if err != nil {
@@ -114,7 +114,7 @@ func (s *Scrapper) DeleteLink(ctx context.Context, link *domain.Link) error {
 		return NewErrResponse(fmt.Sprintf("bad request: %s", resp.Description.Value))
 
 	case *scrapper.LinksDeleteNotFound:
-		return NewErrResponse(fmt.Sprintf("not found: %s", resp.Description.Value))
+		return NewErrUserResponse(fmt.Sprintf("Ссылка %q не найдена", linkURL))
 
 	default:
 		return NewErrResponse("invalid response type")

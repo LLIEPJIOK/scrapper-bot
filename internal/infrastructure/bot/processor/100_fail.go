@@ -18,13 +18,19 @@ func NewFailer(channels Channels) *Failer {
 }
 
 func (h *Failer) Handle(ctx context.Context, state *State) *fsm.Result[*State] {
-	msgString := "Не удалось обработать запрос"
+	ans := "Не удалось обработать запрос"
 	if state.ShowError != "" {
-		msgString += ": " + state.ShowError
+		ans += ": " + state.ShowError
 	}
 
-	msgString += ". Попробуйте повторить запрос позже."
-	msg := tgbotapi.NewMessage(state.ChatID, msgString)
+	ans += ". Попробуйте повторить запрос позже."
+
+	var msg tgbotapi.Chattable = tgbotapi.NewMessage(state.ChatID, ans)
+
+	if state.MessageID != 0 {
+		msg = tgbotapi.NewEditMessageText(state.ChatID, state.MessageID, ans)
+	}
+
 	h.channels.TelegramResp() <- msg
 
 	return &fsm.Result[*State]{

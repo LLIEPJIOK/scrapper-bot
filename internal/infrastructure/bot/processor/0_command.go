@@ -17,15 +17,36 @@ func (h *Commander) Handle(ctx context.Context, state *State) *fsm.Result[*State
 	switch state.Message {
 	case "/start":
 		return &fsm.Result[*State]{
-			IsAutoTransition: true,
 			NextState:        start,
+			IsAutoTransition: true,
+			Result:           state,
+		}
+
+	case "/help":
+		return &fsm.Result[*State]{
+			NextState:        help,
+			IsAutoTransition: true,
 			Result:           state,
 		}
 
 	case "/track":
 		return &fsm.Result[*State]{
-			IsAutoTransition: true,
 			NextState:        track,
+			IsAutoTransition: true,
+			Result:           state,
+		}
+
+	case "/untrack":
+		return &fsm.Result[*State]{
+			NextState:        untrack,
+			IsAutoTransition: true,
+			Result:           state,
+		}
+
+	case "/list":
+		return &fsm.Result[*State]{
+			NextState:        trackList,
+			IsAutoTransition: true,
 			Result:           state,
 		}
 

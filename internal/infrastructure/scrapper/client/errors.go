@@ -1,15 +1,29 @@
 package client
 
 type ErrResponse struct {
-	message string
+	Message string
 }
 
 func NewErrResponse(msg string) error {
 	return ErrResponse{
-		message: msg,
+		Message: msg,
 	}
 }
 
 func (e ErrResponse) Error() string {
-	return e.message
+	return e.Message
+}
+
+type ErrUserResponse struct {
+	Message string
+}
+
+func NewErrUserResponse(msg string) error {
+	return ErrUserResponse{
+		Message: msg,
+	}
+}
+
+func (e ErrUserResponse) Error() string {
+	return e.Message
 }

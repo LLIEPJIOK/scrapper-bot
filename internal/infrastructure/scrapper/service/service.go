@@ -119,7 +119,7 @@ func (s *Service) LinksDelete(
 	req *scrapper.RemoveLinkRequest,
 	params scrapper.LinksDeleteParams,
 ) (scrapper.LinksDeleteRes, error) {
-	link, err := s.repo.UntrackLink(params.TgChatID, req.Link.Value.Path)
+	link, err := s.repo.UntrackLink(params.TgChatID, req.Link.Value.String())
 	switch {
 	case errors.As(err, &repository.ErrUnregister{}):
 		return &scrapper.LinksDeleteNotFound{}, nil
