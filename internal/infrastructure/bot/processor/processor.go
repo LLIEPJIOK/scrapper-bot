@@ -48,6 +48,7 @@ func New(client Client, channels Channels) *Processor {
 		AddTransition(callback, fail).
 		AddTransition(command, start).
 		AddTransition(command, track).
+		AddTransition(command, fail).
 		AddTransition(start, fail).
 		AddTransition(track, trackAddLink).
 		AddTransition(trackAddLink, fail).

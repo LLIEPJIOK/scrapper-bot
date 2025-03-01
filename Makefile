@@ -20,9 +20,13 @@ build_scrapper:
 	@mkdir -p .bin
 	@go build -o ./bin/scrapper ./cmd/scrapper
 
-.PHONY: run-bot
-run-bot:
+.PHONY: run_bot
+run_bot:
 	@go run ./cmd/bot/main.go
+
+.PHONY: run_scrapper
+run_scrapper:
+	@go run ./cmd/scrapper/main.go
 
 ## test: run all tests
 .PHONY: test

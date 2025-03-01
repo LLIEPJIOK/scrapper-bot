@@ -62,8 +62,13 @@ func (s *Scrapper) RegisterChat(ctx context.Context, id int64) error {
 }
 
 func (s *Scrapper) AddLink(ctx context.Context, link *domain.Link) error {
+	parsedURL, err := url.Parse(link.URL)
+	if err != nil {
+		return fmt.Errorf("failed to parse url: %w", err)
+	}
+
 	rawResp, err := s.client.LinksPost(ctx, &scrapper.AddLinkRequest{
-		Link:    scrapper.NewOptURI(url.URL{Path: link.URL}),
+		Link:    scrapper.NewOptURI(*parsedURL),
 		Tags:    link.Tags,
 		Filters: link.Filters,
 	}, scrapper.LinksPostParams{
@@ -86,8 +91,13 @@ func (s *Scrapper) AddLink(ctx context.Context, link *domain.Link) error {
 }
 
 func (s *Scrapper) DeleteLink(ctx context.Context, link *domain.Link) error {
+	parsedURL, err := url.Parse(link.URL)
+	if err != nil {
+		return fmt.Errorf("failed to parse url: %w", err)
+	}
+
 	rawResp, err := s.client.LinksDelete(ctx, &scrapper.RemoveLinkRequest{
-		Link: scrapper.NewOptURI(url.URL{Path: link.URL}),
+		Link: scrapper.NewOptURI(*parsedURL),
 	}, scrapper.LinksDeleteParams{
 		TgChatID: link.ChatID,
 	})
@@ -136,7 +146,7 @@ func linksToDomainLinks(links []scrapper.LinkResponse) []*domain.Link {
 	for _, link := range links {
 		domainLinks = append(domainLinks, &domain.Link{
 			ID:      link.ID.Value,
-			URL:     link.URL.Value.Path,
+			URL:     link.URL.Value.String(),
 			Tags:    link.Tags,
 			Filters: link.Filters,
 		})

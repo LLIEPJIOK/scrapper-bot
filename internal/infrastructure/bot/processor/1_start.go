@@ -42,7 +42,7 @@ func (h *Stater) Handle(ctx context.Context, state *State) *fsm.Result[*State] {
 			NextState:        fail,
 			IsAutoTransition: true,
 			Result:           state,
-			Error:            fmt.Errorf("failed to register chat: %w", err),
+			Error:            fmt.Errorf("h.client.RegisterChat(ctx, %d): %w", state.ChatID, err),
 		}
 	}
 

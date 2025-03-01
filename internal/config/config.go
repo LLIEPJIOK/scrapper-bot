@@ -10,10 +10,10 @@ import (
 )
 
 type Config struct {
-	App    App    `yaml:"app"`
-	Bot    Bot    `yaml:"bot"`
+	App      App      `yaml:"app"`
+	Bot      Bot      `yaml:"bot"`
 	Scrapper Scrapper `yaml:"scrapper"`
-	Client Client `yaml:"client"`
+	Client   Client   `yaml:"client"`
 }
 
 type App struct {
@@ -22,6 +22,7 @@ type App struct {
 
 type Bot struct {
 	APIToken    string
+	ScrapperURL string `yaml:"scrapper_url"`
 }
 
 type Scrapper struct {

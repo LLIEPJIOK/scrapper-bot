@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net/url"
 	"strings"
 
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
@@ -50,7 +51,9 @@ func (h *TrackLinkAdder) Handle(ctx context.Context, state *State) *fsm.Result[*
 func (h *TrackLinkAdder) isValidLink(link string) bool {
 	for _, validLink := range h.validLinks {
 		if strings.HasPrefix(link, validLink) {
-			return true
+			_, err := url.Parse(link)
+
+			return err == nil
 		}
 	}
 

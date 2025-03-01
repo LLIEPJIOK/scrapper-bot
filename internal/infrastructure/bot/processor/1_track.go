@@ -28,7 +28,9 @@ func (h *Tracker) Handle(ctx context.Context, state *State) *fsm.Result[*State] 
 	msg := tgbotapi.NewMessage(state.ChatID, trackerAnswer)
 	h.channels.TelegramResp() <- msg
 
-	state.Object = &domain.Link{}
+	state.Object = &domain.Link{
+		ChatID: state.ChatID,
+	}
 
 	return &fsm.Result[*State]{
 		NextState:        trackAddLink,

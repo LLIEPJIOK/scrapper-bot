@@ -59,7 +59,7 @@ func (a *App) runProcessor(ctx context.Context, stop context.CancelFunc, wg *syn
 	defer slog.Info("processor stopped")
 
 	ogenClient, err := scrapper.NewClient(
-		a.cfg.Scrapper.URL,
+		a.cfg.Bot.ScrapperURL,
 		scrapper.WithClient(configureClient(a.cfg)),
 	)
 	if err != nil {

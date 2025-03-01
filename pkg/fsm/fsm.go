@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"slices"
 	"sync"
 )
@@ -53,7 +54,7 @@ func (w *FSM[TData]) CanTransition(from, to State) bool {
 
 func (w *FSM[TData]) ProcessState(
 	ctx context.Context,
-	curState State,
+	state State,
 	data TData,
 ) (result *Result[TData]) {
 	defer func() {
@@ -63,25 +64,28 @@ func (w *FSM[TData]) ProcessState(
 	}()
 
 	w.mu.RLock()
-	handler, exists := w.handlers[curState.String()]
+	handler, exists := w.handlers[state.String()]
 	w.mu.RUnlock()
 
 	if !exists {
 		result = &Result[TData]{
-			Error: fmt.Errorf("no handler registered for state %s", curState),
+			Error: fmt.Errorf("no handler registered for state %s", state),
 		}
 
 		return result
 	}
 
 	result = handler.Handle(ctx, data)
+	if result.Error != nil {
+		slog.Error("handle error", slog.Any("error", result.Error), slog.Any("fsm_state", state))
+	}
 
 	if result.IsAutoTransition {
-		if !w.CanTransition(curState, result.NextState) {
+		if !w.CanTransition(state, result.NextState) {
 			result = &Result[TData]{
 				Error: fmt.Errorf(
 					"invalid state transition from %s to %s",
-					curState,
+					state,
 					result.NextState,
 				),
 			}
