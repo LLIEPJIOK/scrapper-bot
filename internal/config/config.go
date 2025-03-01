@@ -4,28 +4,38 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
+	App    App    `yaml:"app"`
 	Bot    Bot    `yaml:"bot"`
+	Scrapper Scrapper `yaml:"scrapper"`
 	Client Client `yaml:"client"`
+}
+
+type App struct {
+	TerminateTimeout time.Duration `yaml:"terminate_timeout"`
 }
 
 type Bot struct {
 	APIToken    string
-	ScrapperURL string `yaml:"scrapper_url"`
+}
+
+type Scrapper struct {
+	URL string `yaml:"url"`
 }
 
 type Client struct {
-	DialTimeoutSeconds           int `yaml:"dial_timeout_seconds"`
-	DialKeepAliveSeconds         int `yaml:"dial_keep_alive_seconds"`
-	MaxIdleConns                 int `yaml:"max_idle_conns"`
-	IdleConnTimeoutSeconds       int `yaml:"idle_conn_timeout_seconds"`
-	TLSHandshakeTimeoutSeconds   int `yaml:"tls_handshake_timeout_seconds"`
-	ExpectContinueTimeoutSeconds int `yaml:"expect_continue_timeout_seconds"`
-	Timeout                      int `yaml:"timeout"`
+	DialTimeout           time.Duration `yaml:"dial_timeout"`
+	DialKeepAlive         time.Duration `yaml:"dial_keep_alive"`
+	MaxIdleConns          int           `yaml:"max_idle_conns"`
+	IdleConnTimeout       time.Duration `yaml:"idle_conn_timeout"`
+	TLSHandshakeTimeout   time.Duration `yaml:"tls_handshake_timeout"`
+	ExpectContinueTimeout time.Duration `yaml:"expect_continue_timeout"`
+	Timeout               time.Duration `yaml:"timeout"`
 }
 
 func Load(path string) (*Config, error) {

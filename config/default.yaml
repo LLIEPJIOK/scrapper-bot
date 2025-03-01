@@ -1,11 +1,13 @@
+app:
+  terminate_timeout: 5s
 bot:
-  scrapper_url: http://localhost:8080/
+scrapper:
+  url: http://localhost:8080/
 client:
-  dial_timeout_seconds: 5
-  dial_keep_alive_seconds: 30
+  dial_timeout_seconds: 5s
+  dial_keep_alive_seconds: 30s
   max_idle_conns: 100
-  idle_conn_timeout_seconds: 90
-  tls_handshake_timeout_seconds: 10
-  expect_continue_timeout_seconds: 1
-  timeout: 30
-  
+  idle_conn_timeout_seconds: 90s
+  tls_handshake_timeout_seconds: 10s
+  expect_continue_timeout_seconds: 1s
+  timeout: 30s
