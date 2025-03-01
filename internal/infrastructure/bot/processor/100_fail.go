@@ -8,20 +8,16 @@ import (
 )
 
 type Failer struct {
-	fsm.BaseTransition
 	channels Channels
 }
 
 func NewFailer(channels Channels) *Failer {
 	return &Failer{
-		BaseTransition: fsm.BaseTransition{
-			Auto: true,
-		},
 		channels: channels,
 	}
 }
 
-func (f *Failer) Handle(ctx context.Context, state *State) *fsm.Result[*State] {
+func (h *Failer) Handle(ctx context.Context, state *State) *fsm.Result[*State] {
 	msgString := "Не удалось обработать запрос"
 	if state.ShowError != "" {
 		msgString += ": " + state.ShowError
@@ -29,9 +25,10 @@ func (f *Failer) Handle(ctx context.Context, state *State) *fsm.Result[*State] {
 
 	msgString += ". Попробуйте повторить запрос позже."
 	msg := tgbotapi.NewMessage(state.ChatID, msgString)
-	f.channels.TelegramResp() <- msg
+	h.channels.TelegramResp() <- msg
 
 	return &fsm.Result[*State]{
-		Result: state,
+		IsAutoTransition: false,
+		Result:           state,
 	}
 }

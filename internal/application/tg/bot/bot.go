@@ -64,9 +64,10 @@ func (b *Bot) Run(ctx context.Context) error {
 
 			case update.CallbackQuery != nil:
 				b.channels.TelegramReq() <- domain.TelegramRequest{
-					ChatID:  update.CallbackQuery.Message.Chat.ID,
-					Message: update.CallbackQuery.Data,
-					Type:    domain.Callback,
+					ChatID:    update.CallbackQuery.Message.Chat.ID,
+					MessageID: update.CallbackQuery.Message.MessageID,
+					Message:   update.CallbackQuery.Data,
+					Type:      domain.Callback,
 				}
 			}
 

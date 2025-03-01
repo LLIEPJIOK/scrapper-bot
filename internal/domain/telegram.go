@@ -9,7 +9,8 @@ const (
 type TgReqType string
 
 type TelegramRequest struct {
-	ChatID  int64
-	Message string
-	Type    TgReqType
+	ChatID    int64
+	MessageID int
+	Message   string
+	Type      TgReqType
 }

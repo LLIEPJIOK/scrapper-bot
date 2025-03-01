@@ -76,7 +76,7 @@ func (w *FSM[TData]) ProcessState(
 
 	result = handler.Handle(ctx, data)
 
-	if handler.AutoTransition() && result.NextState.String() != "" {
+	if result.IsAutoTransition {
 		if !w.CanTransition(curState, result.NextState) {
 			result = &Result[TData]{
 				Error: fmt.Errorf(

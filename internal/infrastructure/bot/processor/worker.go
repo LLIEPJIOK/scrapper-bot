@@ -8,9 +8,9 @@ import (
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/fsm"
 )
 
-func (p *Processor) worker(ctx context.Context, workCh chan State) {
+func (p *Processor) worker(ctx context.Context, workCh chan *State) {
 	for state := range workCh {
-		res, err := p.ProcessRequest(ctx, &state)
+		res, err := p.ProcessRequest(ctx, state)
 		if err != nil {
 			slog.Error("failed to process request",
 				slog.Any("current_state", state.FSMState),
@@ -20,7 +20,7 @@ func (p *Processor) worker(ctx context.Context, workCh chan State) {
 
 		if res != nil {
 			res.Result.FSMState = res.NextState
-			// TODO: save
+			p.states[res.Result.ChatID] = res.Result
 		}
 	}
 }

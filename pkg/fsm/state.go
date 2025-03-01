@@ -10,11 +10,11 @@ func (s State) String() string {
 
 type StateHandler[TData any] interface {
 	Handle(ctx context.Context, data TData) *Result[TData]
-	AutoTransition() bool
 }
 
 type Result[TData any] struct {
-	NextState State
-	Result    TData
-	Error     error
+	NextState        State
+	IsAutoTransition bool
+	Result           TData
+	Error            error
 }

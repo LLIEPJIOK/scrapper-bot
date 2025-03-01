@@ -27,26 +27,48 @@ type Processor struct {
 	fsm      *fsm.FSM[*State]
 	client   Client
 	channels Channels
+	states   map[int64]*State
 }
 
 func New(client Client, channels Channels) *Processor {
 	fsmBuilder := fsm.NewBuilder[*State]()
 	fsmBuilder.
+		AddState(callback, NewCallbacker(channels)).
 		AddState(command, NewCommander()).
 		AddState(start, NewStater(client, channels)).
+		AddState(track, NewTracker(channels)).
+		AddState(trackAddLink, NewTrackLinkAdder(channels)).
+		AddState(trackAddFilters, NewTrackFilterAdder(channels)).
+		AddState(trackAddTags, NewTrackTagAdder(channels)).
+		AddState(trackSave, NewTrackSaver(channels, client)).
 		AddState(fail, NewFailer(channels)).
+		AddTransition(callback, trackAddTags).
+		AddTransition(callback, trackAddFilters).
+		AddTransition(callback, trackSave).
+		AddTransition(callback, fail).
 		AddTransition(command, start).
-		AddTransition(start, fail)
+		AddTransition(command, track).
+		AddTransition(start, fail).
+		AddTransition(track, trackAddLink).
+		AddTransition(trackAddLink, fail).
+		AddTransition(trackAddLink, trackSave).
+		AddTransition(trackAddLink, callback).
+		AddTransition(trackAddFilters, trackSave).
+		AddTransition(trackAddFilters, callback).
+		AddTransition(trackAddTags, trackSave).
+		AddTransition(trackAddTags, callback).
+		AddTransition(trackSave, fail)
 
 	return &Processor{
 		client:   client,
 		channels: channels,
 		fsm:      fsmBuilder.Build(),
+		states:   make(map[int64]*State),
 	}
 }
 
 func (p *Processor) Run(ctx context.Context) error {
-	workCh := make(chan State, numWorkers)
+	workCh := make(chan *State, numWorkers)
 	defer close(workCh)
 
 	for range numWorkers {
@@ -61,16 +83,50 @@ func (p *Processor) Run(ctx context.Context) error {
 		case req := <-p.channels.TelegramReq():
 			switch req.Type {
 			case domain.Message:
+				slog.Info("getting message", slog.Any("message", req.Message))
+
+				state, ok := p.states[req.ChatID]
+				if !ok {
+					workCh <- &State{
+						FSMState:  fail,
+						ChatID:    req.ChatID,
+						ShowError: "неопознанная команда",
+					}
+
+					continue
+				}
+
+				state.Message = req.Message
+				workCh <- state
+
 			case domain.Command:
 				slog.Info("getting command", slog.Any("command", req.Message))
 
-				workCh <- State{
+				workCh <- &State{
 					FSMState: command,
 					ChatID:   req.ChatID,
 					Message:  req.Message,
 				}
 
 			case domain.Callback:
+				slog.Info("getting callback", slog.Any("callback", req.Message))
+
+				state, ok := p.states[req.ChatID]
+				if !ok || state.FSMState != callback {
+					workCh <- &State{
+						FSMState:  fail,
+						ChatID:    req.ChatID,
+						MessageID: req.MessageID,
+						ShowError: "неопознанная команда",
+					}
+
+					continue
+				}
+
+				state.Message = req.Message
+				state.MessageID = req.MessageID
+				workCh <- state
+
 			default:
 				slog.Warn("unknown request type", slog.Any("type", req.Type))
 				continue
