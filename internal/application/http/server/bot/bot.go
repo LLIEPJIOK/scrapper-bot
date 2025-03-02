@@ -1,4 +1,4 @@
-package service
+package bot
 
 import (
 	"context"
@@ -13,15 +13,15 @@ type Repository interface {
 	GetUpdates() ([]*repository.UpdateChat, error)
 }
 
-type Service struct {
+type BotServer struct {
 	repo Repository
 }
 
-func New(repo Repository) *Service {
-	return &Service{repo: repo}
+func NewBotServer(repo Repository) *BotServer {
+	return &BotServer{repo: repo}
 }
 
-func (s *Service) UpdatesPost(
+func (s *BotServer) UpdatesPost(
 	_ context.Context,
 	req *bot.LinkUpdate,
 ) (bot.UpdatesPostRes, error) {

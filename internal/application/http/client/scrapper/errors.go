@@ -1,4 +1,4 @@
-package client
+package scrapper
 
 type ErrResponse struct {
 	Message string

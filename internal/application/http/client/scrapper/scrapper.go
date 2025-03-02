@@ -1,4 +1,4 @@
-package client
+package scrapper
 
 import (
 	"context"
@@ -31,17 +31,17 @@ type Client interface {
 	) (scrapper.TgChatIDPostRes, error)
 }
 
-type Scrapper struct {
+type ScrapperClient struct {
 	client Client
 }
 
-func New(client Client) *Scrapper {
-	return &Scrapper{
+func NewScrapperClient(client Client) *ScrapperClient {
+	return &ScrapperClient{
 		client: client,
 	}
 }
 
-func (s *Scrapper) RegisterChat(ctx context.Context, id int64) error {
+func (s *ScrapperClient) RegisterChat(ctx context.Context, id int64) error {
 	rawResp, err := s.client.TgChatIDPost(ctx, scrapper.TgChatIDPostParams{
 		ID: id,
 	})
@@ -61,7 +61,7 @@ func (s *Scrapper) RegisterChat(ctx context.Context, id int64) error {
 	}
 }
 
-func (s *Scrapper) AddLink(ctx context.Context, link *domain.Link) error {
+func (s *ScrapperClient) AddLink(ctx context.Context, link *domain.Link) error {
 	parsedURL, err := url.Parse(link.URL)
 	if err != nil {
 		return fmt.Errorf("failed to parse url: %w", err)
@@ -90,7 +90,7 @@ func (s *Scrapper) AddLink(ctx context.Context, link *domain.Link) error {
 	}
 }
 
-func (s *Scrapper) DeleteLink(ctx context.Context, chatID int64, linkURL string) error {
+func (s *ScrapperClient) DeleteLink(ctx context.Context, chatID int64, linkURL string) error {
 	parsedURL, err := url.Parse(linkURL)
 	if err != nil {
 		return fmt.Errorf("failed to parse url: %w", err)
@@ -121,7 +121,7 @@ func (s *Scrapper) DeleteLink(ctx context.Context, chatID int64, linkURL string)
 	}
 }
 
-func (s *Scrapper) GetLinks(ctx context.Context, chatID int64) ([]*domain.Link, error) {
+func (s *ScrapperClient) GetLinks(ctx context.Context, chatID int64) ([]*domain.Link, error) {
 	rawResp, err := s.client.LinksGet(ctx, scrapper.LinksGetParams{
 		TgChatID: chatID,
 	})

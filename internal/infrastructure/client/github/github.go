@@ -1,4 +1,4 @@
-package client
+package github
 
 import (
 	"encoding/json"
@@ -21,7 +21,7 @@ const (
 	pullURL  = "https://api.github.com/repos/%s/%s/pulls/%s"
 )
 
-type Client struct {
+type GitHub struct {
 	client     *http.Client
 	repoRegex  *regexp.Regexp
 	issueRegex *regexp.Regexp
@@ -29,8 +29,8 @@ type Client struct {
 	token      string
 }
 
-func New(cfg *config.GitHub, httpClient *http.Client) *Client {
-	return &Client{
+func New(cfg *config.GitHub, httpClient *http.Client) *GitHub {
+	return &GitHub{
 		client:     httpClient,
 		repoRegex:  regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)$`),
 		issueRegex: regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)/issues/(\d+)$`),
@@ -39,17 +39,17 @@ func New(cfg *config.GitHub, httpClient *http.Client) *Client {
 	}
 }
 
-func (c *Client) HasUpdates(link string, lastCheck time.Time) (bool, error) {
+func (g *GitHub) HasUpdates(link string, lastCheck time.Time) (bool, error) {
 	switch {
-	case c.repoRegex.MatchString(link):
-		matches := c.repoRegex.FindStringSubmatch(link)
+	case g.repoRegex.MatchString(link):
+		matches := g.repoRegex.FindStringSubmatch(link)
 		templates := []string{repoIssuesURL, repoPullsURL, repoBranchesURL}
 
 		for _, template := range templates {
 			url := fmt.Sprintf(template, matches[1], matches[2])
 			data := make([]Data, 0)
 
-			err := c.getAndDecodeResponse(url, &data)
+			err := g.getAndDecodeResponse(url, &data)
 			if err != nil {
 				return false, err
 			}
@@ -64,7 +64,7 @@ func (c *Client) HasUpdates(link string, lastCheck time.Time) (bool, error) {
 		url := fmt.Sprintf(repoActivityURL, matches[1], matches[2])
 		data := make([]Data, 0)
 
-		err := c.getAndDecodeResponse(url, &data)
+		err := g.getAndDecodeResponse(url, &data)
 		if err != nil {
 			return false, err
 		}
@@ -77,24 +77,24 @@ func (c *Client) HasUpdates(link string, lastCheck time.Time) (bool, error) {
 
 		return false, nil
 
-	case c.issueRegex.MatchString(link):
-		matches := c.issueRegex.FindStringSubmatch(link)
+	case g.issueRegex.MatchString(link):
+		matches := g.issueRegex.FindStringSubmatch(link)
 		url := fmt.Sprintf(issueURL, matches[1], matches[2], matches[3])
 		data := Data{}
 
-		err := c.getAndDecodeResponse(url, &data)
+		err := g.getAndDecodeResponse(url, &data)
 		if err != nil {
 			return false, err
 		}
 
 		return data.UpdatedAt.After(lastCheck), nil
 
-	case c.pullRegex.MatchString(link):
-		matches := c.pullRegex.FindStringSubmatch(link)
+	case g.pullRegex.MatchString(link):
+		matches := g.pullRegex.FindStringSubmatch(link)
 		url := fmt.Sprintf(pullURL, matches[1], matches[2], matches[3])
 		data := Data{}
 
-		err := c.getAndDecodeResponse(url, &data)
+		err := g.getAndDecodeResponse(url, &data)
 		if err != nil {
 			return false, err
 		}
@@ -106,17 +106,17 @@ func (c *Client) HasUpdates(link string, lastCheck time.Time) (bool, error) {
 	}
 }
 
-func (c *Client) getAndDecodeResponse(url string, data any) error {
+func (g *GitHub) getAndDecodeResponse(url string, data any) error {
 	req, err := http.NewRequest(http.MethodGet, url, http.NoBody)
 	if err != nil {
 		return fmt.Errorf("failed to create request with url=%q: %w", url, err)
 	}
 
 	req.Header.Set("Accept", "application/vnd.github+json")
-	req.Header.Set("Authorization", c.token)
+	req.Header.Set("Authorization", g.token)
 	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
 
-	resp, err := c.client.Do(req)
+	resp, err := g.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to get response with url=%q: %w", url, err)
 	}

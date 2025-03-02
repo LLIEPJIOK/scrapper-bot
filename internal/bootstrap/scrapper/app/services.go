@@ -9,14 +9,14 @@ import (
 	"net/http"
 	"sync"
 
+	botclient "github.com/es-debug/backend-academy-2024-go-template/internal/application/http/client/bot"
+	scrapsrv "github.com/es-debug/backend-academy-2024-go-template/internal/application/http/server/scrapper"
+	scrshed "github.com/es-debug/backend-academy-2024-go-template/internal/application/scheduler/scrapper"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/config"
-	botclient "github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/bot/client"
-	ghclient "github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/github/client"
-	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/scrapper/scheduler"
-	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/scrapper/service"
-	sofclient "github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/stackoverflow/client"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/client/github"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/client/sof"
 	botapi "github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/bot"
-	"github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/scrapper"
+	scrapperapi "github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/scrapper"
 )
 
 type runService = func(ctx context.Context, stop context.CancelFunc, wg *sync.WaitGroup)
@@ -33,9 +33,9 @@ func (a *App) runServer(ctx context.Context, stop context.CancelFunc, wg *sync.W
 	defer stop()
 	defer slog.Info("service stopped")
 
-	svc := service.New(a.repo)
+	scrapperServer := scrapsrv.NewScrapperServer(a.repo)
 
-	srv, err := scrapper.NewServer(svc)
+	srv, err := scrapperapi.NewServer(scrapperServer)
 	if err != nil {
 		slog.Error("failed to create scrapper server", slog.Any("error", err))
 
@@ -82,11 +82,11 @@ func (a *App) runScheduler(ctx context.Context, stop context.CancelFunc, wg *syn
 		slog.Error("failed to create ogen bot client", slog.Any("error", err))
 	}
 
-	botClient := botclient.New(ogenClient)
-	ghClient := ghclient.New(&a.cfg.GitHub, httpClient)
-	sofClient := sofclient.New(httpClient)
+	botClient := botclient.NewBotClient(ogenClient)
+	ghClient := github.New(&a.cfg.GitHub, httpClient)
+	sofClient := sof.New(httpClient)
 
-	schedule := scheduler.New(&a.cfg.Scheduler, a.repo, botClient, ghClient, sofClient)
+	schedule := scrshed.NewScrapperScheduler(&a.cfg.Scheduler, a.repo, botClient, ghClient, sofClient)
 
 	if err := schedule.Run(ctx); err != nil {
 		slog.Error("failed to run scheduler", slog.Any("error", err))

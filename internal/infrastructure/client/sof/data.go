@@ -1,4 +1,4 @@
-package client
+package sof
 
 type Data struct {
 	Items []Item `json:"items"`

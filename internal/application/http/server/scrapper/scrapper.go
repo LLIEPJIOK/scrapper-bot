@@ -1,4 +1,4 @@
-package service
+package scrapper
 
 import (
 	"context"
@@ -21,17 +21,17 @@ type Repository interface {
 	ListLinks(chatID int64) ([]*domain.Link, error)
 }
 
-type Service struct {
+type ScrapperServer struct {
 	repo Repository
 }
 
-func New(repo Repository) *Service {
-	return &Service{
+func NewScrapperServer(repo Repository) *ScrapperServer {
+	return &ScrapperServer{
 		repo: repo,
 	}
 }
 
-func (s *Service) TgChatIDPost(
+func (s *ScrapperServer) TgChatIDPost(
 	_ context.Context,
 	params scrapper.TgChatIDPostParams,
 ) (scrapper.TgChatIDPostRes, error) {
@@ -46,7 +46,7 @@ func (s *Service) TgChatIDPost(
 	return &scrapper.TgChatIDPostOK{}, nil
 }
 
-func (s *Service) TgChatIDDelete(
+func (s *ScrapperServer) TgChatIDDelete(
 	_ context.Context,
 	params scrapper.TgChatIDDeleteParams,
 ) (scrapper.TgChatIDDeleteRes, error) {
@@ -67,7 +67,7 @@ func (s *Service) TgChatIDDelete(
 	}
 }
 
-func (s *Service) LinksPost(
+func (s *ScrapperServer) LinksPost(
 	_ context.Context,
 	req *scrapper.AddLinkRequest,
 	params scrapper.LinksPostParams,
@@ -101,7 +101,7 @@ func (s *Service) LinksPost(
 	}, nil
 }
 
-func (s *Service) LinksGet(
+func (s *ScrapperServer) LinksGet(
 	_ context.Context,
 	params scrapper.LinksGetParams,
 ) (scrapper.LinksGetRes, error) {
@@ -116,7 +116,7 @@ func (s *Service) LinksGet(
 	return domainLinksToResponse(links), nil
 }
 
-func (s *Service) LinksDelete(
+func (s *ScrapperServer) LinksDelete(
 	_ context.Context,
 	req *scrapper.RemoveLinkRequest,
 	params scrapper.LinksDeleteParams,

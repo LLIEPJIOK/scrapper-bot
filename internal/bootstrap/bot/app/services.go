@@ -9,14 +9,14 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/http/client/scrapper"
+	botsrv "github.com/es-debug/backend-academy-2024-go-template/internal/application/http/server/bot"
+	botscheduler "github.com/es-debug/backend-academy-2024-go-template/internal/application/scheduler/bot"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/application/tg/bot"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/tg/processor"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/config"
-	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/bot/processor"
-	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/bot/scheduler"
-	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/bot/service"
-	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/scrapper/client"
 	botapi "github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/bot"
-	"github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/scrapper"
+	scrapperapi "github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/scrapper"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -64,15 +64,15 @@ func (a *App) runProcessor(ctx context.Context, stop context.CancelFunc, wg *syn
 	defer stop()
 	defer slog.Info("processor stopped")
 
-	ogenClient, err := scrapper.NewClient(
+	ogenClient, err := scrapperapi.NewClient(
 		a.cfg.Bot.ScrapperURL,
-		scrapper.WithClient(configureClient(&a.cfg.Client)),
+		scrapperapi.WithClient(configureClient(&a.cfg.Client)),
 	)
 	if err != nil {
 		slog.Error("failed to create ogen scrapper client", slog.Any("error", err))
 	}
 
-	scrap := client.New(ogenClient)
+	scrap := scrapper.NewScrapperClient(ogenClient)
 	proc := processor.New(scrap, a.channels)
 
 	if err := proc.Run(ctx); err != nil {
@@ -85,9 +85,9 @@ func (a *App) runServer(ctx context.Context, stop context.CancelFunc, wg *sync.W
 	defer stop()
 	defer slog.Info("service stopped")
 
-	svc := service.New(a.repo)
+	botServer := botsrv.NewBotServer(a.repo)
 
-	srv, err := botapi.NewServer(svc)
+	srv, err := botapi.NewServer(botServer)
 	if err != nil {
 		slog.Error("failed to create bot server", slog.Any("error", err))
 
@@ -124,7 +124,7 @@ func (a *App) runScheduler(ctx context.Context, stop context.CancelFunc, wg *syn
 	defer stop()
 	defer slog.Info("scheduler stopped")
 
-	schedule := scheduler.New(&a.cfg.Scheduler, a.repo, a.channels)
+	schedule := botscheduler.NewBotScheduler(&a.cfg.Scheduler, a.repo, a.channels)
 
 	if err := schedule.Run(ctx); err != nil {
 		slog.Error("failed to run scheduler", slog.Any("error", err))

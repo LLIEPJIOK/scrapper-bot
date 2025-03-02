@@ -1,4 +1,4 @@
-package scheduler
+package scrapper
 
 import (
 	"context"
@@ -26,15 +26,20 @@ type Client interface {
 	UpdatesPost(ctx context.Context, link string, chats []int64) error
 }
 
-type Scheduler struct {
+type ScrapperScheduler struct {
 	repo     Repository
 	client   Client
 	checkers []Checher
 	interval time.Duration
 }
 
-func New(cfg *config.Scheduler, repo Repository, client Client, checkers ...Checher) *Scheduler {
-	return &Scheduler{
+func NewScrapperScheduler(
+	cfg *config.Scheduler,
+	repo Repository,
+	client Client,
+	checkers ...Checher,
+) *ScrapperScheduler {
+	return &ScrapperScheduler{
 		repo:     repo,
 		client:   client,
 		checkers: checkers,
@@ -42,7 +47,7 @@ func New(cfg *config.Scheduler, repo Repository, client Client, checkers ...Chec
 	}
 }
 
-func (s *Scheduler) Run(ctx context.Context) error {
+func (s *ScrapperScheduler) Run(ctx context.Context) error {
 	ch := make(chan *domain.CheckLink)
 
 	for range numWorkers {
@@ -79,7 +84,7 @@ func (s *Scheduler) Run(ctx context.Context) error {
 	return nil
 }
 
-func (s *Scheduler) worker(ctx context.Context, ch <-chan *domain.CheckLink) {
+func (s *ScrapperScheduler) worker(ctx context.Context, ch <-chan *domain.CheckLink) {
 	for {
 		select {
 		case <-ctx.Done():

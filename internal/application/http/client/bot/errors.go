@@ -1,4 +1,4 @@
-package client
+package bot
 
 type ErrResponse struct {
 	Message string

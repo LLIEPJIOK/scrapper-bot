@@ -1,4 +1,4 @@
-package client
+package bot
 
 import (
 	"context"
@@ -12,17 +12,17 @@ type Client interface {
 	UpdatesPost(ctx context.Context, request *bot.LinkUpdate) (bot.UpdatesPostRes, error)
 }
 
-type Bot struct {
+type BotClient struct {
 	client Client
 }
 
-func New(client Client) *Bot {
-	return &Bot{
+func NewBotClient(client Client) *BotClient {
+	return &BotClient{
 		client: client,
 	}
 }
 
-func (b *Bot) UpdatesPost(ctx context.Context, link string, chats []int64) error {
+func (b *BotClient) UpdatesPost(ctx context.Context, link string, chats []int64) error {
 	parsedURL, err := url.Parse(link)
 	if err != nil {
 		return fmt.Errorf("failed to parse link: %w", err)

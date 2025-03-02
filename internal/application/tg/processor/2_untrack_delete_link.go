@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/scrapper/client"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/http/client/scrapper"
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/fsm"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -38,7 +38,7 @@ func (h *UntrackLinkDeleter) Handle(ctx context.Context, state *State) *fsm.Resu
 	}
 
 	err = h.client.DeleteLink(ctx, state.ChatID, state.Message)
-	userErr := &client.ErrUserResponse{}
+	userErr := &scrapper.ErrUserResponse{}
 
 	if errors.Is(err, userErr) {
 		ans := userErr.Message + ". Введите ссылку, которая отображается в /list"
