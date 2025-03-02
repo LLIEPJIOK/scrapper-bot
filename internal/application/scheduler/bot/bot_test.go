@@ -33,7 +33,6 @@ func TestScheduler_SendUpdates_Error(t *testing.T) {
 	case msg := <-channels.TelegramResp():
 		t.Errorf("Expected no message to be sent, but got: %v", msg)
 	case <-time.After(50 * time.Millisecond):
-		// No message received as expected.
 	}
 }
 
@@ -79,6 +78,5 @@ func TestScheduler_SendUpdates_Success(t *testing.T) {
 	case extra := <-channels.TelegramResp():
 		t.Errorf("Expected only two messages, but got an extra message: %v", extra)
 	case <-time.After(50 * time.Millisecond):
-		// No extra message as expected.
 	}
 }
