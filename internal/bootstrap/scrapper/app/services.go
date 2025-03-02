@@ -33,7 +33,7 @@ func (a *App) runServer(ctx context.Context, stop context.CancelFunc, wg *sync.W
 	defer stop()
 	defer slog.Info("service stopped")
 
-	scrapperServer := scrapsrv.NewScrapperServer(a.repo)
+	scrapperServer := scrapsrv.NewServer(a.repo)
 
 	srv, err := scrapperapi.NewServer(scrapperServer)
 	if err != nil {
@@ -82,11 +82,11 @@ func (a *App) runScheduler(ctx context.Context, stop context.CancelFunc, wg *syn
 		slog.Error("failed to create ogen bot client", slog.Any("error", err))
 	}
 
-	botClient := botclient.NewBotClient(ogenClient)
+	botClient := botclient.NewClient(ogenClient)
 	ghClient := github.New(&a.cfg.GitHub, httpClient)
 	sofClient := sof.New(httpClient)
 
-	schedule := scrshed.NewScrapperScheduler(&a.cfg.Scheduler, a.repo, botClient, ghClient, sofClient)
+	schedule := scrshed.NewScheduler(&a.cfg.Scheduler, a.repo, botClient, ghClient, sofClient)
 
 	if err := schedule.Run(ctx); err != nil {
 		slog.Error("failed to run scheduler", slog.Any("error", err))

@@ -9,7 +9,7 @@ import (
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/scrapper"
 )
 
-type Client interface {
+type ExternalClient interface {
 	LinksDelete(
 		ctx context.Context,
 		request *scrapper.RemoveLinkRequest,
@@ -31,17 +31,17 @@ type Client interface {
 	) (scrapper.TgChatIDPostRes, error)
 }
 
-type ScrapperClient struct {
-	client Client
+type Client struct {
+	client ExternalClient
 }
 
-func NewScrapperClient(client Client) *ScrapperClient {
-	return &ScrapperClient{
+func NewClient(client ExternalClient) *Client {
+	return &Client{
 		client: client,
 	}
 }
 
-func (s *ScrapperClient) RegisterChat(ctx context.Context, id int64) error {
+func (s *Client) RegisterChat(ctx context.Context, id int64) error {
 	rawResp, err := s.client.TgChatIDPost(ctx, scrapper.TgChatIDPostParams{
 		ID: id,
 	})
@@ -61,7 +61,7 @@ func (s *ScrapperClient) RegisterChat(ctx context.Context, id int64) error {
 	}
 }
 
-func (s *ScrapperClient) AddLink(ctx context.Context, link *domain.Link) error {
+func (s *Client) AddLink(ctx context.Context, link *domain.Link) error {
 	parsedURL, err := url.Parse(link.URL)
 	if err != nil {
 		return fmt.Errorf("failed to parse url: %w", err)
@@ -90,7 +90,7 @@ func (s *ScrapperClient) AddLink(ctx context.Context, link *domain.Link) error {
 	}
 }
 
-func (s *ScrapperClient) DeleteLink(ctx context.Context, chatID int64, linkURL string) error {
+func (s *Client) DeleteLink(ctx context.Context, chatID int64, linkURL string) error {
 	parsedURL, err := url.Parse(linkURL)
 	if err != nil {
 		return fmt.Errorf("failed to parse url: %w", err)
@@ -121,7 +121,7 @@ func (s *ScrapperClient) DeleteLink(ctx context.Context, chatID int64, linkURL s
 	}
 }
 
-func (s *ScrapperClient) GetLinks(ctx context.Context, chatID int64) ([]*domain.Link, error) {
+func (s *Client) GetLinks(ctx context.Context, chatID int64) ([]*domain.Link, error) {
 	rawResp, err := s.client.LinksGet(ctx, scrapper.LinksGetParams{
 		TgChatID: chatID,
 	})

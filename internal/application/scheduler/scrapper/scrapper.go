@@ -26,20 +26,20 @@ type Client interface {
 	UpdatesPost(ctx context.Context, link string, chats []int64) error
 }
 
-type ScrapperScheduler struct {
+type Scheduler struct {
 	repo     Repository
 	client   Client
 	checkers []Checher
 	interval time.Duration
 }
 
-func NewScrapperScheduler(
+func NewScheduler(
 	cfg *config.Scheduler,
 	repo Repository,
 	client Client,
 	checkers ...Checher,
-) *ScrapperScheduler {
-	return &ScrapperScheduler{
+) *Scheduler {
+	return &Scheduler{
 		repo:     repo,
 		client:   client,
 		checkers: checkers,
@@ -47,7 +47,7 @@ func NewScrapperScheduler(
 	}
 }
 
-func (s *ScrapperScheduler) Run(ctx context.Context) error {
+func (s *Scheduler) Run(ctx context.Context) error {
 	ch := make(chan *domain.CheckLink)
 
 	for range numWorkers {
@@ -84,7 +84,7 @@ func (s *ScrapperScheduler) Run(ctx context.Context) error {
 	return nil
 }
 
-func (s *ScrapperScheduler) worker(ctx context.Context, ch <-chan *domain.CheckLink) {
+func (s *Scheduler) worker(ctx context.Context, ch <-chan *domain.CheckLink) {
 	for {
 		select {
 		case <-ctx.Done():

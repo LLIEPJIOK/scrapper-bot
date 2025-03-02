@@ -13,15 +13,15 @@ type Repository interface {
 	GetUpdates() ([]*repository.UpdateChat, error)
 }
 
-type BotServer struct {
+type Server struct {
 	repo Repository
 }
 
-func NewBotServer(repo Repository) *BotServer {
-	return &BotServer{repo: repo}
+func NewServer(repo Repository) *Server {
+	return &Server{repo: repo}
 }
 
-func (s *BotServer) UpdatesPost(
+func (s *Server) UpdatesPost(
 	_ context.Context,
 	req *bot.LinkUpdate,
 ) (bot.UpdatesPostRes, error) {

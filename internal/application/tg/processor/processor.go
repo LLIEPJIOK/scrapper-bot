@@ -3,6 +3,7 @@ package processor
 import (
 	"context"
 	"log/slog"
+	"sync"
 
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/fsm"
@@ -27,6 +28,7 @@ type Processor struct {
 	fsm      *fsm.FSM[*State]
 	client   Client
 	channels Channels
+	mu       sync.RWMutex
 	states   map[int64]*State
 }
 
@@ -74,8 +76,25 @@ func New(client Client, channels Channels) *Processor {
 		client:   client,
 		channels: channels,
 		fsm:      fsmBuilder.Build(),
+		mu:       sync.RWMutex{},
 		states:   make(map[int64]*State),
 	}
+}
+
+func (p *Processor) GetState(chatID int64) (*State, bool) {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+
+	state, ok := p.states[chatID]
+
+	return state, ok
+}
+
+func (p *Processor) SetState(chatID int64, state *State) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	p.states[chatID] = state
 }
 
 func (p *Processor) Run(ctx context.Context) error {
@@ -96,7 +115,7 @@ func (p *Processor) Run(ctx context.Context) error {
 			case domain.Message:
 				slog.Info("getting message", slog.Any("message", req.Message))
 
-				state, ok := p.states[req.ChatID]
+				state, ok := p.GetState(req.ChatID)
 				if !ok || state.FSMState.String() == "" {
 					workCh <- &State{
 						FSMState:  fail,
@@ -123,7 +142,7 @@ func (p *Processor) Run(ctx context.Context) error {
 			case domain.Callback:
 				slog.Info("getting callback", slog.Any("callback", req.Message))
 
-				state, ok := p.states[req.ChatID]
+				state, ok := p.GetState(req.ChatID)
 				if !ok || state.FSMState != callback {
 					workCh <- &State{
 						FSMState:  fail,

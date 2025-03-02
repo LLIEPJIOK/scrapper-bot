@@ -20,7 +20,7 @@ func (p *Processor) worker(ctx context.Context, workCh chan *State) {
 
 		if res != nil {
 			res.Result.FSMState = res.NextState
-			p.states[res.Result.ChatID] = res.Result
+			p.SetState(res.Result.ChatID, res.Result)
 		}
 	}
 }

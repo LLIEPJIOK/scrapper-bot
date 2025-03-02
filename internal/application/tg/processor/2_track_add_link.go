@@ -28,7 +28,7 @@ func NewTrackLinkAdder(channels Channels) *TrackLinkAdder {
 			"https://github.com/{user}/pull/{id}",
 		},
 		regexes: []*regexp.Regexp{
-			regexp.MustCompile(`^https://stackoverflow.com/questions/(\d+)/([\w-]+)$`),
+			regexp.MustCompile(`^https://stackoverflow\.com/questions/(\d+)/([\w-]+)$`),
 			regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)$`),
 			regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)/issues/(\d+)$`),
 			regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)/pull/(\d+)$`),
@@ -39,7 +39,7 @@ func NewTrackLinkAdder(channels Channels) *TrackLinkAdder {
 func (h *TrackLinkAdder) Handle(ctx context.Context, state *State) *fsm.Result[*State] {
 	if !h.isValidLink(state.Message) {
 		ans := "Неверный формат ссылки. Используйте следующие форматы:\n- "
-		ans += strings.Join(h.formats, "\n -")
+		ans += strings.Join(h.formats, "\n- ")
 
 		msg := tgbotapi.NewMessage(state.ChatID, ans)
 		h.channels.TelegramResp() <- msg

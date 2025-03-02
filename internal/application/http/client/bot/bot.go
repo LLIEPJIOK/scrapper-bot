@@ -8,21 +8,21 @@ import (
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/bot"
 )
 
-type Client interface {
+type ExternalClient interface {
 	UpdatesPost(ctx context.Context, request *bot.LinkUpdate) (bot.UpdatesPostRes, error)
 }
 
-type BotClient struct {
-	client Client
+type Client struct {
+	client ExternalClient
 }
 
-func NewBotClient(client Client) *BotClient {
-	return &BotClient{
+func NewClient(client ExternalClient) *Client {
+	return &Client{
 		client: client,
 	}
 }
 
-func (b *BotClient) UpdatesPost(ctx context.Context, link string, chats []int64) error {
+func (b *Client) UpdatesPost(ctx context.Context, link string, chats []int64) error {
 	parsedURL, err := url.Parse(link)
 	if err != nil {
 		return fmt.Errorf("failed to parse link: %w", err)

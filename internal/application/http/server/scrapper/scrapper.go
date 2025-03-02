@@ -21,17 +21,17 @@ type Repository interface {
 	ListLinks(chatID int64) ([]*domain.Link, error)
 }
 
-type ScrapperServer struct {
+type Server struct {
 	repo Repository
 }
 
-func NewScrapperServer(repo Repository) *ScrapperServer {
-	return &ScrapperServer{
+func NewServer(repo Repository) *Server {
+	return &Server{
 		repo: repo,
 	}
 }
 
-func (s *ScrapperServer) TgChatIDPost(
+func (s *Server) TgChatIDPost(
 	_ context.Context,
 	params scrapper.TgChatIDPostParams,
 ) (scrapper.TgChatIDPostRes, error) {
@@ -46,7 +46,7 @@ func (s *ScrapperServer) TgChatIDPost(
 	return &scrapper.TgChatIDPostOK{}, nil
 }
 
-func (s *ScrapperServer) TgChatIDDelete(
+func (s *Server) TgChatIDDelete(
 	_ context.Context,
 	params scrapper.TgChatIDDeleteParams,
 ) (scrapper.TgChatIDDeleteRes, error) {
@@ -67,7 +67,7 @@ func (s *ScrapperServer) TgChatIDDelete(
 	}
 }
 
-func (s *ScrapperServer) LinksPost(
+func (s *Server) LinksPost(
 	_ context.Context,
 	req *scrapper.AddLinkRequest,
 	params scrapper.LinksPostParams,
@@ -101,7 +101,7 @@ func (s *ScrapperServer) LinksPost(
 	}, nil
 }
 
-func (s *ScrapperServer) LinksGet(
+func (s *Server) LinksGet(
 	_ context.Context,
 	params scrapper.LinksGetParams,
 ) (scrapper.LinksGetRes, error) {
@@ -116,7 +116,7 @@ func (s *ScrapperServer) LinksGet(
 	return domainLinksToResponse(links), nil
 }
 
-func (s *ScrapperServer) LinksDelete(
+func (s *Server) LinksDelete(
 	_ context.Context,
 	req *scrapper.RemoveLinkRequest,
 	params scrapper.LinksDeleteParams,

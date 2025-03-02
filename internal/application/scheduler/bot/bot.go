@@ -20,7 +20,7 @@ type Channels interface {
 	TelegramResp() chan tgbotapi.Chattable
 }
 
-type BotScheduler struct {
+type Scheduler struct {
 	repo      Repository
 	channels  Channels
 	atHours   uint
@@ -28,8 +28,8 @@ type BotScheduler struct {
 	atSeconds uint
 }
 
-func NewBotScheduler(cfg *config.Scheduler, repo Repository, channels Channels) *BotScheduler {
-	return &BotScheduler{
+func NewScheduler(cfg *config.Scheduler, repo Repository, channels Channels) *Scheduler {
+	return &Scheduler{
 		repo:      repo,
 		channels:  channels,
 		atHours:   cfg.AtHours,
@@ -38,7 +38,7 @@ func NewBotScheduler(cfg *config.Scheduler, repo Repository, channels Channels) 
 	}
 }
 
-func (s *BotScheduler) Run(ctx context.Context) error {
+func (s *Scheduler) Run(ctx context.Context) error {
 	schedule, err := gocron.NewScheduler()
 	if err != nil {
 		return fmt.Errorf("failed to create scheduler: %w", err)

@@ -1,5 +1,10 @@
 with-expecter: true
-filename: "{{.InterfaceName | snakecase}}.go"
-mockname: "{{.InterfaceName | firstUpper}}"
+filename: "{{.InterfaceName | snakecase}}_mock.go"
+mockname: "Mock{{.InterfaceName | firstUpper}}"
 outpkg: mocks
 packages:
+  github.com/es-debug/backend-academy-2024-go-template/internal/application/tg/processor:
+    config:
+      dir: ./internal/application/tg/processor/mocks
+    interfaces:
+      Client:

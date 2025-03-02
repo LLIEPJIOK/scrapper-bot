@@ -72,7 +72,7 @@ func (a *App) runProcessor(ctx context.Context, stop context.CancelFunc, wg *syn
 		slog.Error("failed to create ogen scrapper client", slog.Any("error", err))
 	}
 
-	scrap := scrapper.NewScrapperClient(ogenClient)
+	scrap := scrapper.NewClient(ogenClient)
 	proc := processor.New(scrap, a.channels)
 
 	if err := proc.Run(ctx); err != nil {
@@ -85,7 +85,7 @@ func (a *App) runServer(ctx context.Context, stop context.CancelFunc, wg *sync.W
 	defer stop()
 	defer slog.Info("service stopped")
 
-	botServer := botsrv.NewBotServer(a.repo)
+	botServer := botsrv.NewServer(a.repo)
 
 	srv, err := botapi.NewServer(botServer)
 	if err != nil {
@@ -124,7 +124,7 @@ func (a *App) runScheduler(ctx context.Context, stop context.CancelFunc, wg *syn
 	defer stop()
 	defer slog.Info("scheduler stopped")
 
-	schedule := botscheduler.NewBotScheduler(&a.cfg.Scheduler, a.repo, a.channels)
+	schedule := botscheduler.NewScheduler(&a.cfg.Scheduler, a.repo, a.channels)
 
 	if err := schedule.Run(ctx); err != nil {
 		slog.Error("failed to run scheduler", slog.Any("error", err))
