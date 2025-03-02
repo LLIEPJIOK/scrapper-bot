@@ -8,7 +8,7 @@ import (
 	"net/url"
 
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
-	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/repository"
+	repository "github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/repository/scrapper"
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/scrapper"
 )
 

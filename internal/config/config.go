@@ -24,11 +24,13 @@ type App struct {
 
 type Bot struct {
 	APIToken    string
+	URL         string `yaml:"url"`
 	ScrapperURL string `yaml:"scrapper_url"`
 }
 
 type Scrapper struct {
-	URL string `yaml:"url"`
+	URL    string `yaml:"url"`
+	BotURL string `yaml:"bot_url"`
 }
 
 type Client struct {

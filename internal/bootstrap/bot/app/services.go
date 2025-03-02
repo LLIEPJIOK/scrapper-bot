@@ -11,7 +11,10 @@ import (
 	"github.com/es-debug/backend-academy-2024-go-template/internal/application/tg/bot"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/config"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/bot/processor"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/bot/service"
+	repository "github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/repository/bot"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/scrapper/client"
+	botapi "github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/bot"
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/scrapper"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -22,6 +25,7 @@ func (a *App) services() []runService {
 	return []runService{
 		a.runBot,
 		a.runProcessor,
+		a.runServer,
 	}
 }
 
@@ -71,6 +75,27 @@ func (a *App) runProcessor(ctx context.Context, stop context.CancelFunc, wg *syn
 
 	if err := proc.Run(ctx); err != nil {
 		slog.Error("failed to run processor", slog.Any("err", err))
+	}
+}
+
+func (a *App) runServer(ctx context.Context, stop context.CancelFunc, wg *sync.WaitGroup) {
+	defer wg.Done()
+	defer stop()
+	defer slog.Info("service stopped")
+
+	svc := service.New(repository.New())
+
+	srv, err := botapi.NewServer(svc)
+	if err != nil {
+		slog.Error("failed to create bot server", slog.Any("error", err))
+
+		return
+	}
+
+	if err := http.ListenAndServe(a.cfg.Bot.URL, srv); err != nil {
+		slog.Error("failed to start bot server", slog.Any("error", err))
+
+		return
 	}
 }
 

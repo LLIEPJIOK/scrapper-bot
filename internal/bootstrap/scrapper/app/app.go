@@ -8,15 +8,18 @@ import (
 	"syscall"
 
 	"github.com/es-debug/backend-academy-2024-go-template/internal/config"
+	repository "github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/repository/scrapper"
 )
 
 type App struct {
-	cfg *config.Config
+	cfg  *config.Config
+	repo *repository.Repository
 }
 
 func New(cfg *config.Config) *App {
 	return &App{
-		cfg: cfg,
+		cfg:  cfg,
+		repo: repository.New(),
 	}
 }
 

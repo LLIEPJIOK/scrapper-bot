@@ -92,16 +92,14 @@ func (c *Client) hasSourceUpdates(url string, lastCheck time.Time) (bool, error)
 	}()
 
 	dec := json.NewDecoder(resp.Body)
-	data := make([]Data, 0)
+	data := &Data{}
 
-	if err := dec.Decode(&data); err != nil {
+	if err := dec.Decode(data); err != nil {
 		return false, fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	for _, d := range data {
-		if d.UpdatedAt.After(lastCheck) {
-			return true, nil
-		}
+	if data.UpdatedAt.After(lastCheck) {
+		return true, nil
 	}
 
 	return false, nil

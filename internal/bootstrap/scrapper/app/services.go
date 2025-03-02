@@ -11,7 +11,6 @@ import (
 	"github.com/es-debug/backend-academy-2024-go-template/internal/config"
 	botclient "github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/bot/client"
 	ghclient "github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/github/client"
-	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/repository"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/scrapper/scheduler"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/scrapper/service"
 	sofclient "github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/stackoverflow/client"
@@ -33,7 +32,7 @@ func (a *App) runServer(ctx context.Context, stop context.CancelFunc, wg *sync.W
 	defer stop()
 	defer slog.Info("service stopped")
 
-	svc := service.New(repository.New())
+	svc := service.New(a.repo)
 
 	srv, err := scrapper.NewServer(svc)
 	if err != nil {
@@ -42,7 +41,7 @@ func (a *App) runServer(ctx context.Context, stop context.CancelFunc, wg *sync.W
 		return
 	}
 
-	if err := http.ListenAndServe(":8080", srv); err != nil {
+	if err := http.ListenAndServe(a.cfg.Scrapper.URL, srv); err != nil {
 		slog.Error("failed to start scrapper server", slog.Any("error", err))
 
 		return
@@ -57,7 +56,7 @@ func (a *App) runScheduler(ctx context.Context, stop context.CancelFunc, wg *syn
 	httpClient := configureClient(&a.cfg.Client)
 
 	ogenClient, err := botapi.NewClient(
-		a.cfg.Bot.ScrapperURL,
+		a.cfg.Scrapper.BotURL,
 		botapi.WithClient(httpClient),
 	)
 	if err != nil {
@@ -68,9 +67,7 @@ func (a *App) runScheduler(ctx context.Context, stop context.CancelFunc, wg *syn
 	ghClient := ghclient.New(&a.cfg.GitHub, httpClient)
 	sofClient := sofclient.New(httpClient)
 
-	repo := repository.New()
-
-	schedule := scheduler.New(&a.cfg.Scheduler, repo, botClient, ghClient, sofClient)
+	schedule := scheduler.New(&a.cfg.Scheduler, a.repo, botClient, ghClient, sofClient)
 
 	if err := schedule.Run(ctx); err != nil {
 		slog.Error("failed to run scheduler", slog.Any("error", err))

@@ -1,9 +1,11 @@
 app:
   terminate_timeout: 5s
 bot:
+  url: localhost:8081
   scrapper_url: http://localhost:8080
 scrapper:
   url: localhost:8080
+  bot_url: http://localhost:8081
 client:
   dial_timeout_seconds: 5s
   dial_keep_alive_seconds: 30s
