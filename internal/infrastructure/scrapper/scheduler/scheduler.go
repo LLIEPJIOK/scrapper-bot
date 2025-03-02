@@ -23,6 +23,7 @@ type Checher interface {
 }
 
 type Client interface {
+	UpdatesPost(ctx context.Context, link string, chats []int64) error
 }
 
 type Scheduler struct {
@@ -110,7 +111,15 @@ func (s *Scheduler) worker(ctx context.Context, ch <-chan *domain.CheckLink) {
 			}
 
 			if hasUpdates {
-				// s.client
+				err := s.client.UpdatesPost(ctx, link.URL, link.Chats)
+				if err != nil {
+					slog.Error(
+						"failed to send updates",
+						slog.Any("url", link.URL),
+						slog.Any("chats", link.Chats),
+						slog.Any("error", err),
+					)
+				}
 			}
 
 			if hasUpdates || !hasError {
