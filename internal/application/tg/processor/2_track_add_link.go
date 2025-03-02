@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"net/url"
+	"regexp"
 	"strings"
 
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
@@ -13,21 +13,33 @@ import (
 )
 
 type TrackLinkAdder struct {
-	validLinks []string
-	channels   Channels
+	channels Channels
+	formats  []string
+	regexes  []*regexp.Regexp
 }
 
 func NewTrackLinkAdder(channels Channels) *TrackLinkAdder {
 	return &TrackLinkAdder{
-		validLinks: []string{"https://stackoverflow.com/questions/", "https://github.com/"},
-		channels:   channels,
+		channels: channels,
+		formats: []string{
+			"https://stackoverflow.com/questions/{id}/{title}",
+			"https://github.com/{user}/{repo}",
+			"https://github.com/{user}/{repo}/issues/{id}",
+			"https://github.com/{user}/pull/{id}",
+		},
+		regexes: []*regexp.Regexp{
+			regexp.MustCompile(`^https://stackoverflow.com/questions/(\d+)/([\w-]+)$`),
+			regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)$`),
+			regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)/issues/(\d+)$`),
+			regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)/pull/(\d+)$`),
+		},
 	}
 }
 
 func (h *TrackLinkAdder) Handle(ctx context.Context, state *State) *fsm.Result[*State] {
 	if !h.isValidLink(state.Message) {
 		ans := "Неверный формат ссылки. Используйте следующие форматы:\n- "
-		ans += strings.Join(h.validLinks, "\n -")
+		ans += strings.Join(h.formats, "\n -")
 
 		msg := tgbotapi.NewMessage(state.ChatID, ans)
 		h.channels.TelegramResp() <- msg
@@ -49,11 +61,9 @@ func (h *TrackLinkAdder) Handle(ctx context.Context, state *State) *fsm.Result[*
 }
 
 func (h *TrackLinkAdder) isValidLink(link string) bool {
-	for _, validLink := range h.validLinks {
-		if strings.HasPrefix(link, validLink) {
-			_, err := url.Parse(link)
-
-			return err == nil
+	for _, reges := range h.regexes {
+		if reges.MatchString(link) {
+			return true
 		}
 	}
 
