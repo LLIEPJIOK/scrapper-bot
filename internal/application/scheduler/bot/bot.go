@@ -49,20 +49,7 @@ func (s *Scheduler) Run(ctx context.Context) error {
 			1,
 			gocron.NewAtTimes(gocron.NewAtTime(s.atHours, s.atMinutes, s.atSeconds)),
 		),
-		gocron.NewTask(func() {
-			updates, err := s.repo.GetUpdates()
-			if err != nil {
-				slog.Error("failed to get updates", slog.Any("error", err))
-
-				return
-			}
-
-			for _, update := range updates {
-				ans := updateToText(update)
-				msg := tgbotapi.NewMessage(update.ID, ans)
-				s.channels.TelegramResp() <- msg
-			}
-		}),
+		gocron.NewTask(s.SendUpdates),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create scheduler job: %w", err)
@@ -78,6 +65,21 @@ func (s *Scheduler) Run(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (s *Scheduler) SendUpdates() {
+	updates, err := s.repo.GetUpdates()
+	if err != nil {
+		slog.Error("failed to get updates", slog.Any("error", err))
+
+		return
+	}
+
+	for _, update := range updates {
+		ans := updateToText(update)
+		msg := tgbotapi.NewMessage(update.ID, ans)
+		s.channels.TelegramResp() <- msg
+	}
 }
 
 func updateToText(update *repository.UpdateChat) string {
