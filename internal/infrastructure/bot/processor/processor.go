@@ -97,7 +97,7 @@ func (p *Processor) Run(ctx context.Context) error {
 				slog.Info("getting message", slog.Any("message", req.Message))
 
 				state, ok := p.states[req.ChatID]
-				if !ok {
+				if !ok || state.FSMState.String() == "" {
 					workCh <- &State{
 						FSMState:  fail,
 						ChatID:    req.ChatID,
