@@ -60,7 +60,7 @@ func (a *App) runProcessor(ctx context.Context, stop context.CancelFunc, wg *syn
 
 	ogenClient, err := scrapper.NewClient(
 		a.cfg.Bot.ScrapperURL,
-		scrapper.WithClient(configureClient(a.cfg)),
+		scrapper.WithClient(configureClient(&a.cfg.Client)),
 	)
 	if err != nil {
 		slog.Error("failed to create ogen scrapper client", slog.Any("error", err))
@@ -74,17 +74,17 @@ func (a *App) runProcessor(ctx context.Context, stop context.CancelFunc, wg *syn
 	}
 }
 
-func configureClient(cfg *config.Config) *http.Client {
+func configureClient(cfg *config.Client) *http.Client {
 	transport := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 		DialContext: (&net.Dialer{
-			Timeout:   cfg.Client.DialTimeout,
-			KeepAlive: cfg.Client.DialKeepAlive,
+			Timeout:   cfg.DialTimeout,
+			KeepAlive: cfg.DialKeepAlive,
 		}).DialContext,
-		MaxIdleConns:          cfg.Client.MaxIdleConns,
-		IdleConnTimeout:       cfg.Client.IdleConnTimeout,
-		TLSHandshakeTimeout:   cfg.Client.TLSHandshakeTimeout,
-		ExpectContinueTimeout: cfg.Client.ExpectContinueTimeout,
+		MaxIdleConns:          cfg.MaxIdleConns,
+		IdleConnTimeout:       cfg.IdleConnTimeout,
+		TLSHandshakeTimeout:   cfg.TLSHandshakeTimeout,
+		ExpectContinueTimeout: cfg.ExpectContinueTimeout,
 		ForceAttemptHTTP2:     true,
 		TLSNextProto: make(
 			map[string]func(authority string, c *tls.Conn) http.RoundTripper,
@@ -93,6 +93,6 @@ func configureClient(cfg *config.Config) *http.Client {
 
 	return &http.Client{
 		Transport: transport,
-		Timeout:   cfg.Client.Timeout,
+		Timeout:   cfg.Timeout,
 	}
 }

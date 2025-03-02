@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+	"time"
 )
 
 const (
@@ -24,10 +25,10 @@ func New(httpClient *http.Client) *Client {
 	}
 }
 
-func (c *Client) HasUpdates(link string, lastUpdate int64) (bool, error) {
+func (c *Client) HasUpdates(link string, lastCheck time.Time) (bool, error) {
 	suffix, ok := strings.CutPrefix(link, prefix)
 	if !ok {
-		return false, NewErrInvalidLink(link)
+		return false, nil
 	}
 
 	slashIdx := strings.Index(suffix, "/")
@@ -37,13 +38,13 @@ func (c *Client) HasUpdates(link string, lastUpdate int64) (bool, error) {
 
 	questionID := suffix[:slashIdx]
 
-	hasUpdates, err := c.hasSourceUpdates(answersURL, questionID, lastUpdate)
+	hasUpdates, err := c.hasSourceUpdates(answersURL, questionID, lastCheck)
 	if err != nil {
 		return false, fmt.Errorf(
-			"c.hasSourceUpdates(%q, %q, %d): %w",
+			"c.hasSourceUpdates(%q, %q, %v): %w",
 			answersURL,
 			questionID,
-			lastUpdate,
+			lastCheck,
 			err,
 		)
 	}
@@ -52,13 +53,13 @@ func (c *Client) HasUpdates(link string, lastUpdate int64) (bool, error) {
 		return true, nil
 	}
 
-	hasUpdates, err = c.hasSourceUpdates(commentsURL, questionID, lastUpdate)
+	hasUpdates, err = c.hasSourceUpdates(commentsURL, questionID, lastCheck)
 	if err != nil {
 		return false, fmt.Errorf(
-			"c.hasSourceUpdates(%q, %q, %d): %w",
+			"c.hasSourceUpdates(%q, %q, %v): %w",
 			commentsURL,
 			questionID,
-			lastUpdate,
+			lastCheck,
 			err,
 		)
 	}
@@ -66,8 +67,8 @@ func (c *Client) HasUpdates(link string, lastUpdate int64) (bool, error) {
 	return hasUpdates, nil
 }
 
-func (c *Client) hasSourceUpdates(sourceURL, questionID string, lastUpdate int64) (bool, error) {
-	url := fmt.Sprintf(sourceURL, questionID, lastUpdate)
+func (c *Client) hasSourceUpdates(sourceURL, questionID string, lastCheck time.Time) (bool, error) {
+	url := fmt.Sprintf(sourceURL, questionID, lastCheck.Unix())
 
 	req, err := http.NewRequest(
 		http.MethodGet,

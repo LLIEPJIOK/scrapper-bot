@@ -56,7 +56,7 @@ func (c *Client) HasUpdates(link string, lastCheck time.Time) (bool, error) {
 		return c.hasSourceUpdates(url, lastCheck)
 
 	default:
-		return false, NewErrInvalidLink(link, "unknown type")
+		return false, nil
 	}
 }
 

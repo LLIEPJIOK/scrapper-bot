@@ -10,11 +10,12 @@ import (
 )
 
 type Config struct {
-	App      App      `yaml:"app"`
-	Bot      Bot      `yaml:"bot"`
-	Scrapper Scrapper `yaml:"scrapper"`
-	Client   Client   `yaml:"client"`
-	GitHub   GitHub   `yaml:"github"`
+	App       App       `yaml:"app"`
+	Bot       Bot       `yaml:"bot"`
+	Scrapper  Scrapper  `yaml:"scrapper"`
+	Client    Client    `yaml:"client"`
+	GitHub    GitHub    `yaml:"github"`
+	Scheduler Scheduler `yaml:"scheduler"`
 }
 
 type App struct {
@@ -42,6 +43,10 @@ type Client struct {
 
 type GitHub struct {
 	Token string
+}
+
+type Scheduler struct {
+	Interval time.Duration `yaml:"interval"`
 }
 
 func Load(path string) (*Config, error) {

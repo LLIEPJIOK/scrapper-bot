@@ -13,3 +13,5 @@ client:
   expect_continue_timeout_seconds: 1s
   timeout: 30s
 github:
+scheduler:
+  interval: 1h
