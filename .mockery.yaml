@@ -13,6 +13,11 @@ packages:
       dir: ./internal/application/http/server/scrapper/mocks
     interfaces:
       Repository:
+  github.com/es-debug/backend-academy-2024-go-template/internal/application/http/server/bot:
+    config:
+      dir: ./internal/application/http/server/bot/mocks
+    interfaces:
+      Repository:
   github.com/es-debug/backend-academy-2024-go-template/internal/application/scheduler/bot:
     config:
       dir: ./internal/application/scheduler/bot/mocks
