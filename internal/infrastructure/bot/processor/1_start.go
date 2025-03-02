@@ -38,6 +38,7 @@ func NewStater(client Client, channels Channels) *Stater {
 func (h *Stater) Handle(ctx context.Context, state *State) *fsm.Result[*State] {
 	if err := h.client.RegisterChat(ctx, state.ChatID); err != nil {
 		state.ShowError = "ошибка регистрации чата"
+
 		return &fsm.Result[*State]{
 			NextState:        fail,
 			IsAutoTransition: true,

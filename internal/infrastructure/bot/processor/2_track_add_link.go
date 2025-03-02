@@ -83,7 +83,7 @@ func createKeyboard(link *domain.Link) tgbotapi.InlineKeyboardMarkup {
 }
 
 func updateField(
-	ctx context.Context,
+	_ context.Context,
 	state *State,
 	ch chan tgbotapi.Chattable,
 	update func(*domain.Link, string) *domain.Link,

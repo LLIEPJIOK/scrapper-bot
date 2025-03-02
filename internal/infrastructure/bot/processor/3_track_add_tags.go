@@ -20,7 +20,7 @@ func NewTrackTagAdder(channels Channels) *TrackTagAdder {
 
 func (h *TrackTagAdder) Handle(ctx context.Context, state *State) *fsm.Result[*State] {
 	update := func(link *domain.Link, value string) *domain.Link {
-		link.Tags = strings.Fields(state.Message)
+		link.Tags = strings.Fields(value)
 
 		return link
 	}

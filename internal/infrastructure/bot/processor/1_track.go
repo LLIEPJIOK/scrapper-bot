@@ -24,7 +24,7 @@ func NewTracker(channels Channels) *Tracker {
 	}
 }
 
-func (h *Tracker) Handle(ctx context.Context, state *State) *fsm.Result[*State] {
+func (h *Tracker) Handle(_ context.Context, state *State) *fsm.Result[*State] {
 	msg := tgbotapi.NewMessage(state.ChatID, trackerAnswer)
 	h.channels.TelegramResp() <- msg
 

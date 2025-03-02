@@ -32,9 +32,9 @@ type Client struct {
 func New(cfg *config.GitHub, httpClient *http.Client) *Client {
 	return &Client{
 		client:     httpClient,
-		repoRegex:  regexp.MustCompile(`^https://github\.com/([\w\.-]+)/([\w\.-]+)$`),
-		issueRegex: regexp.MustCompile(`^https://github\.com/([\w\.-]+)/([\w\.-]+)/issues/(\d+)$`),
-		pullRegex:  regexp.MustCompile(`^https://github\.com/([\w\.-]+)/([\w\.-]+)/pull/(\d+)$`),
+		repoRegex:  regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)$`),
+		issueRegex: regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)/issues/(\d+)$`),
+		pullRegex:  regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)/pull/(\d+)$`),
 		token:      cfg.Token,
 	}
 }
@@ -49,7 +49,7 @@ func (c *Client) HasUpdates(link string, lastCheck time.Time) (bool, error) {
 			url := fmt.Sprintf(template, matches[1], matches[2])
 			data := make([]Data, 0)
 
-			err := c.getAndDecodeResponse(url, lastCheck, &data)
+			err := c.getAndDecodeResponse(url, &data)
 			if err != nil {
 				return false, err
 			}
@@ -64,7 +64,7 @@ func (c *Client) HasUpdates(link string, lastCheck time.Time) (bool, error) {
 		url := fmt.Sprintf(repoActivityURL, matches[1], matches[2])
 		data := make([]Data, 0)
 
-		err := c.getAndDecodeResponse(url, lastCheck, &data)
+		err := c.getAndDecodeResponse(url, &data)
 		if err != nil {
 			return false, err
 		}
@@ -82,7 +82,7 @@ func (c *Client) HasUpdates(link string, lastCheck time.Time) (bool, error) {
 		url := fmt.Sprintf(issueURL, matches[1], matches[2], matches[3])
 		data := Data{}
 
-		err := c.getAndDecodeResponse(url, lastCheck, &data)
+		err := c.getAndDecodeResponse(url, &data)
 		if err != nil {
 			return false, err
 		}
@@ -94,7 +94,7 @@ func (c *Client) HasUpdates(link string, lastCheck time.Time) (bool, error) {
 		url := fmt.Sprintf(pullURL, matches[1], matches[2], matches[3])
 		data := Data{}
 
-		err := c.getAndDecodeResponse(url, lastCheck, &data)
+		err := c.getAndDecodeResponse(url, &data)
 		if err != nil {
 			return false, err
 		}
@@ -106,12 +106,8 @@ func (c *Client) HasUpdates(link string, lastCheck time.Time) (bool, error) {
 	}
 }
 
-func (c *Client) getAndDecodeResponse(url string, lastCheck time.Time, data any) error {
-	req, err := http.NewRequest(
-		http.MethodGet,
-		url,
-		nil,
-	)
+func (c *Client) getAndDecodeResponse(url string, data any) error {
+	req, err := http.NewRequest(http.MethodGet, url, http.NoBody)
 	if err != nil {
 		return fmt.Errorf("failed to create request with url=%q: %w", url, err)
 	}

@@ -20,7 +20,7 @@ func NewTrackFilterAdder(channels Channels) *TrackFilterAdder {
 
 func (h *TrackFilterAdder) Handle(ctx context.Context, state *State) *fsm.Result[*State] {
 	update := func(link *domain.Link, value string) *domain.Link {
-		link.Filters = strings.Fields(state.Message)
+		link.Filters = strings.Fields(value)
 
 		return link
 	}

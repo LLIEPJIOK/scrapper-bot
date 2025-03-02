@@ -70,11 +70,7 @@ func (c *Client) HasUpdates(link string, lastCheck time.Time) (bool, error) {
 func (c *Client) hasSourceUpdates(sourceURL, questionID string, lastCheck time.Time) (bool, error) {
 	url := fmt.Sprintf(sourceURL, questionID, lastCheck.Unix())
 
-	req, err := http.NewRequest(
-		http.MethodGet,
-		url,
-		nil,
-	)
+	req, err := http.NewRequest(http.MethodGet, url, http.NoBody)
 	if err != nil {
 		return false, fmt.Errorf("failed to create request: %w", err)
 	}

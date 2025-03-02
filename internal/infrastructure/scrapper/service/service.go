@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	"net/url"
 
@@ -31,7 +32,7 @@ func New(repo Repository) *Service {
 }
 
 func (s *Service) TgChatIDPost(
-	ctx context.Context,
+	_ context.Context,
 	params scrapper.TgChatIDPostParams,
 ) (scrapper.TgChatIDPostRes, error) {
 	err := s.repo.RegisterChat(params.ID)
@@ -46,10 +47,11 @@ func (s *Service) TgChatIDPost(
 }
 
 func (s *Service) TgChatIDDelete(
-	ctx context.Context,
+	_ context.Context,
 	params scrapper.TgChatIDDeleteParams,
 ) (scrapper.TgChatIDDeleteRes, error) {
 	err := s.repo.DeleteChat(params.ID)
+
 	switch {
 	case errors.As(err, &repository.ErrUnregister{}):
 		return &scrapper.TgChatIDDeleteNotFound{}, nil
@@ -66,7 +68,7 @@ func (s *Service) TgChatIDDelete(
 }
 
 func (s *Service) LinksPost(
-	ctx context.Context,
+	_ context.Context,
 	req *scrapper.AddLinkRequest,
 	params scrapper.LinksPostParams,
 ) (scrapper.LinksPostRes, error) {
@@ -100,7 +102,7 @@ func (s *Service) LinksPost(
 }
 
 func (s *Service) LinksGet(
-	ctx context.Context,
+	_ context.Context,
 	params scrapper.LinksGetParams,
 ) (scrapper.LinksGetRes, error) {
 	links, err := s.repo.ListLinks(params.TgChatID)
@@ -115,11 +117,12 @@ func (s *Service) LinksGet(
 }
 
 func (s *Service) LinksDelete(
-	ctx context.Context,
+	_ context.Context,
 	req *scrapper.RemoveLinkRequest,
 	params scrapper.LinksDeleteParams,
 ) (scrapper.LinksDeleteRes, error) {
 	link, err := s.repo.UntrackLink(params.TgChatID, req.Link.Value.String())
+
 	switch {
 	case errors.As(err, &repository.ErrUnregister{}):
 		return &scrapper.LinksDeleteNotFound{}, nil
@@ -172,8 +175,11 @@ func domainLinksToResponse(links []*domain.Link) scrapper.LinksGetRes {
 		})
 	}
 
+	//nolint:gosec //has overflow check
+	var size = int32(min(len(respLinks), math.MaxInt32))
+
 	return &scrapper.ListLinksResponse{
 		Links: respLinks,
-		Size:  scrapper.NewOptInt32(int32(len(respLinks))),
+		Size:  scrapper.NewOptInt32(size),
 	}
 }

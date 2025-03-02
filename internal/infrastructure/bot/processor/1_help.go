@@ -24,7 +24,7 @@ func NewHelper(channels Channels) *Helper {
 	}
 }
 
-func (h *Helper) Handle(ctx context.Context, state *State) *fsm.Result[*State] {
+func (h *Helper) Handle(_ context.Context, state *State) *fsm.Result[*State] {
 	msg := tgbotapi.NewMessage(state.ChatID, helperAnswer)
 	h.channels.TelegramResp() <- msg
 

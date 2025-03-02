@@ -22,7 +22,7 @@ func New(repo Repository) *Service {
 }
 
 func (s *Service) UpdatesPost(
-	ctx context.Context,
+	_ context.Context,
 	req *bot.LinkUpdate,
 ) (bot.UpdatesPostRes, error) {
 	for _, chat := range req.TgChatIds {

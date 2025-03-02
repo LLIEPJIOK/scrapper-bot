@@ -1,5 +1,6 @@
 app:
   terminate_timeout: 5s
+  shutdown_timeout: 2s
 bot:
   url: localhost:8081
   scrapper_url: http://localhost:8080
@@ -14,6 +15,9 @@ client:
   tls_handshake_timeout_seconds: 10s
   expect_continue_timeout_seconds: 1s
   timeout: 30s
+server:
+  read_timeout: 10s
+  read_header_timeout: 10s
 github:
 scheduler:
   interval: 1h

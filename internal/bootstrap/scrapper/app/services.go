@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"log/slog"
 	"net"
 	"net/http"
@@ -41,10 +42,28 @@ func (a *App) runServer(ctx context.Context, stop context.CancelFunc, wg *sync.W
 		return
 	}
 
-	if err := http.ListenAndServe(a.cfg.Scrapper.URL, srv); err != nil {
-		slog.Error("failed to start scrapper server", slog.Any("error", err))
+	httpServer := &http.Server{
+		Addr:              a.cfg.Scrapper.URL,
+		Handler:           srv,
+		ReadTimeout:       a.cfg.Server.ReadTimeout,
+		ReadHeaderTimeout: a.cfg.Server.ReadHeaderTimeout,
+	}
 
-		return
+	go func() {
+		if err := httpServer.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
+			slog.Error("failed to start scrapper server", slog.Any("error", err))
+
+			stop()
+		}
+	}()
+
+	<-ctx.Done()
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), a.cfg.App.ShutdownTimeout)
+	defer cancel()
+
+	if err := httpServer.Shutdown(shutdownCtx); err != nil {
+		slog.Error("failed to shutdown scrapper server", slog.Any("error", err))
 	}
 }
 

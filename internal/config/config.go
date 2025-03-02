@@ -14,12 +14,14 @@ type Config struct {
 	Bot       Bot       `yaml:"bot"`
 	Scrapper  Scrapper  `yaml:"scrapper"`
 	Client    Client    `yaml:"client"`
+	Server    Server    `yaml:"server"`
 	GitHub    GitHub    `yaml:"github"`
 	Scheduler Scheduler `yaml:"scheduler"`
 }
 
 type App struct {
 	TerminateTimeout time.Duration `yaml:"terminate_timeout"`
+	ShutdownTimeout  time.Duration `yaml:"shutdown_timeout"`
 }
 
 type Bot struct {
@@ -41,6 +43,11 @@ type Client struct {
 	TLSHandshakeTimeout   time.Duration `yaml:"tls_handshake_timeout"`
 	ExpectContinueTimeout time.Duration `yaml:"expect_continue_timeout"`
 	Timeout               time.Duration `yaml:"timeout"`
+}
+
+type Server struct {
+	ReadTimeout       time.Duration `yaml:"read_timeout"`
+	ReadHeaderTimeout time.Duration `yaml:"read_header_timeout"`
 }
 
 type GitHub struct {

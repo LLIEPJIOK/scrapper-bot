@@ -13,7 +13,7 @@ func NewCommander() *Commander {
 	return &Commander{}
 }
 
-func (h *Commander) Handle(ctx context.Context, state *State) *fsm.Result[*State] {
+func (h *Commander) Handle(_ context.Context, state *State) *fsm.Result[*State] {
 	switch state.Message {
 	case "/start":
 		return &fsm.Result[*State]{

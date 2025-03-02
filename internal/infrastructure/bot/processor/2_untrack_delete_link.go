@@ -39,6 +39,7 @@ func (h *UntrackLinkDeleter) Handle(ctx context.Context, state *State) *fsm.Resu
 
 	err = h.client.DeleteLink(ctx, state.ChatID, state.Message)
 	userErr := &client.ErrUserResponse{}
+
 	if errors.Is(err, userErr) {
 		ans := userErr.Message + ". Введите ссылку, которая отображается в /list"
 		msg := tgbotapi.NewMessage(state.ChatID, ans)

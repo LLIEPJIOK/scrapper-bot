@@ -17,7 +17,7 @@ func NewCallbacker(channels Channels) *Callbacker {
 	}
 }
 
-func (h *Callbacker) Handle(ctx context.Context, state *State) *fsm.Result[*State] {
+func (h *Callbacker) Handle(_ context.Context, state *State) *fsm.Result[*State] {
 	switch {
 	case state.Message == trackAddTags.String():
 		ans := "Введите теги через пробел."

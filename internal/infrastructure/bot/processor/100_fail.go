@@ -17,7 +17,7 @@ func NewFailer(channels Channels) *Failer {
 	}
 }
 
-func (h *Failer) Handle(ctx context.Context, state *State) *fsm.Result[*State] {
+func (h *Failer) Handle(_ context.Context, state *State) *fsm.Result[*State] {
 	ans := "Не удалось обработать запрос"
 	if state.ShowError != "" {
 		ans += ": " + state.ShowError

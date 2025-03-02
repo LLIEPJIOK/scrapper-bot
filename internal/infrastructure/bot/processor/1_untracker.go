@@ -18,7 +18,7 @@ func NewUntracker(channels Channels) *Untracker {
 	}
 }
 
-func (h *Untracker) Handle(ctx context.Context, state *State) *fsm.Result[*State] {
+func (h *Untracker) Handle(_ context.Context, state *State) *fsm.Result[*State] {
 	ans := "Введите ссылку на ресурс, который хотите удалить."
 	msg := tgbotapi.NewMessage(state.ChatID, ans)
 	h.channels.TelegramResp() <- msg

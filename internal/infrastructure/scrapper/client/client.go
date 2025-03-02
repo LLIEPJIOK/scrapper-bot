@@ -143,12 +143,12 @@ func (s *Scrapper) GetLinks(ctx context.Context, chatID int64) ([]*domain.Link, 
 
 func linksToDomainLinks(links []scrapper.LinkResponse) []*domain.Link {
 	domainLinks := make([]*domain.Link, 0, len(links))
-	for _, link := range links {
+	for i := range links {
 		domainLinks = append(domainLinks, &domain.Link{
-			ID:      link.ID.Value,
-			URL:     link.URL.Value.String(),
-			Tags:    link.Tags,
-			Filters: link.Filters,
+			ID:      links[i].ID.Value,
+			URL:     links[i].URL.Value.String(),
+			Tags:    links[i].Tags,
+			Filters: links[i].Filters,
 		})
 	}
 
