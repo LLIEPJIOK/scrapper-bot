@@ -18,3 +18,13 @@ packages:
       dir: ./internal/application/scheduler/bot/mocks
     interfaces:
       Repository:
+  github.com/es-debug/backend-academy-2024-go-template/internal/application/http/client/bot:
+    config:
+      dir: ./internal/application/http/client/bot/mocks
+    interfaces:
+      ExternalClient:
+  github.com/es-debug/backend-academy-2024-go-template/internal/application/http/client/scrapper:
+    config:
+      dir: ./internal/application/http/client/scrapper/mocks
+    interfaces:
+      ExternalClient:

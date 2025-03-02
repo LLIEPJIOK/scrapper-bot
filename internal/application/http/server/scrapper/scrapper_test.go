@@ -345,7 +345,8 @@ func TestDoubleAddLin(t *testing.T) {
 	require.NoError(t, err, "Expected no error on valid URL")
 
 	repo := repository.New()
-	repo.RegisterChat(333)
+	err = repo.RegisterChat(333)
+	require.NoError(t, err, "Expected no error on chat registration")
 
 	srv := scrapper.NewServer(repo)
 
