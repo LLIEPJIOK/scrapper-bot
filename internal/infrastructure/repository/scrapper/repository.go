@@ -145,7 +145,9 @@ func (r *Repository) GetCheckLinks() []*domain.CheckLink {
 	links := make([]*domain.CheckLink, 0, len(r.links))
 
 	for _, link := range r.links {
-		links = append(links, repoLinkToCheckLink(link))
+		if len(link.Chats) != 0 {
+			links = append(links, repoLinkToCheckLink(link))
+		}
 	}
 
 	return links

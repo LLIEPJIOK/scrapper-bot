@@ -12,8 +12,12 @@ import (
 )
 
 const (
-	repoURL  = "https://api.github.com/repos/%s/%s"
-	issueURL = "https://api.github.com/repos/%s/%s/issues/%s/timeline"
+	repoActivityURL = "https://api.github.com/repos/%s/%s/activity"
+	repoIssuesURL   = "https://api.github.com/repos/%s/%s/issues"
+	repoPullsURL    = "https://api.github.com/repos/%s/%s/pulls"
+	repoBranchesURL = "https://api.github.com/repos/%s/%s/branches"
+
+	issueURL = "https://api.github.com/repos/%s/%s/issues/%s"
 	pullURL  = "https://api.github.com/repos/%s/%s/pulls/%s"
 )
 
@@ -39,35 +43,77 @@ func (c *Client) HasUpdates(link string, lastCheck time.Time) (bool, error) {
 	switch {
 	case c.repoRegex.MatchString(link):
 		matches := c.repoRegex.FindStringSubmatch(link)
-		url := fmt.Sprintf(repoURL, matches[1], matches[2])
+		templates := []string{repoIssuesURL, repoPullsURL, repoBranchesURL}
 
-		return c.hasSourceUpdates(url, lastCheck)
+		for _, template := range templates {
+			url := fmt.Sprintf(template, matches[1], matches[2])
+			data := make([]Data, 0)
+
+			err := c.getAndDecodeResponse(url, lastCheck, &data)
+			if err != nil {
+				return false, err
+			}
+
+			for _, d := range data {
+				if d.UpdatedAt.After(lastCheck) {
+					return true, nil
+				}
+			}
+		}
+
+		url := fmt.Sprintf(repoActivityURL, matches[1], matches[2])
+		data := make([]Data, 0)
+
+		err := c.getAndDecodeResponse(url, lastCheck, &data)
+		if err != nil {
+			return false, err
+		}
+
+		for _, d := range data {
+			if d.Timestamp.After(lastCheck) {
+				return true, nil
+			}
+		}
+
+		return false, nil
 
 	case c.issueRegex.MatchString(link):
 		matches := c.issueRegex.FindStringSubmatch(link)
 		url := fmt.Sprintf(issueURL, matches[1], matches[2], matches[3])
+		data := Data{}
 
-		return c.hasSourceUpdates(url, lastCheck)
+		err := c.getAndDecodeResponse(url, lastCheck, &data)
+		if err != nil {
+			return false, err
+		}
+
+		return data.UpdatedAt.After(lastCheck), nil
 
 	case c.pullRegex.MatchString(link):
 		matches := c.pullRegex.FindStringSubmatch(link)
 		url := fmt.Sprintf(pullURL, matches[1], matches[2], matches[3])
+		data := Data{}
 
-		return c.hasSourceUpdates(url, lastCheck)
+		err := c.getAndDecodeResponse(url, lastCheck, &data)
+		if err != nil {
+			return false, err
+		}
+
+		return data.UpdatedAt.After(lastCheck), nil
 
 	default:
 		return false, nil
 	}
 }
 
-func (c *Client) hasSourceUpdates(url string, lastCheck time.Time) (bool, error) {
+func (c *Client) getAndDecodeResponse(url string, lastCheck time.Time, data any) error {
 	req, err := http.NewRequest(
 		http.MethodGet,
 		url,
 		nil,
 	)
 	if err != nil {
-		return false, fmt.Errorf("failed to create request: %w", err)
+		return fmt.Errorf("failed to create request with url=%q: %w", url, err)
 	}
 
 	req.Header.Set("Accept", "application/vnd.github+json")
@@ -76,7 +122,7 @@ func (c *Client) hasSourceUpdates(url string, lastCheck time.Time) (bool, error)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return false, fmt.Errorf("failed to get response: %w", err)
+		return fmt.Errorf("failed to get response with url=%q: %w", url, err)
 	}
 
 	defer func() {
@@ -92,15 +138,10 @@ func (c *Client) hasSourceUpdates(url string, lastCheck time.Time) (bool, error)
 	}()
 
 	dec := json.NewDecoder(resp.Body)
-	data := &Data{}
 
 	if err := dec.Decode(data); err != nil {
-		return false, fmt.Errorf("failed to decode response: %w", err)
+		return fmt.Errorf("failed to decode response with url=%q: %w", url, err)
 	}
 
-	if data.UpdatedAt.After(lastCheck) {
-		return true, nil
-	}
-
-	return false, nil
+	return nil
 }
