@@ -17,3 +17,6 @@ client:
 github:
 scheduler:
   interval: 1h
+  at_hours: 10
+  at_minutes: 0
+  at_seconds: 0

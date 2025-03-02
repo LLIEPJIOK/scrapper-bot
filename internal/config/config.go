@@ -48,7 +48,10 @@ type GitHub struct {
 }
 
 type Scheduler struct {
-	Interval time.Duration `yaml:"interval"`
+	Interval  time.Duration `yaml:"interval"`
+	AtHours   uint          `yaml:"at_hours"`
+	AtMinutes uint          `yaml:"at_minutes"`
+	AtSeconds uint          `yaml:"at_seconds"`
 }
 
 func Load(path string) (*Config, error) {
