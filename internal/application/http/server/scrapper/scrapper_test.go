@@ -337,3 +337,46 @@ func TestLinksDelete_Success(t *testing.T) {
 	assert.Equal(t, []string{"a"}, linkResp.Tags, "Expected tags to match")
 	assert.Equal(t, []string{"b"}, linkResp.Filters, "Expected filters to match")
 }
+
+func TestDoubleAddLin(t *testing.T) {
+	t.Parallel()
+
+	parsedValidURL, err := url.Parse(validURL)
+	require.NoError(t, err, "Expected no error on valid URL")
+
+	repo := repository.New()
+	repo.RegisterChat(333)
+
+	srv := scrapper.NewServer(repo)
+
+	req := &api.AddLinkRequest{
+		Link:    api.NewOptURI(*parsedValidURL),
+		Tags:    []string{"tag1", "tag2"},
+		Filters: []string{"filter1"},
+	}
+	params := api.LinksPostParams{TgChatID: 333}
+
+	res, err := srv.LinksPost(context.Background(), req, params)
+	require.NoError(t, err, "Expected no error")
+
+	_, ok := res.(*api.LinkResponse)
+	require.True(t, ok, "Expected response to be LinkResponse")
+
+	res, err = srv.LinksPost(context.Background(), req, params)
+	require.NoError(t, err, "Expected no error=")
+
+	errResp, ok := res.(*api.ApiErrorResponse)
+	require.True(t, ok, "Expected response to be ApiErrorResponse")
+	assert.Equal(
+		t,
+		http.StatusText(http.StatusInternalServerError),
+		errResp.Code.Value,
+		"Expected error code to match",
+	)
+	assert.Equal(
+		t,
+		"link with url=\"http://example.com\" already exists",
+		errResp.Description.Value,
+		"Expected error description to match",
+	)
+}
