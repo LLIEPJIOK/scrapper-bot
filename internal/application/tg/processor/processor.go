@@ -40,7 +40,7 @@ func New(client Client, channels Channels) *Processor {
 		AddState(start, NewStater(client, channels)).
 		AddState(help, NewHelper(channels)).
 		AddState(track, NewTracker(channels)).
-		AddState(trackAddLink, NewTrackLinkAdder(channels)).
+		AddState(trackAddLink, NewTrackLinkAdder(client, channels)).
 		AddState(trackAddFilters, NewTrackFilterAdder(channels)).
 		AddState(trackAddTags, NewTrackTagAdder(channels)).
 		AddState(trackSave, NewTrackSaver(client, channels)).

@@ -2,10 +2,12 @@ package processor_test
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"testing"
 
 	"github.com/es-debug/backend-academy-2024-go-template/internal/application/tg/processor"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/tg/processor/mocks"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/fsm"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -117,7 +119,10 @@ func TestHandleTrackLinkAdder(t *testing.T) {
 
 			ctx := context.Background()
 			channels := domain.NewChannels()
-			handler := processor.NewTrackLinkAdder(channels)
+			client := mocks.NewMockClient(t)
+			client.On("GetLinks", ctx, int64(1)).Return(nil, nil)
+
+			handler := processor.NewTrackLinkAdder(client, channels)
 
 			wg := sync.WaitGroup{}
 			wg.Add(1)
@@ -256,7 +261,8 @@ func TestHandleTrackLinkAdderInvalidLinks(t *testing.T) {
 
 			ctx := context.Background()
 			channels := domain.NewChannels()
-			handler := processor.NewTrackLinkAdder(channels)
+			client := mocks.NewMockClient(t)
+			handler := processor.NewTrackLinkAdder(client, channels)
 
 			go func() {
 				ans := <-channels.TelegramResp()
@@ -301,8 +307,117 @@ func TestHandleInvalidObject(t *testing.T) {
 
 	ctx := context.Background()
 	channels := domain.NewChannels()
-	handler := processor.NewTrackLinkAdder(channels)
+	client := mocks.NewMockClient(t)
+	client.On("GetLinks", ctx, int64(1)).Return(nil, nil)
+
+	handler := processor.NewTrackLinkAdder(client, channels)
 
 	res := handler.Handle(ctx, state)
 	assert.Equal(t, exp, res, "wrong result")
+}
+
+func TestTrackLinkAdder_Handle_LinkExists(t *testing.T) {
+	t.Parallel()
+
+	state := &processor.State{
+		FSMState: "track_add_link",
+		Message:  "https://stackoverflow.com/questions/79476948/androidmanifest-xml-file-raising-errors-with-no-exception",
+		ChatID:   1,
+		Object: &domain.Link{
+			ChatID: 1,
+		},
+	}
+	exp := &fsm.Result[*processor.State]{
+		NextState:        "track_add_link",
+		IsAutoTransition: false,
+		Result: &processor.State{
+			FSMState: "track_add_link",
+			Message:  "https://stackoverflow.com/questions/79476948/androidmanifest-xml-file-raising-errors-with-no-exception",
+			ChatID:   1,
+			Object: &domain.Link{
+				ChatID: 1,
+			},
+		},
+	}
+
+	ctx := context.Background()
+	channels := domain.NewChannels()
+	client := mocks.NewMockClient(t)
+	client.On("GetLinks", ctx, int64(1)).Return([]*domain.Link{
+		{
+			URL: "https://stackoverflow.com/questions/79476948/androidmanifest-xml-file-raising-errors-with-no-exception",
+		},
+	}, nil)
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+
+		ans := <-channels.TelegramResp()
+		msg, ok := ans.(tgbotapi.MessageConfig)
+		require.True(t, ok, "not tg message")
+
+		text := `Ссылка уже существует. Введите другую ссылку или посмотрите список, используя /list`
+		assert.Equal(
+			t,
+			text,
+			msg.Text,
+		)
+	}()
+
+	handler := processor.NewTrackLinkAdder(client, channels)
+
+	res := handler.Handle(ctx, state)
+	assert.Equal(t, exp, res, "wrong result")
+}
+
+func TestTrackLinkAdder_Handle_GetLinksError(t *testing.T) {
+	t.Parallel()
+
+	state := &processor.State{
+		FSMState: "track_add_link",
+		Message:  "https://stackoverflow.com/questions/79476948/androidmanifest-xml-file-raising-errors-with-no-exception",
+		ChatID:   1,
+		Object: &domain.Link{
+			ChatID: 1,
+		},
+	}
+	exp := &fsm.Result[*processor.State]{
+		NextState:        "fail",
+		IsAutoTransition: true,
+		Result: &processor.State{
+			FSMState: "track_add_link",
+			Message:  "https://stackoverflow.com/questions/79476948/androidmanifest-xml-file-raising-errors-with-no-exception",
+			ChatID:   1,
+			Object: &domain.Link{
+				ChatID: 1,
+			},
+			ShowError: "ошибка при добавлении ссылки",
+		},
+		Error: errors.New(
+			`h.IsLinkExists(` +
+				`ctx, ` +
+				`"https://stackoverflow.com/questions/79476948/androidmanifest-xml-file-raising-errors-with-no-exception", ` +
+				`1` +
+				`): failed to get links: test error`,
+		),
+	}
+
+	ctx := context.Background()
+	channels := domain.NewChannels()
+	client := mocks.NewMockClient(t)
+	client.On("GetLinks", ctx, int64(1)).Return(nil, errors.New("test error"))
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+
+	handler := processor.NewTrackLinkAdder(client, channels)
+
+	res := handler.Handle(ctx, state)
+	assert.Equal(t, res.NextState, exp.NextState, "wrong next state")
+	assert.Equal(t, res.IsAutoTransition, exp.IsAutoTransition, "wrong is auto transition")
+	assert.Equal(t, res.Result, exp.Result, "wrong result")
+	assert.EqualError(t, res.Error, exp.Error.Error(), "wrong error")
 }

@@ -59,7 +59,9 @@ func (w *FSM[TData]) ProcessState(
 ) (result *Result[TData]) {
 	defer func() {
 		if err := recover(); err != nil {
-			result.Error = errors.Join(result.Error, fmt.Errorf("panic: %v", err))
+			result = &Result[TData]{
+				Error: errors.Join(result.Error, fmt.Errorf("panic: %v", err)),
+			}
 		}
 	}()
 

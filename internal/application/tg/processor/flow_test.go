@@ -40,6 +40,7 @@ func TestTrackFlow(t *testing.T) {
 	<-channels.TelegramResp()
 
 	// trackAddLink
+	client.On("GetLinks", ctx, int64(1)).Return(nil, nil)
 	channels.TelegramReq() <- domain.TelegramRequest{
 		ChatID:  1,
 		Message: "https://github.com/LLIEPJIOK/nginxparser",
@@ -119,7 +120,9 @@ func TestUntrackFlow(t *testing.T) {
 		Message: "https://github.com/LLIEPJIOK/nginxparser",
 		Type:    domain.Message,
 	}
-	client.On("DeleteLink", ctx, int64(1), "https://github.com/LLIEPJIOK/nginxparser").Return(nil).Once()
+	client.On("DeleteLink", ctx, int64(1), "https://github.com/LLIEPJIOK/nginxparser").
+		Return(nil).
+		Once()
 	<-channels.TelegramResp()
 
 	cancel()

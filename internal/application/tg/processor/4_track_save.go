@@ -48,7 +48,7 @@ func (h *TrackSaver) Handle(ctx context.Context, state *State) *fsm.Result[*Stat
 			NextState:        fail,
 			IsAutoTransition: true,
 			Result:           state,
-			Error:            fmt.Errorf("client.AddLink(): %w", err),
+			Error:            fmt.Errorf("client.AddLink(ctx, %q): %w", link, err),
 		}
 	}
 

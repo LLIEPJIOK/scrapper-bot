@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
@@ -13,13 +14,15 @@ import (
 )
 
 type TrackLinkAdder struct {
+	client   Client
 	channels Channels
 	formats  []string
 	regexes  []*regexp.Regexp
 }
 
-func NewTrackLinkAdder(channels Channels) *TrackLinkAdder {
+func NewTrackLinkAdder(client Client, channels Channels) *TrackLinkAdder {
 	return &TrackLinkAdder{
+		client:   client,
 		channels: channels,
 		formats: []string{
 			"https://stackoverflow.com/questions/{id}/{title}",
@@ -51,6 +54,36 @@ func (h *TrackLinkAdder) Handle(ctx context.Context, state *State) *fsm.Result[*
 		}
 	}
 
+	exists, err := h.IsLinkExists(ctx, state.Message, state.ChatID)
+	if err != nil {
+		state.ShowError = "ошибка при добавлении ссылки"
+
+		return &fsm.Result[*State]{
+			NextState:        fail,
+			IsAutoTransition: true,
+			Result:           state,
+			Error: fmt.Errorf(
+				"h.IsLinkExists(ctx, %q, %d): %w",
+				state.Message,
+				state.ChatID,
+				err,
+			),
+		}
+	}
+
+	if exists {
+		ans := "Ссылка уже существует. Введите другую ссылку или посмотрите список, используя /list"
+
+		msg := tgbotapi.NewMessage(state.ChatID, ans)
+		h.channels.TelegramResp() <- msg
+
+		return &fsm.Result[*State]{
+			NextState:        state.FSMState,
+			IsAutoTransition: false,
+			Result:           state,
+		}
+	}
+
 	update := func(link *domain.Link, value string) *domain.Link {
 		link.URL = value
 
@@ -68,6 +101,23 @@ func (h *TrackLinkAdder) isValidLink(link string) bool {
 	}
 
 	return false
+}
+
+func (h *TrackLinkAdder) IsLinkExists(
+	ctx context.Context,
+	url string,
+	chatID int64,
+) (bool, error) {
+	links, err := h.client.GetLinks(ctx, chatID)
+	if err != nil {
+		return false, fmt.Errorf("failed to get links: %w", err)
+	}
+
+	exists := slices.ContainsFunc(links, func(link *domain.Link) bool {
+		return link.URL == url
+	})
+
+	return exists, nil
 }
 
 func createKeyboard(link *domain.Link) tgbotapi.InlineKeyboardMarkup {
