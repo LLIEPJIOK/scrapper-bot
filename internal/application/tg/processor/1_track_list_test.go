@@ -101,7 +101,7 @@ func TestHandle_TrackLister_LinksWithoutTagsOrFilters(t *testing.T) {
 
 	result := trackLister.Handle(context.Background(), state)
 
-	assert.True(t, result.IsAutoTransition, "IsAutoTransition should be true")
+	assert.False(t, result.IsAutoTransition, "IsAutoTransition should be false")
 	assert.Equal(t, state, result.Result, "Result should be the same as the state")
 	assert.Nil(t, result.Error, "Error should be nil")
 
@@ -156,7 +156,7 @@ func TestHandle_TrackLister_LinksWithTagsAndFilters(t *testing.T) {
 
 	result := trackLister.Handle(context.Background(), state)
 
-	assert.True(t, result.IsAutoTransition, "IsAutoTransition should be true")
+	assert.False(t, result.IsAutoTransition, "IsAutoTransition should be false")
 	assert.Equal(t, state, result.Result, "Result should be the same as the state")
 	assert.Nil(t, result.Error, "Error should be nil")
 

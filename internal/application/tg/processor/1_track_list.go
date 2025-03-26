@@ -67,7 +67,7 @@ func (h *TrackLister) Handle(ctx context.Context, state *State) *fsm.Result[*Sta
 	h.channels.TelegramResp() <- msg
 
 	return &fsm.Result[*State]{
-		IsAutoTransition: true,
+		IsAutoTransition: false,
 		Result:           state,
 	}
 }
