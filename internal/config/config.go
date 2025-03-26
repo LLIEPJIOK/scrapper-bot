@@ -2,100 +2,69 @@ package config
 
 import (
 	"fmt"
-	"log/slog"
-	"os"
 	"time"
 
-	"gopkg.in/yaml.v3"
+	"github.com/caarlos0/env/v11"
 )
 
 type Config struct {
-	App       App       `yaml:"app"`
-	Bot       Bot       `yaml:"bot"`
-	Scrapper  Scrapper  `yaml:"scrapper"`
-	Client    Client    `yaml:"client"`
-	Server    Server    `yaml:"server"`
-	GitHub    GitHub    `yaml:"github"`
-	Scheduler Scheduler `yaml:"scheduler"`
+	App       App       `envPrefix:"APP_"`
+	Bot       Bot       `envPrefix:"BOT_"`
+	Scrapper  Scrapper  `envPrefix:"SCRAPPER_"`
+	Client    Client    `envPrefix:"CLIENT_"`
+	Server    Server    `envPrefix:"SERVER_"`
+	GitHub    GitHub    `envPrefix:"GITHUB_"`
+	Scheduler Scheduler `envPrefix:"SCHEDULER_"`
 }
 
 type App struct {
-	TerminateTimeout time.Duration `yaml:"terminate_timeout"`
-	ShutdownTimeout  time.Duration `yaml:"shutdown_timeout"`
+	TerminateTimeout time.Duration `env:"TERMINATE_TIMEOUT" envDefault:"5s"`
+	ShutdownTimeout  time.Duration `env:"SHUTDOWN_TIMEOUT"  envDefault:"2s"`
 }
 
 type Bot struct {
-	APIToken    string
-	URL         string `yaml:"url"`
-	ScrapperURL string `yaml:"scrapper_url"`
+	APIToken    string `env:"API_TOKEN,required"`
+	URL         string `env:"URL"                   envDefault:"localhost:8081"`
+	ScrapperURL string `env:"SCRAPPER_URL,required"`
 }
 
 type Scrapper struct {
-	URL    string `yaml:"url"`
-	BotURL string `yaml:"bot_url"`
+	URL    string `env:"URL"              envDefault:"localhost:8080"`
+	BotURL string `env:"BOT_URL,required"`
 }
 
 type Client struct {
-	DialTimeout           time.Duration `yaml:"dial_timeout"`
-	DialKeepAlive         time.Duration `yaml:"dial_keep_alive"`
-	MaxIdleConns          int           `yaml:"max_idle_conns"`
-	IdleConnTimeout       time.Duration `yaml:"idle_conn_timeout"`
-	TLSHandshakeTimeout   time.Duration `yaml:"tls_handshake_timeout"`
-	ExpectContinueTimeout time.Duration `yaml:"expect_continue_timeout"`
-	Timeout               time.Duration `yaml:"timeout"`
+	DialTimeout           time.Duration `env:"DIAL_TIMEOUT"            envDefault:"5s"`
+	DialKeepAlive         time.Duration `env:"DIAL_KEEP_ALIVE"         envDefault:"30s"`
+	MaxIdleConns          int           `env:"MAX_IDLE_CONNS"          envDefault:"100"`
+	IdleConnTimeout       time.Duration `env:"IDLE_CONN_TIMEOUT"       envDefault:"90s"`
+	TLSHandshakeTimeout   time.Duration `env:"TLS_HANDSHAKE_TIMEOUT"   envDefault:"10s"`
+	ExpectContinueTimeout time.Duration `env:"EXPECT_CONTINUE_TIMEOUT" envDefault:"1s"`
+	Timeout               time.Duration `env:"TIMEOUT"                 envDefault:"30s"`
 }
 
 type Server struct {
-	ReadTimeout       time.Duration `yaml:"read_timeout"`
-	ReadHeaderTimeout time.Duration `yaml:"read_header_timeout"`
+	ReadTimeout       time.Duration `env:"READ_TIMEOUT"        envDefault:"10s"`
+	ReadHeaderTimeout time.Duration `env:"READ_HEADER_TIMEOUT" envDefault:"10s"`
 }
 
 type GitHub struct {
-	Token string
+	Token string `env:"TOKEN,required"`
 }
 
 type Scheduler struct {
-	Interval  time.Duration `yaml:"interval"`
-	AtHours   uint          `yaml:"at_hours"`
-	AtMinutes uint          `yaml:"at_minutes"`
-	AtSeconds uint          `yaml:"at_seconds"`
+	Interval  time.Duration `env:"INTERVAL"   envDefault:"1h"`
+	AtHours   uint          `env:"AT_HOURS"   envDefault:"10"`
+	AtMinutes uint          `env:"AT_MINUTES" envDefault:"0"`
+	AtSeconds uint          `env:"AT_SECONDS" envDefault:"0"`
 }
 
-func Load(path string) (*Config, error) {
-	if path == "" {
-		return nil, NewErrConfig("config path not specified")
-	}
-
-	path += "/default.yaml"
-
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return nil, NewErrConfig("config file not found")
-	}
-
-	f, err := os.OpenFile(path, os.O_RDONLY, 0)
-	if err != nil {
-		return nil, NewErrConfig(fmt.Sprintf("failed to open config file: %s", err))
-	}
-
-	defer func() {
-		if err := f.Close(); err != nil {
-			slog.Error(
-				"failed to close config file",
-				slog.String("path", path),
-				slog.Any("err", err),
-			)
-		}
-	}()
-
+func Load() (*Config, error) {
 	config := &Config{}
 
-	err = yaml.NewDecoder(f).Decode(config)
-	if err != nil {
-		return nil, NewErrConfig(fmt.Sprintf("failed to decode config: %s", err))
+	if err := env.Parse(config); err != nil {
+		return nil, fmt.Errorf("failed to parse env: %w", err)
 	}
-
-	config.Bot.APIToken = os.Getenv("BOT_API_TOKEN")
-	config.GitHub.Token = os.Getenv("GITHUB_TOKEN")
 
 	return config, nil
 }

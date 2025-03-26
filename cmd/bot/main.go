@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"flag"
 	"os"
 
 	"github.com/es-debug/backend-academy-2024-go-template/internal/bootstrap/bot/app"
@@ -18,14 +17,9 @@ const (
 )
 
 func main() {
-	var configPath string
-
-	flag.StringVar(&configPath, "config", "./config", "Path to JSON config file")
-	flag.Parse()
-
 	ctx := context.Background()
 
-	cfg, err := config.Load(configPath)
+	cfg, err := config.Load()
 	if err != nil {
 		slog.Error("Error loading config", slog.Any("error", err))
 		os.Exit(ErrorConfigLoad)

@@ -3,6 +3,7 @@ module github.com/es-debug/backend-academy-2024-go-template
 go 1.23.2
 
 require (
+	github.com/caarlos0/env/v11 v11.3.1
 	github.com/go-co-op/gocron/v2 v2.16.0
 	github.com/go-faster/errors v0.7.1
 	github.com/go-faster/jx v1.1.0
@@ -14,7 +15,6 @@ require (
 	go.opentelemetry.io/otel/trace v1.34.0
 	go.uber.org/multierr v1.11.0
 	golang.org/x/exp v0.0.0-20230725093048-515e97ebf090
-	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -40,4 +40,5 @@ require (
 	golang.org/x/sys v0.29.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
