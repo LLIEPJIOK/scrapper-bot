@@ -50,7 +50,7 @@ func (a *App) runServer(ctx context.Context, stop context.CancelFunc, wg *sync.W
 	}
 
 	go func() {
-		if err := httpServer.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
+		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			slog.Error("failed to start scrapper server", slog.Any("error", err))
 
 			stop()
