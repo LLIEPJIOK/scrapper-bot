@@ -1,3 +1,8 @@
+ifneq (,$(wildcard .env))
+	include .env
+	export $(shell sed 's/=.*//' .env)
+endif
+
 COVERAGE_FILE ?= coverage.out
 
 .PHONY: build
@@ -15,6 +20,13 @@ build_scrapper:
 	@mkdir -p .bin
 	@go build -o ./bin/scrapper ./cmd/scrapper
 
+.PHONY: run_bot
+run_bot:
+	@go run ./cmd/bot/main.go
+
+.PHONY: run_scrapper
+run_scrapper:
+	@go run ./cmd/scrapper/main.go
 
 ## test: run all tests
 .PHONY: test

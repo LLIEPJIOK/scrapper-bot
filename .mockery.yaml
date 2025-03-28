@@ -1,5 +1,35 @@
 with-expecter: true
-filename: "{{.InterfaceName | snakecase}}.go"
-mockname: "{{.InterfaceName | firstUpper}}"
+filename: "{{.InterfaceName | snakecase}}_mock.go"
+mockname: "Mock{{.InterfaceName | firstUpper}}"
 outpkg: mocks
 packages:
+  github.com/es-debug/backend-academy-2024-go-template/internal/application/tg/processor:
+    config:
+      dir: ./internal/application/tg/processor/mocks
+    interfaces:
+      Client:
+  github.com/es-debug/backend-academy-2024-go-template/internal/application/http/server/scrapper:
+    config:
+      dir: ./internal/application/http/server/scrapper/mocks
+    interfaces:
+      Repository:
+  github.com/es-debug/backend-academy-2024-go-template/internal/application/http/server/bot:
+    config:
+      dir: ./internal/application/http/server/bot/mocks
+    interfaces:
+      Repository:
+  github.com/es-debug/backend-academy-2024-go-template/internal/application/scheduler/bot:
+    config:
+      dir: ./internal/application/scheduler/bot/mocks
+    interfaces:
+      Repository:
+  github.com/es-debug/backend-academy-2024-go-template/internal/application/http/client/bot:
+    config:
+      dir: ./internal/application/http/client/bot/mocks
+    interfaces:
+      ExternalClient:
+  github.com/es-debug/backend-academy-2024-go-template/internal/application/http/client/scrapper:
+    config:
+      dir: ./internal/application/http/client/scrapper/mocks
+    interfaces:
+      ExternalClient:
