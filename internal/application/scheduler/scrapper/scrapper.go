@@ -67,7 +67,7 @@ func (s *Scheduler) Run(ctx context.Context) error {
 	}
 
 	_, err = schedule.NewJob(
-		gocron.DurationJob(time.Minute),
+		gocron.DurationJob(s.interval),
 		gocron.NewTask(func() {
 			s.checker(ctx, ch)
 		}),

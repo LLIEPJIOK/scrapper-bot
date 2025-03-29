@@ -49,13 +49,14 @@ func main() {
 		os.Exit(ErrorConfigLoad)
 	}
 
-	botMigrate(&config, cmd)
-	scrapperMigrate(&config, cmd)
+	if code := botMigrate(&config, cmd); code != OkCode {
+		os.Exit(code)
+	}
 
-	os.Exit(OkCode)
+	os.Exit(scrapperMigrate(&config, cmd))
 }
 
-func botMigrate(cfg *Config, cmd string) {
+func botMigrate(cfg *Config, cmd string) (code int) {
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		cfg.BotDB.Host,
@@ -66,30 +67,10 @@ func botMigrate(cfg *Config, cmd string) {
 		cfg.BotDB.SSLMode,
 	)
 
-	db, err := sql.Open("postgres", dsn)
-	if err != nil {
-		slog.Error("Error connect to bot database", slog.Any("error", err))
-		os.Exit(ErrorConnectDatabase)
-	}
-
-	if err := db.Ping(); err != nil {
-		slog.Error("Error ping bot database", slog.Any("error", err))
-		os.Exit(ErrorConnectDatabase)
-	}
-
-	defer func() {
-		if err := db.Close(); err != nil {
-			slog.Error("Error close bot database", slog.Any("error", err))
-		}
-	}()
-
-	if err = goose.RunContext(context.Background(), cmd, db, "./migrations/bot"); err != nil {
-		slog.Error("Error migrate bot database", slog.Any("error", err))
-		os.Exit(ErrorMigrate)
-	}
+	return migrate(dsn, "bot", cmd)
 }
 
-func scrapperMigrate(cfg *Config, cmd string) {
+func scrapperMigrate(cfg *Config, cmd string) (code int) {
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		cfg.ScrapperDB.Host,
@@ -100,25 +81,34 @@ func scrapperMigrate(cfg *Config, cmd string) {
 		cfg.ScrapperDB.SSLMode,
 	)
 
+	return migrate(dsn, "scrapper", cmd)
+}
+
+func migrate(dsn, tpe, cmd string) (code int) {
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		slog.Error("Error connect to scrapper database", slog.Any("error", err))
-		os.Exit(ErrorConnectDatabase)
+		slog.Error(fmt.Sprintf("Error connect to %s database", tpe), slog.Any("error", err))
+
+		return ErrorConnectDatabase
 	}
 
 	if err := db.Ping(); err != nil {
-		slog.Error("Error ping scrapper database", slog.Any("error", err))
-		os.Exit(ErrorConnectDatabase)
+		slog.Error(fmt.Sprintf("Error ping %s database", tpe), slog.Any("error", err))
+
+		return ErrorConnectDatabase
 	}
 
 	defer func() {
 		if err := db.Close(); err != nil {
-			slog.Error("Error close scrapper database", slog.Any("error", err))
+			slog.Error(fmt.Sprintf("Error close %s database", tpe), slog.Any("error", err))
 		}
 	}()
 
-	if err = goose.RunContext(context.Background(), cmd, db, "./migrations/scrapper"); err != nil {
-		slog.Error("Error migrate scrapper database", slog.Any("error", err))
-		os.Exit(ErrorMigrate)
+	if err = goose.RunContext(context.Background(), cmd, db, "./migrations/"+tpe); err != nil {
+		slog.Error(fmt.Sprintf("Error migrate %s database", tpe), slog.Any("error", err))
+
+		return ErrorMigrate
 	}
+
+	return OkCode
 }

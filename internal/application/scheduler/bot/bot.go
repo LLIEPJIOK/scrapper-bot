@@ -54,7 +54,10 @@ func (s *Scheduler) Run(ctx context.Context) error {
 	}
 
 	_, err = schedule.NewJob(
-		gocron.DurationJob(time.Second),
+		gocron.DailyJob(
+			1,
+			gocron.NewAtTimes(gocron.NewAtTime(s.atHours, s.atMinutes, s.atSeconds)),
+		),
 		gocron.NewTask(func() {
 			s.SendUpdates(ctx)
 		}),
@@ -115,6 +118,7 @@ func updatesToText(updates []domain.Update) string {
 	for i, update := range updates {
 		if i == 0 || update.URL != updates[i-1].URL {
 			builder.WriteString(fmt.Sprintf("%d. %s\n", point, update.URL))
+
 			point++
 		}
 

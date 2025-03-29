@@ -34,8 +34,6 @@ func (a *App) closer(
 	}
 }
 
-func (a *App) clearResources(_ context.Context) error {
+func (a *App) clearResources(_ context.Context) {
 	a.db.Close()
-
-	return nil
 }

@@ -9,6 +9,7 @@ import (
 
 	"github.com/es-debug/backend-academy-2024-go-template/internal/application/http/server/bot"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/application/http/server/bot/mocks"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
 	api "github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/bot"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -17,43 +18,70 @@ import (
 const exampleURL = "https://example.com"
 
 func TestServer_UpdatesPost_Success(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
 	repoMock := mocks.NewMockRepository(t)
 	server := bot.NewServer(repoMock)
 
 	parsedURL, err := url.Parse(exampleURL)
 	require.NoError(t, err, "url parse error")
 
+	tags := []string{"tag1", "tag2"}
+	msg := "msg"
+	chatID := int64(12345)
+
 	req := &api.LinkUpdate{
-		TgChatIds: []int64{123, 456},
-		URL:       api.NewOptURI(*parsedURL),
+		URL:     api.NewOptURI(*parsedURL),
+		ChatID:  api.NewOptInt64(chatID),
+		Message: api.NewOptString(msg),
+		Tags:    tags,
 	}
 
-	repoMock.On("AddLink", int64(123), exampleURL).Return(nil).Once()
-	repoMock.On("AddLink", int64(456), exampleURL).Return(nil).Once()
+	repoMock.On("AddUpdate", ctx, &domain.Update{
+		ChatID:  chatID,
+		URL:     exampleURL,
+		Message: msg,
+		Tags:    tags,
+	}).Return(nil).Once()
 
-	res, err := server.UpdatesPost(context.Background(), req)
+	res, err := server.UpdatesPost(ctx, req)
 
 	assert.NoError(t, err, "server error")
 	assert.IsType(t, &api.UpdatesPostOK{}, res, "response type error")
 }
 
 func TestServer_UpdatesPost_Error(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
 	repoMock := mocks.NewMockRepository(t)
 	server := bot.NewServer(repoMock)
 
 	parsedURL, err := url.Parse(exampleURL)
 	require.NoError(t, err, "url parse error")
 
+	tags := []string{"tag1", "tag2"}
+	msg := "msg"
+	chatID := int64(12345)
+
 	req := &api.LinkUpdate{
-		TgChatIds: []int64{123},
-		URL:       api.NewOptURI(*parsedURL),
+		URL:     api.NewOptURI(*parsedURL),
+		ChatID:  api.NewOptInt64(chatID),
+		Message: api.NewOptString(msg),
+		Tags:    tags,
 	}
 
-	repoMock.On("AddLink", int64(123), exampleURL).
-		Return(errors.New("database error")).
-		Once()
+	repoMock.On("AddUpdate", ctx, &domain.Update{
+		ChatID:  chatID,
+		URL:     exampleURL,
+		Message: msg,
+		Tags:    tags,
+	}).Return(errors.New("database error")).Once()
 
-	res, err := server.UpdatesPost(context.Background(), req)
+	res, err := server.UpdatesPost(ctx, req)
 
 	assert.Error(t, err, "server error")
 	assert.IsType(t, &api.ApiErrorResponse{}, res, "response type error")

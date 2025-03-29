@@ -42,7 +42,7 @@ func (a *App) initDB(ctx context.Context) error {
 	return nil
 }
 
-func (a *App) initRepo(ctx context.Context) error {
+func (a *App) initRepo(_ context.Context) error {
 	switch a.cfg.Scrapper.Database.Type {
 	case "sql":
 		a.repo = repo.NewSQL(a.db)
