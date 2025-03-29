@@ -6,29 +6,46 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/es-debug/backend-academy-2024-go-template/internal/config"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
-	repository "github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/repository/bot"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+type Repository interface {
+	AddUpdate(ctx context.Context, update *domain.Update) error
+	GetUpdatesChats(ctx context.Context, from, to time.Time) ([]int64, error)
+	GetUpdates(
+		ctx context.Context,
+		chatID int64,
+		from, to time.Time,
+	) ([]domain.Update, error)
+}
 
 type App struct {
 	cfg      *config.Config
 	channels *domain.Channels
-	repo     *repository.Repository
+	db       *pgxpool.Pool
+	repo     Repository
 }
 
 func New(cfg *config.Config) *App {
 	return &App{
 		cfg:      cfg,
 		channels: domain.NewChannels(),
-		repo:     repository.New(),
 	}
 }
 
 func (a *App) Run(ctx context.Context) error {
 	ctx, stop := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
+
+	for _, init := range a.inits() {
+		if err := init(ctx); err != nil {
+			return err
+		}
+	}
 
 	var wg sync.WaitGroup
 

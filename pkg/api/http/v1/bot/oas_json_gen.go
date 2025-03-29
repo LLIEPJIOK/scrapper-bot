@@ -163,9 +163,9 @@ func (s *LinkUpdate) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *LinkUpdate) encodeFields(e *jx.Encoder) {
 	{
-		if s.ID.Set {
-			e.FieldStart("id")
-			s.ID.Encode(e)
+		if s.ChatID.Set {
+			e.FieldStart("chat_id")
+			s.ChatID.Encode(e)
 		}
 	}
 	{
@@ -175,17 +175,17 @@ func (s *LinkUpdate) encodeFields(e *jx.Encoder) {
 		}
 	}
 	{
-		if s.Description.Set {
-			e.FieldStart("description")
-			s.Description.Encode(e)
+		if s.Message.Set {
+			e.FieldStart("message")
+			s.Message.Encode(e)
 		}
 	}
 	{
-		if s.TgChatIds != nil {
-			e.FieldStart("tgChatIds")
+		if s.Tags != nil {
+			e.FieldStart("tags")
 			e.ArrStart()
-			for _, elem := range s.TgChatIds {
-				e.Int64(elem)
+			for _, elem := range s.Tags {
+				e.Str(elem)
 			}
 			e.ArrEnd()
 		}
@@ -193,10 +193,10 @@ func (s *LinkUpdate) encodeFields(e *jx.Encoder) {
 }
 
 var jsonFieldsNameOfLinkUpdate = [4]string{
-	0: "id",
+	0: "chat_id",
 	1: "url",
-	2: "description",
-	3: "tgChatIds",
+	2: "message",
+	3: "tags",
 }
 
 // Decode decodes LinkUpdate from json.
@@ -207,15 +207,15 @@ func (s *LinkUpdate) Decode(d *jx.Decoder) error {
 
 	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
 		switch string(k) {
-		case "id":
+		case "chat_id":
 			if err := func() error {
-				s.ID.Reset()
-				if err := s.ID.Decode(d); err != nil {
+				s.ChatID.Reset()
+				if err := s.ChatID.Decode(d); err != nil {
 					return err
 				}
 				return nil
 			}(); err != nil {
-				return errors.Wrap(err, "decode field \"id\"")
+				return errors.Wrap(err, "decode field \"chat_id\"")
 			}
 		case "url":
 			if err := func() error {
@@ -227,34 +227,34 @@ func (s *LinkUpdate) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"url\"")
 			}
-		case "description":
+		case "message":
 			if err := func() error {
-				s.Description.Reset()
-				if err := s.Description.Decode(d); err != nil {
+				s.Message.Reset()
+				if err := s.Message.Decode(d); err != nil {
 					return err
 				}
 				return nil
 			}(); err != nil {
-				return errors.Wrap(err, "decode field \"description\"")
+				return errors.Wrap(err, "decode field \"message\"")
 			}
-		case "tgChatIds":
+		case "tags":
 			if err := func() error {
-				s.TgChatIds = make([]int64, 0)
+				s.Tags = make([]string, 0)
 				if err := d.Arr(func(d *jx.Decoder) error {
-					var elem int64
-					v, err := d.Int64()
-					elem = int64(v)
+					var elem string
+					v, err := d.Str()
+					elem = string(v)
 					if err != nil {
 						return err
 					}
-					s.TgChatIds = append(s.TgChatIds, elem)
+					s.Tags = append(s.Tags, elem)
 					return nil
 				}); err != nil {
 					return err
 				}
 				return nil
 			}(); err != nil {
-				return errors.Wrap(err, "decode field \"tgChatIds\"")
+				return errors.Wrap(err, "decode field \"tags\"")
 			}
 		default:
 			return d.Skip()

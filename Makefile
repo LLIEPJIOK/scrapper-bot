@@ -74,3 +74,7 @@ generate_openapi:
 .PHONY: clean
 clean:
 	@rm -rf./bin
+
+.PHONY: migrate
+migrate:
+	go run ./cmd/migration/main.go --command up

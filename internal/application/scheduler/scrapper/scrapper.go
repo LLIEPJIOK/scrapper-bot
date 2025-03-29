@@ -11,11 +11,18 @@ import (
 	"github.com/go-co-op/gocron/v2"
 )
 
-const numWorkers = 5
+const (
+	numWorkers     = 5
+	paginationSize = 100
+)
 
 type Repository interface {
-	GetCheckLinks() []*domain.CheckLink
-	UpdateCheckTime(url string, checkedAt time.Time) error
+	GetCheckLinks(
+		ctx context.Context,
+		from, to time.Time,
+		limit int,
+	) ([]*domain.CheckLink, error)
+	UpdateCheckTime(ctx context.Context, url string, checkedAt time.Time) error
 }
 
 type Checher interface {
@@ -23,7 +30,7 @@ type Checher interface {
 }
 
 type Client interface {
-	UpdatesPost(ctx context.Context, link string, chats []int64) error
+	UpdatesPost(ctx context.Context, update *domain.Update) error
 }
 
 type Scheduler struct {
@@ -60,12 +67,9 @@ func (s *Scheduler) Run(ctx context.Context) error {
 	}
 
 	_, err = schedule.NewJob(
-		gocron.DurationJob(s.interval),
+		gocron.DurationJob(time.Minute),
 		gocron.NewTask(func() {
-			links := s.repo.GetCheckLinks()
-			for _, link := range links {
-				ch <- link
-			}
+			s.checker(ctx, ch)
 		}),
 	)
 	if err != nil {
@@ -84,6 +88,30 @@ func (s *Scheduler) Run(ctx context.Context) error {
 	return nil
 }
 
+func (s *Scheduler) checker(ctx context.Context, ch chan<- *domain.CheckLink) {
+	started := time.Now()
+	cursor := time.Time{}
+
+	for {
+		links, err := s.repo.GetCheckLinks(ctx, cursor, started, paginationSize)
+		if err != nil {
+			slog.Error("failed to get links", "err", err)
+
+			return
+		}
+
+		if len(links) == 0 {
+			break
+		}
+
+		cursor = links[len(links)-1].CheckedAt
+
+		for _, link := range links {
+			ch <- link
+		}
+	}
+}
+
 func (s *Scheduler) worker(ctx context.Context, ch <-chan *domain.CheckLink) {
 	for {
 		select {
@@ -91,52 +119,65 @@ func (s *Scheduler) worker(ctx context.Context, ch <-chan *domain.CheckLink) {
 			return
 
 		case link := <-ch:
-			tm := time.Now()
-			hasUpdates, hasError := false, false
+			s.getUpdates(ctx, link)
+		}
+	}
+}
 
-			for _, checker := range s.checkers {
-				has, err := checker.HasUpdates(link.URL, link.CheckedAt)
-				if err != nil {
-					slog.Error(
-						"failed to check updates",
-						slog.Any("url", link.URL),
-						slog.Any("error", err),
-					)
+func (s *Scheduler) getUpdates(ctx context.Context, link *domain.CheckLink) {
+	tm := time.Now()
+	hasUpdates, hasError := false, false
 
-					hasError = true
+	if len(link.Chats) != 0 {
+		for _, checker := range s.checkers {
+			has, err := checker.HasUpdates(link.URL, link.CheckedAt)
+			if err != nil {
+				slog.Error(
+					"failed to check updates",
+					slog.Any("url", link.URL),
+					slog.Any("error", err),
+				)
 
-					continue
-				}
+				hasError = true
 
-				if has {
-					hasUpdates = true
-
-					break
-				}
+				continue
 			}
 
-			if hasUpdates {
-				err := s.client.UpdatesPost(ctx, link.URL, link.Chats)
-				if err != nil {
-					slog.Error(
-						"failed to send updates",
-						slog.Any("url", link.URL),
-						slog.Any("chats", link.Chats),
-						slog.Any("error", err),
-					)
-				}
-			}
+			if has {
+				hasUpdates = true
 
-			if hasUpdates || !hasError {
-				err := s.repo.UpdateCheckTime(link.URL, tm)
-				if err != nil {
-					slog.Error(
-						"failed to update check time",
-						slog.Any("url", link.URL),
-						slog.Any("error", err),
-					)
-				}
+				break
 			}
+		}
+	}
+
+	if hasUpdates {
+		for _, chat := range link.Chats {
+			err := s.client.UpdatesPost(ctx, &domain.Update{
+				ChatID:  chat.ChatID,
+				URL:     link.URL,
+				Message: fmt.Sprintf("New updates on %s", link.URL),
+				Tags:    chat.Tags,
+			})
+			if err != nil {
+				slog.Error(
+					"failed to send updates",
+					slog.Any("url", link.URL),
+					slog.Any("chats", link.Chats),
+					slog.Any("error", err),
+				)
+			}
+		}
+	}
+
+	if hasUpdates || !hasError {
+		err := s.repo.UpdateCheckTime(ctx, link.URL, tm)
+		if err != nil {
+			slog.Error(
+				"failed to update check time",
+				slog.Any("url", link.URL),
+				slog.Any("error", err),
+			)
 		}
 	}
 }

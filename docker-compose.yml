@@ -1,0 +1,61 @@
+services:
+  migrator:
+    image: golang:1.23.2
+    container_name: migrator
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: make migrate
+    depends_on:
+      bot_postgres:
+        condition: service_healthy
+      scrapper_postgres:
+        condition: service_healthy
+
+  bot_postgres:
+    container_name: bot_postgres
+    hostname: bot_postgres
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=bot
+      - POSTGRES_USER=bot
+      - POSTGRES_PASSWORD=postgres
+      - PGPORT=5432
+      - POSTGRES_SSL_MODE=disable
+      - PGDATA=/data/postgres
+    ports:
+      - 5432:5432
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  scrapper_postgres:
+    container_name: scrapper_postgres
+    hostname: scrapper_postgres
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=scrapper
+      - POSTGRES_USER=scrapper
+      - POSTGRES_PASSWORD=postgres
+      - PGPORT=5433
+      - POSTGRES_SSL_MODE=disable
+      - PGDATA=/data/postgres
+    ports:
+      - "5433:5433"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10

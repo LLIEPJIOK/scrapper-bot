@@ -23,14 +23,16 @@ type App struct {
 }
 
 type Bot struct {
-	APIToken    string `env:"API_TOKEN,required"`
-	URL         string `env:"URL"                   envDefault:"localhost:8081"`
-	ScrapperURL string `env:"SCRAPPER_URL,required"`
+	APIToken    string   `env:"API_TOKEN,required"`
+	URL         string   `env:"URL"                   envDefault:"localhost:8081"`
+	ScrapperURL string   `env:"SCRAPPER_URL,required"`
+	Database    Database `                                                        envPrefix:"DATABASE_"`
 }
 
 type Scrapper struct {
-	URL    string `env:"URL"              envDefault:"localhost:8080"`
-	BotURL string `env:"BOT_URL,required"`
+	URL      string   `env:"URL"              envDefault:"localhost:8080"`
+	BotURL   string   `env:"BOT_URL,required"`
+	Database Database `                                                   envPrefix:"DATABASE_"`
 }
 
 type Client struct {
@@ -57,6 +59,16 @@ type Scheduler struct {
 	AtHours   uint          `env:"AT_HOURS"   envDefault:"10"`
 	AtMinutes uint          `env:"AT_MINUTES" envDefault:"0"`
 	AtSeconds uint          `env:"AT_SECONDS" envDefault:"0"`
+}
+
+type Database struct {
+	Host     string `env:"HOST,required"`
+	Port     string `env:"PORT,required"`
+	User     string `env:"USER,required"`
+	Password string `env:"PASSWORD,required"`
+	Name     string `env:"NAME,required"`
+	SSLMode  string `env:"SSL_MODE,required"`
+	Type     string `env:"TYPE,required"`
 }
 
 func Load() (*Config, error) {

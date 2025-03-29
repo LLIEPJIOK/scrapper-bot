@@ -29,17 +29,3 @@ func NewErrLinkNotFound(url string) error {
 func (e ErrLinkNotFound) Error() string {
 	return fmt.Sprintf("link with url=%q not found", e.URL)
 }
-
-type ErrLinkExists struct {
-	Link string
-}
-
-func NewErrLinkExists(link string) error {
-	return ErrLinkExists{
-		Link: link,
-	}
-}
-
-func (e ErrLinkExists) Error() string {
-	return fmt.Sprintf("link with url=%q already exists", e.Link)
-}

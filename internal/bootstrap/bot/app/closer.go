@@ -19,6 +19,8 @@ func (a *App) closer(
 	timeoutCtx, cancel := context.WithTimeout(context.Background(), cfg.App.TerminateTimeout)
 	defer cancel()
 
+	a.clearResources(ctx)
+
 	select {
 	case <-timeoutCtx.Done():
 		slog.Error("Timed out waiting for application to shut down")
@@ -30,4 +32,10 @@ func (a *App) closer(
 
 		return nil
 	}
+}
+
+func (a *App) clearResources(_ context.Context) error {
+	a.db.Close()
+
+	return nil
 }

@@ -7,6 +7,7 @@ import (
 	"math"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
 	repository "github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/repository/scrapper"
@@ -14,11 +15,17 @@ import (
 )
 
 type Repository interface {
-	RegisterChat(chatID int64) error
-	DeleteChat(chatID int64) error
-	TrackLink(link *domain.Link) (*domain.Link, error)
-	UntrackLink(chatID int64, url string) (*domain.Link, error)
-	ListLinks(chatID int64) ([]*domain.Link, error)
+	RegisterChat(ctx context.Context, chatID int64) error
+	DeleteChat(ctx context.Context, chatID int64) error
+	TrackLink(ctx context.Context, link *domain.Link) (*domain.Link, error)
+	UntrackLink(ctx context.Context, chatID int64, url string) (*domain.Link, error)
+	ListLinks(ctx context.Context, chatID int64) ([]*domain.Link, error)
+	GetCheckLinks(
+		ctx context.Context,
+		from, to time.Time,
+		limit int,
+	) ([]*domain.CheckLink, error)
+	UpdateCheckTime(ctx context.Context, url string, checkedAt time.Time) error
 }
 
 type Server struct {
@@ -32,10 +39,10 @@ func NewServer(repo Repository) *Server {
 }
 
 func (s *Server) TgChatIDPost(
-	_ context.Context,
+	ctx context.Context,
 	params scrapper.TgChatIDPostParams,
 ) (scrapper.TgChatIDPostRes, error) {
-	err := s.repo.RegisterChat(params.ID)
+	err := s.repo.RegisterChat(ctx, params.ID)
 	if err != nil {
 		return &scrapper.ApiErrorResponse{
 			Code:        scrapper.NewOptString(http.StatusText(http.StatusInternalServerError)),
@@ -47,10 +54,10 @@ func (s *Server) TgChatIDPost(
 }
 
 func (s *Server) TgChatIDDelete(
-	_ context.Context,
+	ctx context.Context,
 	params scrapper.TgChatIDDeleteParams,
 ) (scrapper.TgChatIDDeleteRes, error) {
-	err := s.repo.DeleteChat(params.ID)
+	err := s.repo.DeleteChat(ctx, params.ID)
 
 	switch {
 	case errors.As(err, &repository.ErrUnregister{}):
@@ -68,11 +75,11 @@ func (s *Server) TgChatIDDelete(
 }
 
 func (s *Server) LinksPost(
-	_ context.Context,
+	ctx context.Context,
 	req *scrapper.AddLinkRequest,
 	params scrapper.LinksPostParams,
 ) (scrapper.LinksPostRes, error) {
-	link, err := s.repo.TrackLink(&domain.Link{
+	link, err := s.repo.TrackLink(ctx, &domain.Link{
 		ChatID:  params.TgChatID,
 		URL:     req.Link.Value.String(),
 		Tags:    req.Tags,
@@ -102,10 +109,10 @@ func (s *Server) LinksPost(
 }
 
 func (s *Server) LinksGet(
-	_ context.Context,
+	ctx context.Context,
 	params scrapper.LinksGetParams,
 ) (scrapper.LinksGetRes, error) {
-	links, err := s.repo.ListLinks(params.TgChatID)
+	links, err := s.repo.ListLinks(ctx, params.TgChatID)
 	if err != nil {
 		return &scrapper.ApiErrorResponse{
 			Code:        scrapper.NewOptString(http.StatusText(http.StatusInternalServerError)),
@@ -117,11 +124,11 @@ func (s *Server) LinksGet(
 }
 
 func (s *Server) LinksDelete(
-	_ context.Context,
+	ctx context.Context,
 	req *scrapper.RemoveLinkRequest,
 	params scrapper.LinksDeleteParams,
 ) (scrapper.LinksDeleteRes, error) {
-	link, err := s.repo.UntrackLink(params.TgChatID, req.Link.Value.String())
+	link, err := s.repo.UntrackLink(ctx, params.TgChatID, req.Link.Value.String())
 
 	switch {
 	case errors.As(err, &repository.ErrUnregister{}):
