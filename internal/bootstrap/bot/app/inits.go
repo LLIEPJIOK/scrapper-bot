@@ -48,7 +48,7 @@ func (a *App) initRepo(_ context.Context) error {
 		a.repo = repo.NewSQL(a.db)
 
 	case "builder":
-		// TODO: create repository
+		a.repo = repo.NewBuilder(a.db)
 
 	default:
 		return NewErrUnknownDBType(a.cfg.Scrapper.Database.Type)
