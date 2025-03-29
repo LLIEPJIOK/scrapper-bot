@@ -31,7 +31,7 @@ CREATE TABLE
 		link_id BIGINT NOT NULL REFERENCES links (id),
 		tag_id BIGINT NOT NULL REFERENCES tags (id),
 		chat_id BIGINT NOT NULL REFERENCES chats (id),
-		PRIMARY KEY (link_id, tag_id)
+		PRIMARY KEY (link_id, tag_id, chat_id)
 	);
 
 CREATE TABLE
@@ -39,7 +39,7 @@ CREATE TABLE
 		link_id BIGINT NOT NULL REFERENCES links (id),
 		filter_id BIGINT NOT NULL REFERENCES filters (id),
 		chat_id BIGINT NOT NULL REFERENCES chats (id),
-		PRIMARY KEY (link_id, filter_id)
+		PRIMARY KEY (link_id, filter_id, chat_id)
 	);
 
 CREATE TABLE

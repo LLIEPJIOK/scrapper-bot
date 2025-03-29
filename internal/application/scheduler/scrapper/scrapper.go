@@ -20,7 +20,7 @@ type Repository interface {
 	GetCheckLinks(
 		ctx context.Context,
 		from, to time.Time,
-		limit int,
+		limit uint,
 	) ([]*domain.CheckLink, error)
 	UpdateCheckTime(ctx context.Context, url string, checkedAt time.Time) error
 }

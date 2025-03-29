@@ -138,9 +138,10 @@ func (s *SQL) GetLink(ctx context.Context, chatID int64, url string) (*domain.Li
 	queryLink := `
 		SELECT id, url
 		FROM links
+		WHERE url = $1
 	`
 
-	err := s.db.QueryRow(ctx, queryLink).Scan(&link.ID, &link.URL)
+	err := s.db.QueryRow(ctx, queryLink, url).Scan(&link.ID, &link.URL)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, NewErrLinkNotFound(url)
 	}
@@ -204,7 +205,7 @@ func (s *SQL) ListLinks(ctx context.Context, chatID int64) ([]*domain.Link, erro
 func (s *SQL) GetCheckLinks(
 	ctx context.Context,
 	from, to time.Time,
-	limit int,
+	limit uint,
 ) ([]*domain.CheckLink, error) {
 	links := []*domain.CheckLink{}
 

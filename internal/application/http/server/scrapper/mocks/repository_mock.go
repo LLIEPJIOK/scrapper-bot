@@ -72,7 +72,7 @@ func (_c *MockRepository_DeleteChat_Call) RunAndReturn(run func(context.Context,
 }
 
 // GetCheckLinks provides a mock function with given fields: ctx, from, to, limit
-func (_m *MockRepository) GetCheckLinks(ctx context.Context, from time.Time, to time.Time, limit int) ([]*domain.CheckLink, error) {
+func (_m *MockRepository) GetCheckLinks(ctx context.Context, from time.Time, to time.Time, limit uint) ([]*domain.CheckLink, error) {
 	ret := _m.Called(ctx, from, to, limit)
 
 	if len(ret) == 0 {
@@ -81,10 +81,10 @@ func (_m *MockRepository) GetCheckLinks(ctx context.Context, from time.Time, to 
 
 	var r0 []*domain.CheckLink
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, time.Time, time.Time, int) ([]*domain.CheckLink, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, time.Time, time.Time, uint) ([]*domain.CheckLink, error)); ok {
 		return rf(ctx, from, to, limit)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, time.Time, time.Time, int) []*domain.CheckLink); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, time.Time, time.Time, uint) []*domain.CheckLink); ok {
 		r0 = rf(ctx, from, to, limit)
 	} else {
 		if ret.Get(0) != nil {
@@ -92,7 +92,7 @@ func (_m *MockRepository) GetCheckLinks(ctx context.Context, from time.Time, to 
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, time.Time, time.Time, int) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, time.Time, time.Time, uint) error); ok {
 		r1 = rf(ctx, from, to, limit)
 	} else {
 		r1 = ret.Error(1)
@@ -110,14 +110,14 @@ type MockRepository_GetCheckLinks_Call struct {
 //   - ctx context.Context
 //   - from time.Time
 //   - to time.Time
-//   - limit int
+//   - limit uint
 func (_e *MockRepository_Expecter) GetCheckLinks(ctx interface{}, from interface{}, to interface{}, limit interface{}) *MockRepository_GetCheckLinks_Call {
 	return &MockRepository_GetCheckLinks_Call{Call: _e.mock.On("GetCheckLinks", ctx, from, to, limit)}
 }
 
-func (_c *MockRepository_GetCheckLinks_Call) Run(run func(ctx context.Context, from time.Time, to time.Time, limit int)) *MockRepository_GetCheckLinks_Call {
+func (_c *MockRepository_GetCheckLinks_Call) Run(run func(ctx context.Context, from time.Time, to time.Time, limit uint)) *MockRepository_GetCheckLinks_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(time.Time), args[2].(time.Time), args[3].(int))
+		run(args[0].(context.Context), args[1].(time.Time), args[2].(time.Time), args[3].(uint))
 	})
 	return _c
 }
@@ -127,7 +127,7 @@ func (_c *MockRepository_GetCheckLinks_Call) Return(_a0 []*domain.CheckLink, _a1
 	return _c
 }
 
-func (_c *MockRepository_GetCheckLinks_Call) RunAndReturn(run func(context.Context, time.Time, time.Time, int) ([]*domain.CheckLink, error)) *MockRepository_GetCheckLinks_Call {
+func (_c *MockRepository_GetCheckLinks_Call) RunAndReturn(run func(context.Context, time.Time, time.Time, uint) ([]*domain.CheckLink, error)) *MockRepository_GetCheckLinks_Call {
 	_c.Call.Return(run)
 	return _c
 }

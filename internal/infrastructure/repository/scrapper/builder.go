@@ -76,10 +76,12 @@ func (s *Builder) TrackLink(ctx context.Context, link *domain.Link) (*domain.Lin
 	}
 
 	var id int64
+
 	err = s.db.QueryRow(ctx, queryLink, args...).Scan(&id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to add link: %w", err)
 	}
+
 	link.ID = id
 
 	queryLinkChat, args, err := sq.Insert("links_chats").
@@ -142,7 +144,6 @@ func (s *Builder) UntrackLink(ctx context.Context, chatID int64, url string) (*d
 func (s *Builder) GetLink(ctx context.Context, chatID int64, url string) (*domain.Link, error) {
 	link := &domain.Link{}
 
-	// Фильтруем по url.
 	query, args, err := sq.Select("id", "url").
 		From("links").
 		Where(sq.Eq{"url": url}).
@@ -156,6 +157,7 @@ func (s *Builder) GetLink(ctx context.Context, chatID int64, url string) (*domai
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, NewErrLinkNotFound(url)
 	}
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to get link: %w", err)
 	}
@@ -164,6 +166,7 @@ func (s *Builder) GetLink(ctx context.Context, chatID int64, url string) (*domai
 	if err != nil {
 		return nil, err
 	}
+
 	filters, err := s.getFilters(ctx, link.ID, chatID)
 	if err != nil {
 		return nil, err
@@ -191,6 +194,7 @@ func (s *Builder) ListLinks(ctx context.Context, chatID int64) ([]*domain.Link, 
 	if err != nil {
 		return nil, fmt.Errorf("failed to get links: %w", err)
 	}
+
 	if err := pgxscan.ScanAll(&links, rows); err != nil {
 		return nil, fmt.Errorf("failed to scan links: %w", err)
 	}
@@ -216,7 +220,7 @@ func (s *Builder) ListLinks(ctx context.Context, chatID int64) ([]*domain.Link, 
 func (s *Builder) GetCheckLinks(
 	ctx context.Context,
 	from, to time.Time,
-	limit int,
+	limit uint,
 ) ([]*domain.CheckLink, error) {
 	var links []*domain.CheckLink
 
@@ -236,6 +240,7 @@ func (s *Builder) GetCheckLinks(
 	if err != nil {
 		return nil, fmt.Errorf("failed to get links: %w", err)
 	}
+
 	if err := pgxscan.ScanAll(&links, rows); err != nil {
 		return nil, fmt.Errorf("failed to scan links: %w", err)
 	}
@@ -270,6 +275,7 @@ func (s *Builder) UpdateCheckTime(ctx context.Context, url string, checkedAt tim
 	return nil
 }
 
+//nolint:dupl // not a duplication
 func (s *Builder) addTags(ctx context.Context, link *domain.Link) error {
 	for _, tag := range link.Tags {
 		var tagID int64
@@ -331,6 +337,7 @@ func (s *Builder) getTags(ctx context.Context, linkID, chatID int64) ([]string, 
 	return tags, nil
 }
 
+//nolint:dupl // not a duplication
 func (s *Builder) addFilters(ctx context.Context, link *domain.Link) error {
 	for _, filter := range link.Filters {
 		var filterID int64
@@ -350,7 +357,6 @@ func (s *Builder) addFilters(ctx context.Context, link *domain.Link) error {
 			return fmt.Errorf("failed to add filter: %w", err)
 		}
 
-		// Строим запрос для связывания ссылки с фильтром.
 		queryLinkFilter, args, err := sq.Insert("links_filters").
 			Columns("link_id", "filter_id", "chat_id").
 			Values(link.ID, filterID, link.ChatID).
