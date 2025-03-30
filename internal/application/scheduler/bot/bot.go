@@ -47,7 +47,7 @@ func NewScheduler(cfg *config.BotScheduler, repo Repository, channels Channels) 
 }
 
 func (s *Scheduler) Run(ctx context.Context) error {
-	schedule, err := gocron.NewScheduler()
+	schedule, err := gocron.NewScheduler(gocron.WithLocation(time.UTC))
 	if err != nil {
 		return fmt.Errorf("failed to create scheduler: %w", err)
 	}

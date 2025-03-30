@@ -50,8 +50,8 @@ CREATE TABLE
 		chat_id BIGINT NOT NULL REFERENCES chats (id),
 		PRIMARY KEY (link_id, chat_id)
 	);
-
 -- +goose StatementEnd
+
 -- +goose Down
 -- +goose StatementBegin
 DROP TABLE links_chats;
@@ -65,5 +65,4 @@ DROP TABLE filters;
 DROP TABLE tags;
 
 DROP TABLE links;
-
 -- +goose StatementEnd

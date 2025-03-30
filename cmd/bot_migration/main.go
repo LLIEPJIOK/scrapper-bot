@@ -22,7 +22,7 @@ const (
 )
 
 type Config struct {
-	Database Database `envPrefix:"SCRAPPER_DATABASE_"`
+	Database Database `envPrefix:"BOT_DATABASE_"`
 }
 
 type Database struct {

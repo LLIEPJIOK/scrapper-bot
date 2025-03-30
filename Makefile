@@ -75,6 +75,14 @@ generate_openapi:
 clean:
 	@rm -rf./bin
 
-.PHONY: migrate
-migrate:
-	go run ./cmd/migration/main.go --command up
+.PHONY: migrate_bot
+migrate_bot:
+	go run ./cmd/bot_migration/main.go --command up
+
+.PHONY: migrate_scrapper
+migrate_scrapper:
+	go run ./cmd/scrapper_migration/main.go --command up
+
+.PHONY: run
+run:
+	docker-compose up -d --build --force-recreate --remove-orphans
