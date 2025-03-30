@@ -245,6 +245,38 @@ func TestLinksGet_Success(t *testing.T) {
 	repoMock.AssertExpectations(t)
 }
 
+func TestLinksGetBy_Success(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	links := []*domain.Link{
+		{ID: 1, URL: validURL, Tags: []string{"a"}, Filters: []string{"x"}},
+		{ID: 2, URL: validURL, Tags: []string{"b"}, Filters: []string{"y"}},
+	}
+	repoMock := mocks.NewMockRepository(t)
+	repoMock.On("ListLinksByTag", ctx, int64(777), "tag").Return(links, nil).Once()
+
+	srv := scrapper.NewServer(repoMock)
+	params := api.LinksGetParams{TgChatID: 777, Tag: api.NewOptString("tag")}
+	res, err := srv.LinksGet(ctx, params)
+	require.NoError(t, err, "Expected no error on successful listing")
+
+	listResp, ok := res.(*api.ListLinksResponse)
+	require.True(t, ok, "Expected response to be ListLinksResponse")
+
+	expectedCount := 2
+	assert.Len(t, listResp.Links, expectedCount, "Expected correct number of links")
+	assert.Equal(
+		t,
+		int32(expectedCount),
+		listResp.Size.Value,
+		"Expected size to match number of links",
+	)
+
+	repoMock.AssertExpectations(t)
+}
+
 func TestLinksGet_Error(t *testing.T) {
 	t.Parallel()
 

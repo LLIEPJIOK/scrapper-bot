@@ -45,7 +45,7 @@ func (h *Commander) Handle(_ context.Context, state *State) *fsm.Result[*State] 
 
 	case "/list":
 		return &fsm.Result[*State]{
-			NextState:        trackList,
+			NextState:        list,
 			IsAutoTransition: true,
 			Result:           state,
 		}

@@ -191,6 +191,66 @@ func (_c *MockRepository_ListLinks_Call) RunAndReturn(run func(context.Context, 
 	return _c
 }
 
+// ListLinksByTag provides a mock function with given fields: ctx, chatID, tag
+func (_m *MockRepository) ListLinksByTag(ctx context.Context, chatID int64, tag string) ([]*domain.Link, error) {
+	ret := _m.Called(ctx, chatID, tag)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListLinksByTag")
+	}
+
+	var r0 []*domain.Link
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, int64, string) ([]*domain.Link, error)); ok {
+		return rf(ctx, chatID, tag)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, int64, string) []*domain.Link); ok {
+		r0 = rf(ctx, chatID, tag)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*domain.Link)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, int64, string) error); ok {
+		r1 = rf(ctx, chatID, tag)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockRepository_ListLinksByTag_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListLinksByTag'
+type MockRepository_ListLinksByTag_Call struct {
+	*mock.Call
+}
+
+// ListLinksByTag is a helper method to define mock.On call
+//   - ctx context.Context
+//   - chatID int64
+//   - tag string
+func (_e *MockRepository_Expecter) ListLinksByTag(ctx interface{}, chatID interface{}, tag interface{}) *MockRepository_ListLinksByTag_Call {
+	return &MockRepository_ListLinksByTag_Call{Call: _e.mock.On("ListLinksByTag", ctx, chatID, tag)}
+}
+
+func (_c *MockRepository_ListLinksByTag_Call) Run(run func(ctx context.Context, chatID int64, tag string)) *MockRepository_ListLinksByTag_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(int64), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *MockRepository_ListLinksByTag_Call) Return(_a0 []*domain.Link, _a1 error) *MockRepository_ListLinksByTag_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockRepository_ListLinksByTag_Call) RunAndReturn(run func(context.Context, int64, string) ([]*domain.Link, error)) *MockRepository_ListLinksByTag_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RegisterChat provides a mock function with given fields: ctx, chatID
 func (_m *MockRepository) RegisterChat(ctx context.Context, chatID int64) error {
 	ret := _m.Called(ctx, chatID)

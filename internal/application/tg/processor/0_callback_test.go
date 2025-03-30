@@ -116,6 +116,49 @@ func TestHandleTrackSave(t *testing.T) {
 	assert.Equal(t, state, result.Result, "Result should contain the original state")
 }
 
+func TestHandleListAll(t *testing.T) {
+	t.Parallel()
+
+	channels := domain.NewChannels()
+	callbacker := processor.NewCallbacker(channels)
+
+	state := &processor.State{
+		ChatID:    123,
+		MessageID: 456,
+		Message:   "list_all",
+	}
+
+	result := callbacker.Handle(context.Background(), state)
+
+	assert.Equal(t, "list_all", result.NextState.String(), "NextState should be list_all")
+	assert.True(t, result.IsAutoTransition, "IsAutoTransition should be true")
+	assert.Equal(t, state, result.Result, "Result should contain the original state")
+}
+
+func TestHandleListByTagInput(t *testing.T) {
+	t.Parallel()
+
+	channels := domain.NewChannels()
+	callbacker := processor.NewCallbacker(channels)
+
+	state := &processor.State{
+		ChatID:    123,
+		MessageID: 456,
+		Message:   "list_by_tag_input",
+	}
+
+	result := callbacker.Handle(context.Background(), state)
+
+	assert.Equal(
+		t,
+		"list_by_tag_input",
+		result.NextState.String(),
+		"NextState should be list_by_tag_input",
+	)
+	assert.True(t, result.IsAutoTransition, "IsAutoTransition should be true")
+	assert.Equal(t, state, result.Result, "Result should contain the original state")
+}
+
 func TestHandleUnknownCallback(t *testing.T) {
 	t.Parallel()
 

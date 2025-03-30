@@ -121,9 +121,10 @@ func (s *Client) DeleteLink(ctx context.Context, chatID int64, linkURL string) e
 	}
 }
 
-func (s *Client) GetLinks(ctx context.Context, chatID int64) ([]*domain.Link, error) {
+func (s *Client) GetLinks(ctx context.Context, chatID int64, tag string) ([]*domain.Link, error) {
 	rawResp, err := s.client.LinksGet(ctx, scrapper.LinksGetParams{
 		TgChatID: chatID,
+		Tag:      scrapper.OptString{Value: tag, Set: tag != ""},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get links: %w", err)

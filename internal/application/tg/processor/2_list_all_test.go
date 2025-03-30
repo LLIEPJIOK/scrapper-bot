@@ -19,11 +19,11 @@ func TestHandle_TrackLister_NoLinks(t *testing.T) {
 	t.Parallel()
 
 	client := mocks.NewMockClient(t)
-	client.On("GetLinks", mock.Anything, int64(123)).Return([]*domain.Link{}, nil).Once()
+	client.On("GetLinks", mock.Anything, int64(123), "").Return([]*domain.Link{}, nil).Once()
 
 	channels := domain.NewChannels()
 
-	trackLister := processor.NewTrackLister(client, channels)
+	trackLister := processor.NewAllLister(client, channels)
 	state := &processor.State{
 		ChatID: 123,
 	}
@@ -35,7 +35,7 @@ func TestHandle_TrackLister_NoLinks(t *testing.T) {
 		defer wg.Done()
 
 		ans := <-channels.TelegramResp()
-		msg, ok := ans.(tgbotapi.MessageConfig)
+		msg, ok := ans.(tgbotapi.EditMessageTextConfig)
 		require.True(t, ok, "not tg edit message")
 
 		expectedText := "У вас нет ни одной ссылки. Для добавления ссылки воспользуйтесь командой /track"
@@ -50,7 +50,7 @@ func TestHandle_TrackLister_NoLinks(t *testing.T) {
 
 	result := trackLister.Handle(context.Background(), state)
 
-	assert.True(t, result.IsAutoTransition, "IsAutoTransition should be true")
+	assert.False(t, result.IsAutoTransition, "IsAutoTransition should be false")
 	assert.Equal(t, state, result.Result, "Result should be the same as the state")
 	assert.Nil(t, result.Error, "Error should be nil")
 
@@ -66,9 +66,9 @@ func TestHandle_TrackLister_LinksWithoutTagsOrFilters(t *testing.T) {
 		{URL: "https://test.com"},
 	}
 	client := mocks.NewMockClient(t)
-	client.On("GetLinks", mock.Anything, int64(123)).Return(links, nil).Once()
+	client.On("GetLinks", mock.Anything, int64(123), "").Return(links, nil).Once()
 
-	trackLister := processor.NewTrackLister(client, channels)
+	trackLister := processor.NewAllLister(client, channels)
 	state := &processor.State{
 		ChatID: 123,
 	}
@@ -80,7 +80,7 @@ func TestHandle_TrackLister_LinksWithoutTagsOrFilters(t *testing.T) {
 		defer wg.Done()
 
 		ans := <-channels.TelegramResp()
-		msg, ok := ans.(tgbotapi.MessageConfig)
+		msg, ok := ans.(tgbotapi.EditMessageTextConfig)
 		require.True(t, ok, "not tg edit message")
 
 		expectedText := `Ваши ссылки:
@@ -117,9 +117,9 @@ func TestHandle_TrackLister_LinksWithTagsAndFilters(t *testing.T) {
 		{URL: "https://test.com", Tags: []string{"tag3"}, Filters: []string{"filter2", "filter3"}},
 	}
 	client := mocks.NewMockClient(t)
-	client.On("GetLinks", mock.Anything, int64(123)).Return(links, nil).Once()
+	client.On("GetLinks", mock.Anything, int64(123), "").Return(links, nil).Once()
 
-	trackLister := processor.NewTrackLister(client, channels)
+	trackLister := processor.NewAllLister(client, channels)
 	state := &processor.State{
 		ChatID: 123,
 	}
@@ -131,7 +131,7 @@ func TestHandle_TrackLister_LinksWithTagsAndFilters(t *testing.T) {
 		defer wg.Done()
 
 		ans := <-channels.TelegramResp()
-		msg, ok := ans.(tgbotapi.MessageConfig)
+		msg, ok := ans.(tgbotapi.EditMessageTextConfig)
 		require.True(t, ok, "not tg edit message")
 
 		expectedText := `Ваши ссылки:
@@ -168,11 +168,11 @@ func TestHandle_TrackLister_GetLinksError(t *testing.T) {
 
 	getLinksErr := errors.New("failed to get links")
 	client := mocks.NewMockClient(t)
-	client.On("GetLinks", mock.Anything, int64(123)).Return(nil, getLinksErr).Once()
+	client.On("GetLinks", mock.Anything, int64(123), "").Return(nil, getLinksErr).Once()
 
 	channels := domain.NewChannels()
 
-	trackLister := processor.NewTrackLister(client, channels)
+	trackLister := processor.NewAllLister(client, channels)
 	state := &processor.State{
 		ChatID: 123,
 	}

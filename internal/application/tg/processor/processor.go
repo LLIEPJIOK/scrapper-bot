@@ -16,7 +16,7 @@ type Client interface {
 	RegisterChat(ctx context.Context, id int64) error
 	AddLink(ctx context.Context, link *domain.Link) error
 	DeleteLink(ctx context.Context, chatID int64, linkURL string) error
-	GetLinks(ctx context.Context, chatID int64) ([]*domain.Link, error)
+	GetLinks(ctx context.Context, chatID int64, tag string) ([]*domain.Link, error)
 }
 
 type Channels interface {
@@ -44,18 +44,23 @@ func New(client Client, channels Channels) *Processor {
 		AddState(trackAddFilters, NewTrackFilterAdder(channels)).
 		AddState(trackAddTags, NewTrackTagAdder(channels)).
 		AddState(trackSave, NewTrackSaver(client, channels)).
-		AddState(trackList, NewTrackLister(client, channels)).
+		AddState(list, NewLister(channels)).
+		AddState(listAll, NewAllLister(client, channels)).
+		AddState(listByTagInput, NewByTagInputLister(channels)).
+		AddState(listByTag, NewByTagLister(client, channels)).
 		AddState(untrack, NewUntracker(channels)).
 		AddState(untrackDeleteLink, NewUntrackLinkDeleter(client, channels)).
 		AddState(fail, NewFailer(channels)).
 		AddTransition(callback, trackAddTags).
 		AddTransition(callback, trackAddFilters).
 		AddTransition(callback, trackSave).
+		AddTransition(callback, listAll).
+		AddTransition(callback, listByTagInput).
 		AddTransition(callback, fail).
 		AddTransition(command, start).
 		AddTransition(command, help).
 		AddTransition(command, track).
-		AddTransition(command, trackList).
+		AddTransition(command, list).
 		AddTransition(command, untrack).
 		AddTransition(command, fail).
 		AddTransition(start, fail).
@@ -68,7 +73,8 @@ func New(client Client, channels Channels) *Processor {
 		AddTransition(trackAddTags, trackSave).
 		AddTransition(trackAddTags, callback).
 		AddTransition(trackSave, fail).
-		AddTransition(trackList, fail).
+		AddTransition(list, fail).
+		AddTransition(listByTag, fail).
 		AddTransition(untrack, untrackDeleteLink).
 		AddTransition(untrackDeleteLink, fail)
 

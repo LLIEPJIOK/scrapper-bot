@@ -120,7 +120,7 @@ func TestHandleTrackLinkAdder(t *testing.T) {
 			ctx := context.Background()
 			channels := domain.NewChannels()
 			client := mocks.NewMockClient(t)
-			client.On("GetLinks", ctx, int64(1)).Return(nil, nil)
+			client.On("GetLinks", ctx, int64(1), "").Return(nil, nil)
 
 			handler := processor.NewTrackLinkAdder(client, channels)
 
@@ -306,7 +306,7 @@ func TestHandleInvalidObject(t *testing.T) {
 	ctx := context.Background()
 	channels := domain.NewChannels()
 	client := mocks.NewMockClient(t)
-	client.On("GetLinks", ctx, int64(1)).Return(nil, nil)
+	client.On("GetLinks", ctx, int64(1), "").Return(nil, nil)
 
 	handler := processor.NewTrackLinkAdder(client, channels)
 
@@ -341,7 +341,7 @@ func TestTrackLinkAdder_Handle_LinkExists(t *testing.T) {
 	ctx := context.Background()
 	channels := domain.NewChannels()
 	client := mocks.NewMockClient(t)
-	client.On("GetLinks", ctx, int64(1)).Return([]*domain.Link{
+	client.On("GetLinks", ctx, int64(1), "").Return([]*domain.Link{
 		{
 			URL: "https://stackoverflow.com/questions/79476948/androidmanifest-xml-file-raising-errors-with-no-exception",
 		},
@@ -406,7 +406,7 @@ func TestTrackLinkAdder_Handle_GetLinksError(t *testing.T) {
 	ctx := context.Background()
 	channels := domain.NewChannels()
 	client := mocks.NewMockClient(t)
-	client.On("GetLinks", ctx, int64(1)).Return(nil, errors.New("test error"))
+	client.On("GetLinks", ctx, int64(1), "").Return(nil, errors.New("test error"))
 
 	wg := sync.WaitGroup{}
 	wg.Add(1)

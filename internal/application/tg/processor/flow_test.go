@@ -40,7 +40,7 @@ func TestTrackFlow(t *testing.T) {
 	<-channels.TelegramResp()
 
 	// trackAddLink
-	client.On("GetLinks", ctx, int64(1)).Return(nil, nil)
+	client.On("GetLinks", ctx, int64(1), "").Return(nil, nil)
 	channels.TelegramReq() <- domain.TelegramRequest{
 		ChatID:  1,
 		Message: "https://github.com/LLIEPJIOK/nginxparser",

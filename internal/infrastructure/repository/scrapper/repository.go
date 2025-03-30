@@ -14,6 +14,11 @@ type Repository interface {
 	TrackLink(ctx context.Context, link *domain.Link) (*domain.Link, error)
 	UntrackLink(ctx context.Context, chatID int64, url string) (*domain.Link, error)
 	ListLinks(ctx context.Context, chatID int64) ([]*domain.Link, error)
+	ListLinksByTag(
+		ctx context.Context,
+		chatID int64,
+		tag string,
+	) ([]*domain.Link, error)
 	GetCheckLinks(
 		ctx context.Context,
 		from, to time.Time,

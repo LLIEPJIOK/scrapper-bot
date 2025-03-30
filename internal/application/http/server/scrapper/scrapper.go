@@ -20,6 +20,11 @@ type Repository interface {
 	TrackLink(ctx context.Context, link *domain.Link) (*domain.Link, error)
 	UntrackLink(ctx context.Context, chatID int64, url string) (*domain.Link, error)
 	ListLinks(ctx context.Context, chatID int64) ([]*domain.Link, error)
+	ListLinksByTag(
+		ctx context.Context,
+		chatID int64,
+		tag string,
+	) ([]*domain.Link, error)
 	GetCheckLinks(
 		ctx context.Context,
 		from, to time.Time,
@@ -112,7 +117,19 @@ func (s *Server) LinksGet(
 	ctx context.Context,
 	params scrapper.LinksGetParams,
 ) (scrapper.LinksGetRes, error) {
-	links, err := s.repo.ListLinks(ctx, params.TgChatID)
+	if !params.Tag.Set {
+		links, err := s.repo.ListLinks(ctx, params.TgChatID)
+		if err != nil {
+			return &scrapper.ApiErrorResponse{
+				Code:        scrapper.NewOptString(http.StatusText(http.StatusInternalServerError)),
+				Description: scrapper.NewOptString(err.Error()),
+			}, nil
+		}
+
+		return domainLinksToResponse(links), nil
+	}
+
+	links, err := s.repo.ListLinksByTag(ctx, params.TgChatID, params.Tag.Value)
 	if err != nil {
 		return &scrapper.ApiErrorResponse{
 			Code:        scrapper.NewOptString(http.StatusText(http.StatusInternalServerError)),

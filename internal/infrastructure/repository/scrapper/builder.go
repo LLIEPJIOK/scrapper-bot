@@ -217,6 +217,51 @@ func (s *Builder) ListLinks(ctx context.Context, chatID int64) ([]*domain.Link, 
 	return links, nil
 }
 
+func (s *Builder) ListLinksByTag(
+	ctx context.Context,
+	chatID int64,
+	tag string,
+) ([]*domain.Link, error) {
+	var links []*domain.Link
+
+	query, args, err := sq.Select("l.id", "l.url").
+		From("links l").
+		Join("links_chats lc ON l.id = lc.link_id AND lc.chat_id = ?", chatID).
+		Join("links_tags lt ON l.id = lt.link_id AND lt.chat_id = ?", chatID).
+		Join("tags t ON lt.tag_id = t.id AND t.name = ?", tag).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("failed to build list links query: %w", err)
+	}
+
+	rows, err := s.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get links: %w", err)
+	}
+
+	if err := pgxscan.ScanAll(&links, rows); err != nil {
+		return nil, fmt.Errorf("failed to scan links: %w", err)
+	}
+
+	for i, link := range links {
+		tags, err := s.getTags(ctx, link.ID, chatID)
+		if err != nil {
+			return nil, err
+		}
+
+		filters, err := s.getFilters(ctx, link.ID, chatID)
+		if err != nil {
+			return nil, err
+		}
+
+		links[i].Tags = tags
+		links[i].Filters = filters
+	}
+
+	return links, nil
+}
+
 func (s *Builder) GetCheckLinks(
 	ctx context.Context,
 	from, to time.Time,

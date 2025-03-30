@@ -202,6 +202,48 @@ func (s *SQL) ListLinks(ctx context.Context, chatID int64) ([]*domain.Link, erro
 	return links, nil
 }
 
+func (s *SQL) ListLinksByTag(
+	ctx context.Context,
+	chatID int64,
+	tag string,
+) ([]*domain.Link, error) {
+	links := []*domain.Link{}
+
+	queryLinks := `
+		SELECT l.id, l.url
+		FROM links l
+		JOIN links_chats lc ON l.id = lc.link_id AND lc.chat_id = $1
+		JOIN links_tags lt ON l.id = lt.link_id AND lt.chat_id = $1
+		JOIN tags t ON lt.tag_id = t.id AND t.name = $2
+	`
+
+	rows, err := s.db.Query(ctx, queryLinks, chatID, tag)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get links: %w", err)
+	}
+
+	if err := pgxscan.ScanAll(&links, rows); err != nil {
+		return nil, fmt.Errorf("failed to scan links: %w", err)
+	}
+
+	for i, link := range links {
+		tags, err := s.getTags(ctx, link.ID, chatID)
+		if err != nil {
+			return nil, err
+		}
+
+		filters, err := s.getFilters(ctx, link.ID, chatID)
+		if err != nil {
+			return nil, err
+		}
+
+		links[i].Tags = tags
+		links[i].Filters = filters
+	}
+
+	return links, nil
+}
+
 func (s *SQL) GetCheckLinks(
 	ctx context.Context,
 	from, to time.Time,

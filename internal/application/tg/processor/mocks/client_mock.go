@@ -117,9 +117,9 @@ func (_c *MockClient_DeleteLink_Call) RunAndReturn(run func(context.Context, int
 	return _c
 }
 
-// GetLinks provides a mock function with given fields: ctx, chatID
-func (_m *MockClient) GetLinks(ctx context.Context, chatID int64) ([]*domain.Link, error) {
-	ret := _m.Called(ctx, chatID)
+// GetLinks provides a mock function with given fields: ctx, chatID, tag
+func (_m *MockClient) GetLinks(ctx context.Context, chatID int64, tag string) ([]*domain.Link, error) {
+	ret := _m.Called(ctx, chatID, tag)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetLinks")
@@ -127,19 +127,19 @@ func (_m *MockClient) GetLinks(ctx context.Context, chatID int64) ([]*domain.Lin
 
 	var r0 []*domain.Link
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, int64) ([]*domain.Link, error)); ok {
-		return rf(ctx, chatID)
+	if rf, ok := ret.Get(0).(func(context.Context, int64, string) ([]*domain.Link, error)); ok {
+		return rf(ctx, chatID, tag)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, int64) []*domain.Link); ok {
-		r0 = rf(ctx, chatID)
+	if rf, ok := ret.Get(0).(func(context.Context, int64, string) []*domain.Link); ok {
+		r0 = rf(ctx, chatID, tag)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*domain.Link)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, int64) error); ok {
-		r1 = rf(ctx, chatID)
+	if rf, ok := ret.Get(1).(func(context.Context, int64, string) error); ok {
+		r1 = rf(ctx, chatID, tag)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -155,13 +155,14 @@ type MockClient_GetLinks_Call struct {
 // GetLinks is a helper method to define mock.On call
 //   - ctx context.Context
 //   - chatID int64
-func (_e *MockClient_Expecter) GetLinks(ctx interface{}, chatID interface{}) *MockClient_GetLinks_Call {
-	return &MockClient_GetLinks_Call{Call: _e.mock.On("GetLinks", ctx, chatID)}
+//   - tag string
+func (_e *MockClient_Expecter) GetLinks(ctx interface{}, chatID interface{}, tag interface{}) *MockClient_GetLinks_Call {
+	return &MockClient_GetLinks_Call{Call: _e.mock.On("GetLinks", ctx, chatID, tag)}
 }
 
-func (_c *MockClient_GetLinks_Call) Run(run func(ctx context.Context, chatID int64)) *MockClient_GetLinks_Call {
+func (_c *MockClient_GetLinks_Call) Run(run func(ctx context.Context, chatID int64, tag string)) *MockClient_GetLinks_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(int64))
+		run(args[0].(context.Context), args[1].(int64), args[2].(string))
 	})
 	return _c
 }
@@ -171,7 +172,7 @@ func (_c *MockClient_GetLinks_Call) Return(_a0 []*domain.Link, _a1 error) *MockC
 	return _c
 }
 
-func (_c *MockClient_GetLinks_Call) RunAndReturn(run func(context.Context, int64) ([]*domain.Link, error)) *MockClient_GetLinks_Call {
+func (_c *MockClient_GetLinks_Call) RunAndReturn(run func(context.Context, int64, string) ([]*domain.Link, error)) *MockClient_GetLinks_Call {
 	_c.Call.Return(run)
 	return _c
 }
