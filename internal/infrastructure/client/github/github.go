@@ -8,7 +8,6 @@ import (
 	"net/url"
 	"regexp"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/es-debug/backend-academy-2024-go-template/internal/config"
@@ -86,26 +85,7 @@ func (g *GitHub) getMessages(url string, from, to time.Time) ([]string, error) {
 				continue
 			}
 
-			builder := strings.Builder{}
-			if d.PR.URL != "" {
-				builder.WriteString("<b>Новый Pull Request на Github!</b>\n")
-			} else {
-				builder.WriteString("<b>Новое Issue на Github!</b>\n")
-			}
-
-			builder.WriteString(
-				fmt.Sprintf("<b>Название</b>: <a href=%q>%s</a>\n", d.URL, d.Title),
-			)
-			builder.WriteString(fmt.Sprintf("<b>Автор</b>: <i>%s</i>\n", d.User.Login))
-			builder.WriteString(
-				fmt.Sprintf(
-					"<b>Время создания</b>: <i>%s</i>\n",
-					d.CreatedAt.Local().Format("15:04 02.01.2006"),
-				),
-			)
-			builder.WriteString(fmt.Sprintf("<blockquote>%s</blockquote>\n", preview(d.Body)))
-
-			msgs = append(msgs, builder.String())
+			msgs = append(msgs, DataToMessage(&d))
 		}
 
 		page++
@@ -154,16 +134,4 @@ func (g *GitHub) getAndDecodeResponse(link string, page int, data any) error {
 	}
 
 	return nil
-}
-
-func preview(text string) string {
-	rns := []rune(text)
-	if len(rns) > 200 {
-		rns = rns[:200]
-		rns = append(rns, []rune("...")...)
-
-		return string(rns)
-	}
-
-	return text
 }
