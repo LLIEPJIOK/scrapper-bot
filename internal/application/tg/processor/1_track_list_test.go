@@ -136,12 +136,12 @@ func TestHandle_TrackLister_LinksWithTagsAndFilters(t *testing.T) {
 
 		expectedText := `Ваши ссылки:
 1) https://example.com
-*Тэги:* tag1; tag2
 *Фильтры:* filter1
+#tag1 #tag2
 
 2) https://test.com
-*Тэги:* tag3
 *Фильтры:* filter2; filter3
+#tag3
 
 `
 		assert.Equal(

@@ -42,7 +42,7 @@ func NewScheduler(cfg *config.BotScheduler, repo Repository, channels Channels) 
 		atHours:    cfg.AtHours,
 		atMinutes:  cfg.AtMinutes,
 		atSeconds:  cfg.AtSeconds,
-		lastSended: time.Now().Add(-time.Hour),
+		lastSended: time.Now(),
 	}
 }
 
@@ -109,7 +109,8 @@ func updatesToText(updates []domain.Update) string {
 	builder.WriteString("Обновления по вашим ссылкам:\n\n")
 
 	for i, update := range updates {
-		builder.WriteString(fmt.Sprintf("%d. %s\n", i+1, update.Message))
+		builder.WriteString(fmt.Sprintf("%d. %s", i+1, update.Message))
+		builder.WriteString(fmt.Sprintf("#%s\n\n", strings.Join(update.Tags, " #")))
 	}
 
 	return builder.String()

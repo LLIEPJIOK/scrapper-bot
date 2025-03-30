@@ -51,12 +51,12 @@ func (h *TrackLister) Handle(ctx context.Context, state *State) *fsm.Result[*Sta
 	for i, link := range links {
 		ansBuilder.WriteString(fmt.Sprintf("%d) %s\n", i+1, link.URL))
 
-		if len(link.Tags) > 0 {
-			ansBuilder.WriteString(fmt.Sprintf("*Тэги:* %s\n", strings.Join(link.Tags, "; ")))
-		}
-
 		if len(link.Filters) > 0 {
 			ansBuilder.WriteString(fmt.Sprintf("*Фильтры:* %s\n", strings.Join(link.Filters, "; ")))
+		}
+
+		if len(link.Tags) > 0 {
+			ansBuilder.WriteString(fmt.Sprintf("#%s\n", strings.Join(link.Tags, " #")))
 		}
 
 		ansBuilder.WriteString("\n")
@@ -64,6 +64,7 @@ func (h *TrackLister) Handle(ctx context.Context, state *State) *fsm.Result[*Sta
 
 	msg := tgbotapi.NewMessage(state.ChatID, ansBuilder.String())
 	msg.ParseMode = tgbotapi.ModeMarkdown
+	msg.DisableWebPagePreview = true
 	h.channels.TelegramResp() <- msg
 
 	return &fsm.Result[*State]{
