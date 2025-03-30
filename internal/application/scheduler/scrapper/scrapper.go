@@ -12,8 +12,7 @@ import (
 )
 
 const (
-	numWorkers     = 5
-	paginationSize = 100
+	numWorkers = 5
 )
 
 type Repository interface {
@@ -38,10 +37,11 @@ type Scheduler struct {
 	client   Client
 	checkers []Checher
 	interval time.Duration
+	pageSize uint
 }
 
 func NewScheduler(
-	cfg *config.Scheduler,
+	cfg *config.ScrapperScheduler,
 	repo Repository,
 	client Client,
 	checkers ...Checher,
@@ -51,6 +51,7 @@ func NewScheduler(
 		client:   client,
 		checkers: checkers,
 		interval: cfg.Interval,
+		pageSize: cfg.PageSize,
 	}
 }
 
@@ -93,7 +94,7 @@ func (s *Scheduler) checker(ctx context.Context, ch chan<- *domain.CheckLink) {
 	cursor := time.Time{}
 
 	for {
-		links, err := s.repo.GetCheckLinks(ctx, cursor, started, paginationSize)
+		links, err := s.repo.GetCheckLinks(ctx, cursor, started, s.pageSize)
 		if err != nil {
 			slog.Error("failed to get links", "err", err)
 

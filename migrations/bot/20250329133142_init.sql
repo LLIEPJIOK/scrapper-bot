@@ -7,7 +7,7 @@ CREATE TABLE updates (
 	message TEXT NOT NULL,
 	tags TEXT[] DEFAULT NULL,
 	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW ()
-)
+);
 
 CREATE INDEX idx_updates_created_at ON updates(created_at);
 -- +goose StatementEnd

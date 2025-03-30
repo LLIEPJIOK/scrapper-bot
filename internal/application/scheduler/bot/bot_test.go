@@ -26,7 +26,7 @@ func TestScheduler_SendUpdates_GetUpdatesChatsError(t *testing.T) {
 	repoMock.On("GetUpdatesChats", ctx, mock.Anything, mock.Anything).Return(nil, repoErr).Once()
 
 	channels := domain.NewChannels()
-	cfg := &config.Scheduler{}
+	cfg := &config.BotScheduler{}
 
 	scheduler := bot.NewScheduler(cfg, repoMock, channels)
 
@@ -55,7 +55,7 @@ func TestScheduler_SendUpdates_GetUpdatesError(t *testing.T) {
 		Once()
 
 	channels := domain.NewChannels()
-	cfg := &config.Scheduler{}
+	cfg := &config.BotScheduler{}
 
 	scheduler := bot.NewScheduler(cfg, repoMock, channels)
 
@@ -109,8 +109,7 @@ func TestScheduler_SendUpdates_Success(t *testing.T) {
 	tm := time.Now().Add(time.Second)
 	channels := domain.NewChannels()
 	//nolint:gosec //can't overflow
-	cfg := &config.Scheduler{
-		Interval:  time.Second,
+	cfg := &config.BotScheduler{
 		AtHours:   uint(tm.Hour()),
 		AtMinutes: uint(tm.Minute()),
 		AtSeconds: uint(tm.Second()),

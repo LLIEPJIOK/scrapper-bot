@@ -8,13 +8,13 @@ import (
 )
 
 type Config struct {
-	App       App       `envPrefix:"APP_"`
-	Bot       Bot       `envPrefix:"BOT_"`
-	Scrapper  Scrapper  `envPrefix:"SCRAPPER_"`
-	Client    Client    `envPrefix:"CLIENT_"`
-	Server    Server    `envPrefix:"SERVER_"`
-	GitHub    GitHub    `envPrefix:"GITHUB_"`
-	Scheduler Scheduler `envPrefix:"SCHEDULER_"`
+	App      App      `envPrefix:"APP_"`
+	Bot      Bot      `envPrefix:"BOT_"`
+	Scrapper Scrapper `envPrefix:"SCRAPPER_"`
+	Client   Client   `envPrefix:"CLIENT_"`
+	Server   Server   `envPrefix:"SERVER_"`
+	GitHub   GitHub   `envPrefix:"GITHUB_"`
+	SOF      SOF      `envPrefix:"SOF_"`
 }
 
 type App struct {
@@ -23,16 +23,18 @@ type App struct {
 }
 
 type Bot struct {
-	APIToken    string   `env:"API_TOKEN,required"`
-	URL         string   `env:"URL"                   envDefault:"localhost:8081"`
-	ScrapperURL string   `env:"SCRAPPER_URL,required"`
-	Database    Database `                                                        envPrefix:"DATABASE_"`
+	APIToken    string       `env:"API_TOKEN,required"`
+	URL         string       `env:"URL"                   envDefault:"localhost:8081"`
+	ScrapperURL string       `env:"SCRAPPER_URL,required"`
+	Database    Database     `                                                        envPrefix:"DATABASE_"`
+	Scheduler   BotScheduler `                                                        envPrefix:"SCHEDULER_"`
 }
 
 type Scrapper struct {
-	URL      string   `env:"URL"              envDefault:"localhost:8080"`
-	BotURL   string   `env:"BOT_URL,required"`
-	Database Database `                                                   envPrefix:"DATABASE_"`
+	URL       string            `env:"URL"              envDefault:"localhost:8080"`
+	BotURL    string            `env:"BOT_URL,required"`
+	Database  Database          `                                                   envPrefix:"DATABASE_"`
+	Scheduler ScrapperScheduler `                                                   envPrefix:"SCHEDULER_"`
 }
 
 type Client struct {
@@ -51,14 +53,23 @@ type Server struct {
 }
 
 type GitHub struct {
-	Token string `env:"TOKEN,required"`
+	Token    string `env:"TOKEN,required"`
+	PageSize string `env:"PAGE_SIZE"      envDefault:"100"`
 }
 
-type Scheduler struct {
-	Interval  time.Duration `env:"INTERVAL"   envDefault:"1h"`
-	AtHours   uint          `env:"AT_HOURS"   envDefault:"10"`
-	AtMinutes uint          `env:"AT_MINUTES" envDefault:"0"`
-	AtSeconds uint          `env:"AT_SECONDS" envDefault:"0"`
+type SOF struct {
+	PageSize string `env:"PAGE_SIZE" envDefault:"100"`
+}
+
+type BotScheduler struct {
+	AtHours   uint `env:"AT_HOURS"   envDefault:"10"`
+	AtMinutes uint `env:"AT_MINUTES" envDefault:"0"`
+	AtSeconds uint `env:"AT_SECONDS" envDefault:"0"`
+}
+
+type ScrapperScheduler struct {
+	Interval time.Duration `env:"INTERVAL"  envDefault:"1h"`
+	PageSize uint          `env:"PAGE_SIZE" envDefault:"100"`
 }
 
 type Database struct {

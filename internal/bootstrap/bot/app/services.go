@@ -124,7 +124,7 @@ func (a *App) runScheduler(ctx context.Context, stop context.CancelFunc, wg *syn
 	defer stop()
 	defer slog.Info("scheduler stopped")
 
-	schedule := botscheduler.NewScheduler(&a.cfg.Scheduler, a.repo, a.channels)
+	schedule := botscheduler.NewScheduler(&a.cfg.Bot.Scheduler, a.repo, a.channels)
 
 	if err := schedule.Run(ctx); err != nil {
 		slog.Error("failed to run scheduler", slog.Any("error", err))

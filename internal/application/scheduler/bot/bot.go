@@ -35,7 +35,7 @@ type Scheduler struct {
 	lastSended time.Time
 }
 
-func NewScheduler(cfg *config.Scheduler, repo Repository, channels Channels) *Scheduler {
+func NewScheduler(cfg *config.BotScheduler, repo Repository, channels Channels) *Scheduler {
 	return &Scheduler{
 		repo:       repo,
 		channels:   channels,

@@ -8,6 +8,8 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/es-debug/backend-academy-2024-go-template/internal/config"
 )
 
 const (
@@ -16,17 +18,17 @@ const (
 	answersURL         = "https://api.stackexchange.com/2.3/questions/%s/answers"
 	answersCommentsURL = "https://api.stackexchange.com/2.3/answers/%s/comments"
 	commentsURL        = "https://api.stackexchange.com/2.3/questions/%s/comments"
-
-	pageSize = "100"
 )
 
 type SOF struct {
-	client *http.Client
+	client   *http.Client
+	pageSize string
 }
 
-func New(httpClient *http.Client) *SOF {
+func New(cfg *config.SOF, httpClient *http.Client) *SOF {
 	return &SOF{
-		client: httpClient,
+		client:   httpClient,
+		pageSize: cfg.PageSize,
 	}
 }
 
@@ -104,7 +106,7 @@ func (s *SOF) getAnswers(questionID string, from, to time.Time) ([]Answer, error
 
 	for {
 		params.Set("page", fmt.Sprintf("%d", page))
-		params.Set("pagesize", pageSize)
+		params.Set("pagesize", s.pageSize)
 
 		reqURL := fmt.Sprintf(answersURL, questionID) + "?" + params.Encode()
 
@@ -148,7 +150,7 @@ func (s *SOF) getComments(link string, from, to time.Time) ([]Comment, error) {
 
 	for {
 		params.Set("page", fmt.Sprintf("%d", page))
-		params.Set("pagesize", pageSize)
+		params.Set("pagesize", s.pageSize)
 
 		reqURL := link + "?" + params.Encode()
 

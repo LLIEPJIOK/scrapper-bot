@@ -21,8 +21,6 @@ const (
 
 	// issueURL = "https://api.github.com/repos/%s/%s/issues/%s"
 	// pullURL  = "https://api.github.com/repos/%s/%s/pulls/%s"
-
-	pageSize = "100"
 )
 
 type GitHub struct {
@@ -30,7 +28,8 @@ type GitHub struct {
 	repoRegex *regexp.Regexp
 	// issueRegex *regexp.Regexp
 	// pullRegex  *regexp.Regexp
-	token string
+	token    string
+	pageSize string
 }
 
 func New(cfg *config.GitHub, httpClient *http.Client) *GitHub {
@@ -39,7 +38,8 @@ func New(cfg *config.GitHub, httpClient *http.Client) *GitHub {
 		repoRegex: regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)$`),
 		// issueRegex: regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)/issues/(\d+)$`),
 		// pullRegex:  regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)/pull/(\d+)$`),
-		token: cfg.Token,
+		token:    cfg.Token,
+		pageSize: cfg.PageSize,
 	}
 }
 
@@ -96,7 +96,7 @@ func (g *GitHub) getAndDecodeResponse(link string, page int, data any) error {
 	params := url.Values{}
 	params.Add("sort", "created")
 	params.Add("direction", "desc")
-	params.Add("per_page", pageSize)
+	params.Add("per_page", g.pageSize)
 	params.Add("page", strconv.Itoa(page))
 
 	reqURL := fmt.Sprintf("%s?%s", link, params.Encode())

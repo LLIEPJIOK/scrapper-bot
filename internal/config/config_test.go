@@ -19,7 +19,7 @@ func TestLoad_Success(t *testing.T) {
 	assert.NoError(t, os.Setenv("APP_SHUTDOWN_TIMEOUT", "3s"))
 	assert.NoError(t, os.Setenv("CLIENT_DIAL_TIMEOUT", "6s"))
 	assert.NoError(t, os.Setenv("SERVER_READ_TIMEOUT", "12s"))
-	assert.NoError(t, os.Setenv("SCHEDULER_INTERVAL", "2h"))
+	assert.NoError(t, os.Setenv("SCRAPPER_SCHEDULER_INTERVAL", "2h"))
 
 	config, err := config.Load()
 	assert.NoError(t, err, "expected no error loading configuration")
@@ -46,10 +46,25 @@ func TestLoad_Success(t *testing.T) {
 
 	assert.Equal(t, "github_test_token", config.GitHub.Token, "unexpected GitHub.Token")
 
-	assert.Equal(t, 2*time.Hour, config.Scheduler.Interval, "unexpected Scheduler.Interval")
-	assert.Equal(t, uint(10), config.Scheduler.AtHours, "unexpected default Scheduler.AtHours")
-	assert.Equal(t, uint(0), config.Scheduler.AtMinutes, "unexpected default Scheduler.AtMinutes")
-	assert.Equal(t, uint(0), config.Scheduler.AtSeconds, "unexpected default Scheduler.AtSeconds")
+	assert.Equal(
+		t,
+		2*time.Hour,
+		config.Scrapper.Scheduler.Interval,
+		"unexpected Scheduler.Interval",
+	)
+	assert.Equal(t, uint(10), config.Bot.Scheduler.AtHours, "unexpected default Bot.Scheduler.AtHours")
+	assert.Equal(
+		t,
+		uint(0),
+		config.Bot.Scheduler.AtMinutes,
+		"unexpected default Bot.Scheduler.AtMinutes",
+	)
+	assert.Equal(
+		t,
+		uint(0),
+		config.Bot.Scheduler.AtSeconds,
+		"unexpected default Bot.Scheduler.AtSeconds",
+	)
 }
 
 func TestLoad_MissingRequired(t *testing.T) {
