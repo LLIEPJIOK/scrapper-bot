@@ -22,8 +22,7 @@ const (
 )
 
 type Config struct {
-	BotDB      Database `envPrefix:"BOT_DATABASE_"`
-	ScrapperDB Database `envPrefix:"SCRAPPER_DATABASE_"`
+	Database Database `envPrefix:"SCRAPPER_DATABASE_"`
 }
 
 type Database struct {
@@ -49,39 +48,21 @@ func main() {
 		os.Exit(ErrorConfigLoad)
 	}
 
-	if code := botMigrate(&config, cmd); code != OkCode {
-		os.Exit(code)
-	}
-
-	os.Exit(scrapperMigrate(&config, cmd))
+	os.Exit(botMigrate(&config, cmd))
 }
 
 func botMigrate(cfg *Config, cmd string) (code int) {
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		cfg.BotDB.Host,
-		cfg.BotDB.Port,
-		cfg.BotDB.User,
-		cfg.BotDB.Password,
-		cfg.BotDB.Name,
-		cfg.BotDB.SSLMode,
+		cfg.Database.Host,
+		cfg.Database.Port,
+		cfg.Database.User,
+		cfg.Database.Password,
+		cfg.Database.Name,
+		cfg.Database.SSLMode,
 	)
 
 	return migrate(dsn, "bot", cmd)
-}
-
-func scrapperMigrate(cfg *Config, cmd string) (code int) {
-	dsn := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		cfg.ScrapperDB.Host,
-		cfg.ScrapperDB.Port,
-		cfg.ScrapperDB.User,
-		cfg.ScrapperDB.Password,
-		cfg.ScrapperDB.Name,
-		cfg.ScrapperDB.SSLMode,
-	)
-
-	return migrate(dsn, "scrapper", cmd)
 }
 
 func migrate(dsn, tpe, cmd string) (code int) {
