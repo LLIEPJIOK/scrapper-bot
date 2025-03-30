@@ -8,6 +8,8 @@ CREATE TABLE updates (
 	tags TEXT[] DEFAULT NULL,
 	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW ()
 )
+
+CREATE INDEX idx_updates_created_at ON updates(created_at);
 -- +goose StatementEnd
 
 -- +goose Down

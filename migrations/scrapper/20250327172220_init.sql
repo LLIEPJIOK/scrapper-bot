@@ -14,6 +14,8 @@ CREATE TABLE
 		checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW ()
 	);
 
+CREATE INDEX idx_links_checked_at ON links(checked_at);
+
 CREATE TABLE
 	tags (
 		id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
