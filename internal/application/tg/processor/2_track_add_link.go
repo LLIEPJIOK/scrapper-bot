@@ -27,14 +27,14 @@ func NewTrackLinkAdder(client Client, channels Channels) *TrackLinkAdder {
 		formats: []string{
 			"https://stackoverflow.com/questions/{id}/{title}",
 			"https://github.com/{user}/{repo}",
-			"https://github.com/{user}/{repo}/issues/{id}",
-			"https://github.com/{user}/pull/{id}",
+			// "https://github.com/{user}/{repo}/issues/{id}",
+			// "https://github.com/{user}/pull/{id}",
 		},
 		regexes: []*regexp.Regexp{
 			regexp.MustCompile(`^https://stackoverflow\.com/questions/(\d+)/([\w-]+)$`),
 			regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)$`),
-			regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)/issues/(\d+)$`),
-			regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)/pull/(\d+)$`),
+			// regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)/issues/(\d+)$`),
+			// regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)/pull/(\d+)$`),
 		},
 	}
 }
