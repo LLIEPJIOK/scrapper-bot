@@ -24,17 +24,17 @@ type App struct {
 
 type Bot struct {
 	APIToken    string       `env:"API_TOKEN,required"`
-	URL         string       `env:"URL"                   envDefault:"localhost:8081"`
+	URL         string       `env:"URL"                   envDefault:":8081"`
 	ScrapperURL string       `env:"SCRAPPER_URL,required"`
-	Database    Database     `                                                        envPrefix:"DATABASE_"`
-	Scheduler   BotScheduler `                                                        envPrefix:"SCHEDULER_"`
+	Database    Database     `                                               envPrefix:"DATABASE_"`
+	Scheduler   BotScheduler `                                               envPrefix:"SCHEDULER_"`
 }
 
 type Scrapper struct {
-	URL       string            `env:"URL"              envDefault:"localhost:8080"`
+	URL       string            `env:"URL"              envDefault:":8080"`
 	BotURL    string            `env:"BOT_URL,required"`
-	Database  Database          `                                                   envPrefix:"DATABASE_"`
-	Scheduler ScrapperScheduler `                                                   envPrefix:"SCHEDULER_"`
+	Database  Database          `                                          envPrefix:"DATABASE_"`
+	Scheduler ScrapperScheduler `                                          envPrefix:"SCHEDULER_"`
 }
 
 type Client struct {

@@ -93,7 +93,6 @@ func TestScheduler_SendUpdates_Success(t *testing.T) {
 		ChatID:  2,
 		URL:     "link3",
 		Message: "message3\n",
-		Tags:    []string{"tag3"},
 	}
 
 	repoMock.On("GetUpdatesChats", ctx, mock.Anything, mock.Anything).
@@ -106,7 +105,7 @@ func TestScheduler_SendUpdates_Success(t *testing.T) {
 		Return([]domain.Update{update3}, nil).
 		Once()
 
-	tm := time.Now().Add(time.Second)
+	tm := time.Now().Add(time.Second).UTC()
 	channels := domain.NewChannels()
 	//nolint:gosec //can't overflow
 	cfg := &config.BotScheduler{
@@ -119,7 +118,7 @@ func TestScheduler_SendUpdates_Success(t *testing.T) {
 
 	go func() {
 		expectedText1 := "Обновления по вашим ссылкам:\n\n1. message1\n#tag1\n\n2. message2\n#tag2\n\n"
-		expectedText2 := "Обновления по вашим ссылкам:\n\n1. message3\n#tag3\n\n"
+		expectedText2 := "Обновления по вашим ссылкам:\n\n1. message3\n\n"
 
 		msg1 := <-channels.TelegramResp()
 		m1, ok := msg1.(tgbotapi.MessageConfig)

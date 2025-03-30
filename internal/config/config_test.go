@@ -21,6 +21,28 @@ func TestLoad_Success(t *testing.T) {
 	assert.NoError(t, os.Setenv("SERVER_READ_TIMEOUT", "12s"))
 	assert.NoError(t, os.Setenv("SCRAPPER_SCHEDULER_INTERVAL", "2h"))
 
+	assert.NoError(t, os.Setenv("BOT_DATABASE_HOST", "localhost"))
+	assert.NoError(t, os.Setenv("BOT_DATABASE_PORT", "5432"))
+	assert.NoError(t, os.Setenv("BOT_DATABASE_USER", "bot_user"))
+	assert.NoError(t, os.Setenv("BOT_DATABASE_PASSWORD", "bot_password"))
+	assert.NoError(t, os.Setenv("BOT_DATABASE_NAME", "bot"))
+	assert.NoError(t, os.Setenv("BOT_DATABASE_SSL_MODE", "disable"))
+	assert.NoError(t, os.Setenv("BOT_DATABASE_TYPE", "postgres"))
+
+	assert.NoError(t, os.Setenv("SCRAPPER_DATABASE_HOST", "localhost"))
+	assert.NoError(t, os.Setenv("SCRAPPER_DATABASE_PORT", "5432"))
+	assert.NoError(t, os.Setenv("SCRAPPER_DATABASE_USER", "scrapper_user"))
+	assert.NoError(t, os.Setenv("SCRAPPER_DATABASE_PASSWORD", "scrapper_password"))
+	assert.NoError(t, os.Setenv("SCRAPPER_DATABASE_NAME", "scrapper"))
+	assert.NoError(t, os.Setenv("SCRAPPER_DATABASE_SSL_MODE", "disable"))
+	assert.NoError(t, os.Setenv("SCRAPPER_DATABASE_TYPE", "postgres"))
+
+	os.Unsetenv("SCRAPPER_URL")
+	os.Unsetenv("SERVER_READ_HEADER_TIMEOUT")
+	os.Unsetenv("BOT_SCHEDULER_AT_HOURS")
+	os.Unsetenv("BOT_SCHEDULER_AT_MINUTES")
+	os.Unsetenv("BOT_SCHEDULER_AT_SECONDS")
+
 	config, err := config.Load()
 	assert.NoError(t, err, "expected no error loading configuration")
 
@@ -28,10 +50,10 @@ func TestLoad_Success(t *testing.T) {
 	assert.Equal(t, 3*time.Second, config.App.ShutdownTimeout, "unexpected App.ShutdownTimeout")
 
 	assert.Equal(t, "test_token", config.Bot.APIToken, "unexpected Bot.APIToken")
-	assert.Equal(t, "localhost:8081", config.Bot.URL, "unexpected default Bot.URL")
+	assert.Equal(t, ":8081", config.Bot.URL, "unexpected default Bot.URL")
 	assert.Equal(t, "http://localhost:8080", config.Bot.ScrapperURL, "unexpected Bot.ScrapperURL")
 
-	assert.Equal(t, "localhost:8080", config.Scrapper.URL, "unexpected default Scrapper.URL")
+	assert.Equal(t, ":8080", config.Scrapper.URL, "unexpected default Scrapper.URL")
 	assert.Equal(t, "http://localhost:8081", config.Scrapper.BotURL, "unexpected Scrapper.BotURL")
 
 	assert.Equal(t, 6*time.Second, config.Client.DialTimeout, "unexpected Client.DialTimeout")
@@ -52,7 +74,12 @@ func TestLoad_Success(t *testing.T) {
 		config.Scrapper.Scheduler.Interval,
 		"unexpected Scheduler.Interval",
 	)
-	assert.Equal(t, uint(10), config.Bot.Scheduler.AtHours, "unexpected default Bot.Scheduler.AtHours")
+	assert.Equal(
+		t,
+		uint(10),
+		config.Bot.Scheduler.AtHours,
+		"unexpected default Bot.Scheduler.AtHours",
+	)
 	assert.Equal(
 		t,
 		uint(0),

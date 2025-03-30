@@ -110,7 +110,12 @@ func updatesToText(updates []domain.Update) string {
 
 	for i, update := range updates {
 		builder.WriteString(fmt.Sprintf("%d. %s", i+1, update.Message))
-		builder.WriteString(fmt.Sprintf("#%s\n\n", strings.Join(update.Tags, " #")))
+
+		if len(update.Tags) != 0 {
+			builder.WriteString(fmt.Sprintf("#%s\n", strings.Join(update.Tags, " #")))
+		}
+
+		builder.WriteString("\n")
 	}
 
 	return builder.String()
