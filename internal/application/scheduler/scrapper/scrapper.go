@@ -26,7 +26,7 @@ type Repository interface {
 }
 
 type Checher interface {
-	HasUpdates(link string, lastUpdate time.Time) (bool, error)
+	GetUpdates(link string, from, to time.Time) ([]string, error)
 }
 
 type Client interface {
@@ -126,37 +126,52 @@ func (s *Scheduler) worker(ctx context.Context, ch <-chan *domain.CheckLink) {
 
 func (s *Scheduler) getUpdates(ctx context.Context, link *domain.CheckLink) {
 	tm := time.Now()
-	hasUpdates, hasError := false, false
+
+	var (
+		updates []string
+		err     error
+	)
 
 	if len(link.Chats) != 0 {
 		for _, checker := range s.checkers {
-			has, err := checker.HasUpdates(link.URL, link.CheckedAt)
+			updates, err = checker.GetUpdates(link.URL, link.CheckedAt, tm)
 			if err != nil {
 				slog.Error(
-					"failed to check updates",
+					"failed to get updates",
 					slog.Any("url", link.URL),
 					slog.Any("error", err),
 				)
 
-				hasError = true
-
 				continue
 			}
 
-			if has {
-				hasUpdates = true
-
+			if len(updates) != 0 {
 				break
 			}
 		}
 	}
 
-	if hasUpdates {
+	s.sendUpdates(ctx, link, updates)
+
+	if len(updates) != 0 || err == nil {
+		err := s.repo.UpdateCheckTime(ctx, link.URL, tm)
+		if err != nil {
+			slog.Error(
+				"failed to update check time",
+				slog.Any("url", link.URL),
+				slog.Any("error", err),
+			)
+		}
+	}
+}
+
+func (s *Scheduler) sendUpdates(ctx context.Context, link *domain.CheckLink, updates []string) {
+	for _, update := range updates {
 		for _, chat := range link.Chats {
 			err := s.client.UpdatesPost(ctx, &domain.Update{
 				ChatID:  chat.ChatID,
 				URL:     link.URL,
-				Message: fmt.Sprintf("New updates on %s", link.URL),
+				Message: update,
 				Tags:    chat.Tags,
 			})
 			if err != nil {
@@ -167,17 +182,6 @@ func (s *Scheduler) getUpdates(ctx context.Context, link *domain.CheckLink) {
 					slog.Any("error", err),
 				)
 			}
-		}
-	}
-
-	if hasUpdates || !hasError {
-		err := s.repo.UpdateCheckTime(ctx, link.URL, tm)
-		if err != nil {
-			slog.Error(
-				"failed to update check time",
-				slog.Any("url", link.URL),
-				slog.Any("error", err),
-			)
 		}
 	}
 }

@@ -84,12 +84,10 @@ func TestScheduler_SendUpdates_Success(t *testing.T) {
 		Tags:    []string{"tag1"},
 	}
 	update2 := domain.Update{
-		ChatID: 1,
-		URL:    "link2",
-		Message: "tooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo" +
-			"ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo" +
-			"oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo long",
-		Tags: []string{"tag2"},
+		ChatID:  1,
+		URL:     "link2",
+		Message: "message2",
+		Tags:    []string{"tag2"},
 	}
 	update3 := domain.Update{
 		ChatID:  2,
@@ -121,11 +119,8 @@ func TestScheduler_SendUpdates_Success(t *testing.T) {
 	scheduler := bot.NewScheduler(cfg, repoMock, channels)
 
 	go func() {
-		expectedText1 := "Обновления по вашим ссылкам:\n1. link1\n<blockquote>message1\n</blockquote>" +
-			"2. link2\n<blockquote>toooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo" +
-			"ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo" +
-			"oooooooooooooooooooooooooooooooooooooooooooooooooooooooo...\n</blockquote>"
-		expectedText2 := "Обновления по вашим ссылкам:\n1. link3\n<blockquote>message3\n</blockquote>"
+		expectedText1 := "Обновления по вашим ссылкам:\n\n1. message1\n2. message2\n"
+		expectedText2 := "Обновления по вашим ссылкам:\n\n1. message3\n"
 
 		msg1 := <-channels.TelegramResp()
 		m1, ok := msg1.(tgbotapi.MessageConfig)

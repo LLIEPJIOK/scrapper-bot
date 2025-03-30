@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"sort"
 	"strings"
 	"time"
 
@@ -106,36 +105,12 @@ func (s *Scheduler) SendUpdates(ctx context.Context) {
 }
 
 func updatesToText(updates []domain.Update) string {
-	sort.Slice(updates, func(i, j int) bool {
-		return updates[i].URL < updates[j].URL
-	})
-
 	builder := strings.Builder{}
-	builder.WriteString("Обновления по вашим ссылкам:\n")
-
-	point := 1
+	builder.WriteString("Обновления по вашим ссылкам:\n\n")
 
 	for i, update := range updates {
-		if i == 0 || update.URL != updates[i-1].URL {
-			builder.WriteString(fmt.Sprintf("%d. %s\n", point, update.URL))
-
-			point++
-		}
-
-		builder.WriteString(fmt.Sprintf("<blockquote>%s\n</blockquote>", preview(update.Message)))
+		builder.WriteString(fmt.Sprintf("%d. %s\n", i+1, update.Message))
 	}
 
 	return builder.String()
-}
-
-func preview(text string) string {
-	rns := []rune(text)
-	if len(rns) > 200 {
-		rns = rns[:200]
-		rns = append(rns, []rune("...")...)
-
-		return string(rns)
-	}
-
-	return text
 }
