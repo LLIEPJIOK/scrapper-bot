@@ -6,28 +6,18 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
-	"time"
 
 	"github.com/es-debug/backend-academy-2024-go-template/internal/config"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
+	repo "github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/repository/bot"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
-
-type Repository interface {
-	AddUpdate(ctx context.Context, update *domain.Update) error
-	GetUpdatesChats(ctx context.Context, from, to time.Time) ([]int64, error)
-	GetUpdates(
-		ctx context.Context,
-		chatID int64,
-		from, to time.Time,
-	) ([]domain.Update, error)
-}
 
 type App struct {
 	cfg      *config.Config
 	channels *domain.Channels
 	db       *pgxpool.Pool
-	repo     Repository
+	repo     repo.Repository
 }
 
 func New(cfg *config.Config) *App {

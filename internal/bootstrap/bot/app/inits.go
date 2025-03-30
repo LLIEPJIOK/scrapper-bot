@@ -43,15 +43,11 @@ func (a *App) initDB(ctx context.Context) error {
 }
 
 func (a *App) initRepo(_ context.Context) error {
-	switch a.cfg.Scrapper.Database.Type {
-	case "sql":
-		a.repo = repo.NewSQL(a.db)
+	var err error
 
-	case "builder":
-		a.repo = repo.NewBuilder(a.db)
-
-	default:
-		return NewErrUnknownDBType(a.cfg.Scrapper.Database.Type)
+	a.repo, err = repo.New(a.db, a.cfg.Scrapper.Database.Type)
+	if err != nil {
+		return fmt.Errorf("failed to create repository: %w", err)
 	}
 
 	return nil
