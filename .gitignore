@@ -29,3 +29,6 @@ go.work.sum
 
 # allure report
 allure-results/
+
+# backup
+.history/
