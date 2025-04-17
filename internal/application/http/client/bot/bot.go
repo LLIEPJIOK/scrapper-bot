@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/bot"
 )
 
@@ -22,15 +23,17 @@ func NewClient(client ExternalClient) *Client {
 	}
 }
 
-func (b *Client) UpdatesPost(ctx context.Context, link string, chats []int64) error {
-	parsedURL, err := url.Parse(link)
+func (b *Client) UpdatesPost(ctx context.Context, update *domain.Update) error {
+	parsedURL, err := url.Parse(update.URL)
 	if err != nil {
 		return fmt.Errorf("failed to parse link: %w", err)
 	}
 
 	rawResp, err := b.client.UpdatesPost(ctx, &bot.LinkUpdate{
-		URL:       bot.NewOptURI(*parsedURL),
-		TgChatIds: chats,
+		ChatID:  bot.NewOptInt64(update.ChatID),
+		URL:     bot.NewOptURI(*parsedURL),
+		Message: bot.NewOptString(update.Message),
+		Tags:    update.Tags,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to send updates: %w", err)

@@ -69,15 +69,15 @@ func (*ApiErrorResponse) updatesPostRes() {}
 
 // Ref: #/components/schemas/LinkUpdate
 type LinkUpdate struct {
-	ID          OptInt64  `json:"id"`
-	URL         OptURI    `json:"url"`
-	Description OptString `json:"description"`
-	TgChatIds   []int64   `json:"tgChatIds"`
+	ChatID  OptInt64  `json:"chat_id"`
+	URL     OptURI    `json:"url"`
+	Message OptString `json:"message"`
+	Tags    []string  `json:"tags"`
 }
 
-// GetID returns the value of ID.
-func (s *LinkUpdate) GetID() OptInt64 {
-	return s.ID
+// GetChatID returns the value of ChatID.
+func (s *LinkUpdate) GetChatID() OptInt64 {
+	return s.ChatID
 }
 
 // GetURL returns the value of URL.
@@ -85,19 +85,19 @@ func (s *LinkUpdate) GetURL() OptURI {
 	return s.URL
 }
 
-// GetDescription returns the value of Description.
-func (s *LinkUpdate) GetDescription() OptString {
-	return s.Description
+// GetMessage returns the value of Message.
+func (s *LinkUpdate) GetMessage() OptString {
+	return s.Message
 }
 
-// GetTgChatIds returns the value of TgChatIds.
-func (s *LinkUpdate) GetTgChatIds() []int64 {
-	return s.TgChatIds
+// GetTags returns the value of Tags.
+func (s *LinkUpdate) GetTags() []string {
+	return s.Tags
 }
 
-// SetID sets the value of ID.
-func (s *LinkUpdate) SetID(val OptInt64) {
-	s.ID = val
+// SetChatID sets the value of ChatID.
+func (s *LinkUpdate) SetChatID(val OptInt64) {
+	s.ChatID = val
 }
 
 // SetURL sets the value of URL.
@@ -105,14 +105,14 @@ func (s *LinkUpdate) SetURL(val OptURI) {
 	s.URL = val
 }
 
-// SetDescription sets the value of Description.
-func (s *LinkUpdate) SetDescription(val OptString) {
-	s.Description = val
+// SetMessage sets the value of Message.
+func (s *LinkUpdate) SetMessage(val OptString) {
+	s.Message = val
 }
 
-// SetTgChatIds sets the value of TgChatIds.
-func (s *LinkUpdate) SetTgChatIds(val []int64) {
-	s.TgChatIds = val
+// SetTags sets the value of Tags.
+func (s *LinkUpdate) SetTags(val []string) {
+	s.Tags = val
 }
 
 // NewOptInt64 returns new OptInt64 with value set to v.

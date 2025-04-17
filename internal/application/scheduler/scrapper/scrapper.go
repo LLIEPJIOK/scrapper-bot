@@ -11,19 +11,25 @@ import (
 	"github.com/go-co-op/gocron/v2"
 )
 
-const numWorkers = 5
+const (
+	numWorkers = 5
+)
 
 type Repository interface {
-	GetCheckLinks() []*domain.CheckLink
-	UpdateCheckTime(url string, checkedAt time.Time) error
+	GetCheckLinks(
+		ctx context.Context,
+		from, to time.Time,
+		limit uint,
+	) ([]*domain.CheckLink, error)
+	UpdateCheckTime(ctx context.Context, url string, checkedAt time.Time) error
 }
 
 type Checher interface {
-	HasUpdates(link string, lastUpdate time.Time) (bool, error)
+	GetUpdates(link string, from, to time.Time) ([]string, error)
 }
 
 type Client interface {
-	UpdatesPost(ctx context.Context, link string, chats []int64) error
+	UpdatesPost(ctx context.Context, update *domain.Update) error
 }
 
 type Scheduler struct {
@@ -31,10 +37,11 @@ type Scheduler struct {
 	client   Client
 	checkers []Checher
 	interval time.Duration
+	pageSize uint
 }
 
 func NewScheduler(
-	cfg *config.Scheduler,
+	cfg *config.ScrapperScheduler,
 	repo Repository,
 	client Client,
 	checkers ...Checher,
@@ -44,6 +51,7 @@ func NewScheduler(
 		client:   client,
 		checkers: checkers,
 		interval: cfg.Interval,
+		pageSize: cfg.PageSize,
 	}
 }
 
@@ -62,10 +70,7 @@ func (s *Scheduler) Run(ctx context.Context) error {
 	_, err = schedule.NewJob(
 		gocron.DurationJob(s.interval),
 		gocron.NewTask(func() {
-			links := s.repo.GetCheckLinks()
-			for _, link := range links {
-				ch <- link
-			}
+			s.checker(ctx, ch)
 		}),
 	)
 	if err != nil {
@@ -84,6 +89,30 @@ func (s *Scheduler) Run(ctx context.Context) error {
 	return nil
 }
 
+func (s *Scheduler) checker(ctx context.Context, ch chan<- *domain.CheckLink) {
+	started := time.Now()
+	cursor := time.Time{}
+
+	for {
+		links, err := s.repo.GetCheckLinks(ctx, cursor, started, s.pageSize)
+		if err != nil {
+			slog.Error("failed to get links", "err", err)
+
+			return
+		}
+
+		if len(links) == 0 {
+			break
+		}
+
+		cursor = links[len(links)-1].CheckedAt
+
+		for _, link := range links {
+			ch <- link
+		}
+	}
+}
+
 func (s *Scheduler) worker(ctx context.Context, ch <-chan *domain.CheckLink) {
 	for {
 		select {
@@ -91,51 +120,68 @@ func (s *Scheduler) worker(ctx context.Context, ch <-chan *domain.CheckLink) {
 			return
 
 		case link := <-ch:
-			tm := time.Now()
-			hasUpdates, hasError := false, false
+			s.getUpdates(ctx, link)
+		}
+	}
+}
 
-			for _, checker := range s.checkers {
-				has, err := checker.HasUpdates(link.URL, link.CheckedAt)
-				if err != nil {
-					slog.Error(
-						"failed to check updates",
-						slog.Any("url", link.URL),
-						slog.Any("error", err),
-					)
+func (s *Scheduler) getUpdates(ctx context.Context, link *domain.CheckLink) {
+	tm := time.Now()
 
-					hasError = true
+	var (
+		updates []string
+		err     error
+	)
 
-					continue
-				}
+	if len(link.Chats) != 0 {
+		for _, checker := range s.checkers {
+			updates, err = checker.GetUpdates(link.URL, link.CheckedAt, tm)
+			if err != nil {
+				slog.Error(
+					"failed to get updates",
+					slog.Any("url", link.URL),
+					slog.Any("error", err),
+				)
 
-				if has {
-					hasUpdates = true
-
-					break
-				}
+				continue
 			}
 
-			if hasUpdates {
-				err := s.client.UpdatesPost(ctx, link.URL, link.Chats)
-				if err != nil {
-					slog.Error(
-						"failed to send updates",
-						slog.Any("url", link.URL),
-						slog.Any("chats", link.Chats),
-						slog.Any("error", err),
-					)
-				}
+			if len(updates) != 0 {
+				break
 			}
+		}
+	}
 
-			if hasUpdates || !hasError {
-				err := s.repo.UpdateCheckTime(link.URL, tm)
-				if err != nil {
-					slog.Error(
-						"failed to update check time",
-						slog.Any("url", link.URL),
-						slog.Any("error", err),
-					)
-				}
+	s.sendUpdates(ctx, link, updates)
+
+	if len(updates) != 0 || err == nil {
+		err := s.repo.UpdateCheckTime(ctx, link.URL, tm)
+		if err != nil {
+			slog.Error(
+				"failed to update check time",
+				slog.Any("url", link.URL),
+				slog.Any("error", err),
+			)
+		}
+	}
+}
+
+func (s *Scheduler) sendUpdates(ctx context.Context, link *domain.CheckLink, updates []string) {
+	for _, update := range updates {
+		for _, chat := range link.Chats {
+			err := s.client.UpdatesPost(ctx, &domain.Update{
+				ChatID:  chat.ChatID,
+				URL:     link.URL,
+				Message: update,
+				Tags:    chat.Tags,
+			})
+			if err != nil {
+				slog.Error(
+					"failed to send updates",
+					slog.Any("url", link.URL),
+					slog.Any("chats", link.Chats),
+					slog.Any("error", err),
+				)
 			}
 		}
 	}

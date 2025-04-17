@@ -278,6 +278,10 @@ func (s *Server) handleLinksGetRequest(args [0]string, argsEscaped bool, w http.
 					Name: "Tg-Chat-Id",
 					In:   "header",
 				}: params.TgChatID,
+				{
+					Name: "tag",
+					In:   "query",
+				}: params.Tag,
 			},
 			Raw: r,
 		}

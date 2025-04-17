@@ -27,14 +27,14 @@ func NewTrackLinkAdder(client Client, channels Channels) *TrackLinkAdder {
 		formats: []string{
 			"https://stackoverflow.com/questions/{id}/{title}",
 			"https://github.com/{user}/{repo}",
-			"https://github.com/{user}/{repo}/issues/{id}",
-			"https://github.com/{user}/pull/{id}",
+			// "https://github.com/{user}/{repo}/issues/{id}",
+			// "https://github.com/{user}/pull/{id}",
 		},
 		regexes: []*regexp.Regexp{
 			regexp.MustCompile(`^https://stackoverflow\.com/questions/(\d+)/([\w-]+)$`),
 			regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)$`),
-			regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)/issues/(\d+)$`),
-			regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)/pull/(\d+)$`),
+			// regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)/issues/(\d+)$`),
+			// regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)/pull/(\d+)$`),
 		},
 	}
 }
@@ -108,7 +108,7 @@ func (h *TrackLinkAdder) IsLinkExists(
 	url string,
 	chatID int64,
 ) (bool, error) {
-	links, err := h.client.GetLinks(ctx, chatID)
+	links, err := h.client.GetLinks(ctx, chatID, "")
 	if err != nil {
 		return false, fmt.Errorf("failed to get links: %w", err)
 	}
@@ -125,7 +125,7 @@ func createKeyboard(link *domain.Link) tgbotapi.InlineKeyboardMarkup {
 
 	if link.Tags == nil {
 		rows = append(rows, []tgbotapi.InlineKeyboardButton{
-			tgbotapi.NewInlineKeyboardButtonData("Добавить тэги", trackAddTags.String()),
+			tgbotapi.NewInlineKeyboardButtonData("Добавить теги", trackAddTags.String()),
 		})
 	}
 

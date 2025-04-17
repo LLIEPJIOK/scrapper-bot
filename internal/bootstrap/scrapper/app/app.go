@@ -8,24 +8,31 @@ import (
 	"syscall"
 
 	"github.com/es-debug/backend-academy-2024-go-template/internal/config"
-	repository "github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/repository/scrapper"
+	repo "github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/repository/scrapper"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type App struct {
 	cfg  *config.Config
-	repo *repository.Repository
+	db   *pgxpool.Pool
+	repo repo.Repository
 }
 
 func New(cfg *config.Config) *App {
 	return &App{
-		cfg:  cfg,
-		repo: repository.New(),
+		cfg: cfg,
 	}
 }
 
 func (a *App) Run(ctx context.Context) error {
 	ctx, stop := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
+
+	for _, init := range a.inits() {
+		if err := init(ctx); err != nil {
+			return err
+		}
+	}
 
 	var wg sync.WaitGroup
 

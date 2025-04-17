@@ -285,10 +285,10 @@ func TestClient_GetLinks_Success(t *testing.T) {
 		},
 	}
 
-	clientMock.On("LinksGet", mock.Anything, api.LinksGetParams{TgChatID: chatID}).
+	clientMock.On("LinksGet", mock.Anything, api.LinksGetParams{TgChatID: chatID, Tag: api.NewOptString("tag")}).
 		Return(&api.ListLinksResponse{Links: apiLinks}, nil).Once()
 
-	links, err := client.GetLinks(context.Background(), chatID)
+	links, err := client.GetLinks(context.Background(), chatID, "tag")
 
 	assert.NoError(t, err, "GetLinks should not return error")
 	assert.Len(t, links, 2, "GetLinks should return 2 links")
@@ -318,7 +318,7 @@ func TestClient_GetLinks_Error(t *testing.T) {
 	clientMock.On("LinksGet", mock.Anything, api.LinksGetParams{TgChatID: chatID}).
 		Return(nil, expectedErr).Once()
 
-	links, err := client.GetLinks(context.Background(), chatID)
+	links, err := client.GetLinks(context.Background(), chatID, "")
 
 	assert.Error(t, err, "GetLinks should return error")
 	assert.Nil(t, links, "GetLinks should return empty list")
@@ -338,7 +338,7 @@ func TestClient_GetLinks_APIError(t *testing.T) {
 			Description: api.NewOptString("error description"),
 		}, nil).Once()
 
-	links, err := client.GetLinks(context.Background(), chatID)
+	links, err := client.GetLinks(context.Background(), chatID, "")
 
 	errResp := scrapper.ErrResponse{}
 	require.True(t, errors.As(err, &errResp), "RegisterChat should return error response")

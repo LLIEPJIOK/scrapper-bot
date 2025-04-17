@@ -5,15 +5,21 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"time"
 
 	"github.com/es-debug/backend-academy-2024-go-template/internal/config"
-	repository "github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/repository/bot"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
 	"github.com/go-co-op/gocron/v2"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 type Repository interface {
-	GetUpdates() ([]*repository.UpdateChat, error)
+	GetUpdatesChats(ctx context.Context, from, to time.Time) ([]int64, error)
+	GetUpdates(
+		ctx context.Context,
+		chatID int64,
+		from, to time.Time,
+	) ([]domain.Update, error)
 }
 
 type Channels interface {
@@ -21,25 +27,27 @@ type Channels interface {
 }
 
 type Scheduler struct {
-	repo      Repository
-	channels  Channels
-	atHours   uint
-	atMinutes uint
-	atSeconds uint
+	repo       Repository
+	channels   Channels
+	atHours    uint
+	atMinutes  uint
+	atSeconds  uint
+	lastSended time.Time
 }
 
-func NewScheduler(cfg *config.Scheduler, repo Repository, channels Channels) *Scheduler {
+func NewScheduler(cfg *config.BotScheduler, repo Repository, channels Channels) *Scheduler {
 	return &Scheduler{
-		repo:      repo,
-		channels:  channels,
-		atHours:   cfg.AtHours,
-		atMinutes: cfg.AtMinutes,
-		atSeconds: cfg.AtSeconds,
+		repo:       repo,
+		channels:   channels,
+		atHours:    cfg.AtHours,
+		atMinutes:  cfg.AtMinutes,
+		atSeconds:  cfg.AtSeconds,
+		lastSended: time.Now(),
 	}
 }
 
 func (s *Scheduler) Run(ctx context.Context) error {
-	schedule, err := gocron.NewScheduler()
+	schedule, err := gocron.NewScheduler(gocron.WithLocation(time.UTC))
 	if err != nil {
 		return fmt.Errorf("failed to create scheduler: %w", err)
 	}
@@ -49,7 +57,9 @@ func (s *Scheduler) Run(ctx context.Context) error {
 			1,
 			gocron.NewAtTimes(gocron.NewAtTime(s.atHours, s.atMinutes, s.atSeconds)),
 		),
-		gocron.NewTask(s.SendUpdates),
+		gocron.NewTask(func() {
+			s.SendUpdates(ctx)
+		}),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create scheduler job: %w", err)
@@ -67,27 +77,45 @@ func (s *Scheduler) Run(ctx context.Context) error {
 	return nil
 }
 
-func (s *Scheduler) SendUpdates() {
-	updates, err := s.repo.GetUpdates()
+func (s *Scheduler) SendUpdates(ctx context.Context) {
+	started := time.Now()
+
+	chats, err := s.repo.GetUpdatesChats(ctx, s.lastSended, started)
 	if err != nil {
-		slog.Error("failed to get updates", slog.Any("error", err))
+		slog.Error("failed to get updates chats", slog.Any("error", err))
 
 		return
 	}
 
-	for _, update := range updates {
-		ans := updateToText(update)
-		msg := tgbotapi.NewMessage(update.ID, ans)
+	for _, chat := range chats {
+		updates, err := s.repo.GetUpdates(ctx, chat, s.lastSended, started)
+		if err != nil {
+			slog.Error("failed to get updates", slog.Any("error", err))
+
+			return
+		}
+
+		msg := tgbotapi.NewMessage(chat, updatesToText(updates))
+		msg.ParseMode = tgbotapi.ModeHTML
+		msg.DisableWebPagePreview = true
 		s.channels.TelegramResp() <- msg
 	}
+
+	s.lastSended = started
 }
 
-func updateToText(update *repository.UpdateChat) string {
+func updatesToText(updates []domain.Update) string {
 	builder := strings.Builder{}
-	builder.WriteString("Обновления по вашим ссылкам:\n")
+	builder.WriteString("Обновления по вашим ссылкам:\n\n")
 
-	for i, link := range update.Links {
-		builder.WriteString(fmt.Sprintf("%d. %s\n", i+1, link))
+	for i, update := range updates {
+		builder.WriteString(fmt.Sprintf("%d. %s", i+1, update.Message))
+
+		if len(update.Tags) != 0 {
+			builder.WriteString(fmt.Sprintf("#%s\n", strings.Join(update.Tags, " #")))
+		}
+
+		builder.WriteString("\n")
 	}
 
 	return builder.String()

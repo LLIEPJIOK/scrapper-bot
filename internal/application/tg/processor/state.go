@@ -12,7 +12,10 @@ const (
 
 	help fsm.State = "help"
 
-	trackList fsm.State = "list"
+	list           fsm.State = "list"
+	listAll        fsm.State = "list_all"
+	listByTagInput fsm.State = "list_by_tag_input"
+	listByTag      fsm.State = "list_by_tag"
 
 	track           fsm.State = "track"
 	trackAddLink    fsm.State = "track_add_link"

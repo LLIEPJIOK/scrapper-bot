@@ -57,7 +57,7 @@ func decodeLinksDeleteParams(args [0]string, argsEscaped bool, r *http.Request) 
 				return err
 			}
 		} else {
-			return validate.ErrFieldRequired
+			return err
 		}
 		return nil
 	}(); err != nil {
@@ -73,6 +73,7 @@ func decodeLinksDeleteParams(args [0]string, argsEscaped bool, r *http.Request) 
 // LinksGetParams is parameters of GET /links operation.
 type LinksGetParams struct {
 	TgChatID int64
+	Tag      OptString
 }
 
 func unpackLinksGetParams(packed middleware.Parameters) (params LinksGetParams) {
@@ -83,10 +84,20 @@ func unpackLinksGetParams(packed middleware.Parameters) (params LinksGetParams) 
 		}
 		params.TgChatID = packed[key].(int64)
 	}
+	{
+		key := middleware.ParameterKey{
+			Name: "tag",
+			In:   "query",
+		}
+		if v, ok := packed[key]; ok {
+			params.Tag = v.(OptString)
+		}
+	}
 	return params
 }
 
 func decodeLinksGetParams(args [0]string, argsEscaped bool, r *http.Request) (params LinksGetParams, _ error) {
+	q := uri.NewQueryDecoder(r.URL.Query())
 	h := uri.NewHeaderDecoder(r.Header)
 	// Decode header: Tg-Chat-Id.
 	if err := func() error {
@@ -112,13 +123,54 @@ func decodeLinksGetParams(args [0]string, argsEscaped bool, r *http.Request) (pa
 				return err
 			}
 		} else {
-			return validate.ErrFieldRequired
+			return err
 		}
 		return nil
 	}(); err != nil {
 		return params, &ogenerrors.DecodeParamError{
 			Name: "Tg-Chat-Id",
 			In:   "header",
+			Err:  err,
+		}
+	}
+	// Decode query: tag.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "tag",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotTagVal string
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToString(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotTagVal = c
+					return nil
+				}(); err != nil {
+					return err
+				}
+				params.Tag.SetTo(paramsDotTagVal)
+				return nil
+			}); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "tag",
+			In:   "query",
 			Err:  err,
 		}
 	}
@@ -167,7 +219,7 @@ func decodeLinksPostParams(args [0]string, argsEscaped bool, r *http.Request) (p
 				return err
 			}
 		} else {
-			return validate.ErrFieldRequired
+			return err
 		}
 		return nil
 	}(); err != nil {

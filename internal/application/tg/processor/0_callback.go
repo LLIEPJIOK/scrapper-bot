@@ -48,6 +48,20 @@ func (h *Callbacker) Handle(_ context.Context, state *State) *fsm.Result[*State]
 			Result:           state,
 		}
 
+	case state.Message == listAll.String():
+		return &fsm.Result[*State]{
+			NextState:        listAll,
+			IsAutoTransition: true,
+			Result:           state,
+		}
+
+	case state.Message == listByTagInput.String():
+		return &fsm.Result[*State]{
+			NextState:        listByTagInput,
+			IsAutoTransition: true,
+			Result:           state,
+		}
+
 	default:
 		state.ShowError = "неопознанная команда"
 

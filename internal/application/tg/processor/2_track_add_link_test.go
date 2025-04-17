@@ -67,50 +67,50 @@ func TestHandleTrackLinkAdder(t *testing.T) {
 				},
 			},
 		},
-		{
-			name: "gh issue link",
-			state: &processor.State{
-				Message: "https://github.com/LLIEPJIOK/forum/issues/1",
-				ChatID:  1,
-				Object: &domain.Link{
-					ChatID: 1,
-				},
-			},
-			exp: &fsm.Result[*processor.State]{
-				NextState:        "callback",
-				IsAutoTransition: false,
-				Result: &processor.State{
-					Message: "https://github.com/LLIEPJIOK/forum/issues/1",
-					ChatID:  1,
-					Object: &domain.Link{
-						URL:    "https://github.com/LLIEPJIOK/forum/issues/1",
-						ChatID: 1,
-					},
-				},
-			},
-		},
-		{
-			name: "gh pr link",
-			state: &processor.State{
-				Message: "https://github.com/aleksander-git/telegram-torrent/pull/7",
-				ChatID:  1,
-				Object: &domain.Link{
-					ChatID: 1,
-				},
-			},
-			exp: &fsm.Result[*processor.State]{
-				NextState:        "callback",
-				IsAutoTransition: false,
-				Result: &processor.State{
-					Message: "https://github.com/aleksander-git/telegram-torrent/pull/7",
-					ChatID:  1,
-					Object: &domain.Link{
-						URL:    "https://github.com/aleksander-git/telegram-torrent/pull/7",
-						ChatID: 1,
-					},
-				},
-			},
-		},
+		// {
+		// 	name: "gh issue link",
+		// 	state: &processor.State{
+		// 		Message: "https://github.com/LLIEPJIOK/forum/issues/1",
+		// 		ChatID:  1,
+		// 		Object: &domain.Link{
+		// 			ChatID: 1,
+		// 		},
+		// 	},
+		// 	exp: &fsm.Result[*processor.State]{
+		// 		NextState:        "callback",
+		// 		IsAutoTransition: false,
+		// 		Result: &processor.State{
+		// 			Message: "https://github.com/LLIEPJIOK/forum/issues/1",
+		// 			ChatID:  1,
+		// 			Object: &domain.Link{
+		// 				URL:    "https://github.com/LLIEPJIOK/forum/issues/1",
+		// 				ChatID: 1,
+		// 			},
+		// 		},
+		// 	},
+		// },
+		// {
+		// 	name: "gh pr link",
+		// 	state: &processor.State{
+		// 		Message: "https://github.com/aleksander-git/telegram-torrent/pull/7",
+		// 		ChatID:  1,
+		// 		Object: &domain.Link{
+		// 			ChatID: 1,
+		// 		},
+		// 	},
+		// 	exp: &fsm.Result[*processor.State]{
+		// 		NextState:        "callback",
+		// 		IsAutoTransition: false,
+		// 		Result: &processor.State{
+		// 			Message: "https://github.com/aleksander-git/telegram-torrent/pull/7",
+		// 			ChatID:  1,
+		// 			Object: &domain.Link{
+		// 				URL:    "https://github.com/aleksander-git/telegram-torrent/pull/7",
+		// 				ChatID: 1,
+		// 			},
+		// 		},
+		// 	},
+		// },
 	}
 
 	for _, tc := range tt {
@@ -120,7 +120,7 @@ func TestHandleTrackLinkAdder(t *testing.T) {
 			ctx := context.Background()
 			channels := domain.NewChannels()
 			client := mocks.NewMockClient(t)
-			client.On("GetLinks", ctx, int64(1)).Return(nil, nil)
+			client.On("GetLinks", ctx, int64(1), "").Return(nil, nil)
 
 			handler := processor.NewTrackLinkAdder(client, channels)
 
@@ -271,9 +271,7 @@ func TestHandleTrackLinkAdderInvalidLinks(t *testing.T) {
 
 				text := `Неверный формат ссылки. Используйте следующие форматы:
 - https://stackoverflow.com/questions/{id}/{title}
-- https://github.com/{user}/{repo}
-- https://github.com/{user}/{repo}/issues/{id}
-- https://github.com/{user}/pull/{id}`
+- https://github.com/{user}/{repo}`
 				assert.Equal(
 					t,
 					text,
@@ -308,7 +306,7 @@ func TestHandleInvalidObject(t *testing.T) {
 	ctx := context.Background()
 	channels := domain.NewChannels()
 	client := mocks.NewMockClient(t)
-	client.On("GetLinks", ctx, int64(1)).Return(nil, nil)
+	client.On("GetLinks", ctx, int64(1), "").Return(nil, nil)
 
 	handler := processor.NewTrackLinkAdder(client, channels)
 
@@ -343,7 +341,7 @@ func TestTrackLinkAdder_Handle_LinkExists(t *testing.T) {
 	ctx := context.Background()
 	channels := domain.NewChannels()
 	client := mocks.NewMockClient(t)
-	client.On("GetLinks", ctx, int64(1)).Return([]*domain.Link{
+	client.On("GetLinks", ctx, int64(1), "").Return([]*domain.Link{
 		{
 			URL: "https://stackoverflow.com/questions/79476948/androidmanifest-xml-file-raising-errors-with-no-exception",
 		},
@@ -408,7 +406,7 @@ func TestTrackLinkAdder_Handle_GetLinksError(t *testing.T) {
 	ctx := context.Background()
 	channels := domain.NewChannels()
 	client := mocks.NewMockClient(t)
-	client.On("GetLinks", ctx, int64(1)).Return(nil, errors.New("test error"))
+	client.On("GetLinks", ctx, int64(1), "").Return(nil, errors.New("test error"))
 
 	wg := sync.WaitGroup{}
 	wg.Add(1)

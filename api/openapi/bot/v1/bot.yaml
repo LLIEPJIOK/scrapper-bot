@@ -1,4 +1,4 @@
-openapi: 3.1.0
+openapi: 3.0.0
 info:
   title: Bot API
   version: 1.0.0
@@ -44,16 +44,15 @@ components:
     LinkUpdate:
       type: object
       properties:
-        id:
+        chat_id:
           type: integer
           format: int64
         url:
           type: string
           format: uri
-        description:
+        message:
           type: string
-        tgChatIds:
+        tags:
           type: array
           items:
-            type: integer
-            format: int64
+            type: string
