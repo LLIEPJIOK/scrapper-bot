@@ -43,53 +43,53 @@ func TestLoad_Success(t *testing.T) {
 	os.Unsetenv("BOT_SCHEDULER_AT_MINUTES")
 	os.Unsetenv("BOT_SCHEDULER_AT_SECONDS")
 
-	config, err := config.Load()
+	cfg, err := config.Load()
 	assert.NoError(t, err, "expected no error loading configuration")
 
-	assert.Equal(t, 7*time.Second, config.App.TerminateTimeout, "unexpected App.TerminateTimeout")
-	assert.Equal(t, 3*time.Second, config.App.ShutdownTimeout, "unexpected App.ShutdownTimeout")
+	assert.Equal(t, 7*time.Second, cfg.App.TerminateTimeout, "unexpected App.TerminateTimeout")
+	assert.Equal(t, 3*time.Second, cfg.App.ShutdownTimeout, "unexpected App.ShutdownTimeout")
 
-	assert.Equal(t, "test_token", config.Bot.APIToken, "unexpected Bot.APIToken")
-	assert.Equal(t, ":8081", config.Bot.URL, "unexpected default Bot.URL")
-	assert.Equal(t, "http://localhost:8080", config.Bot.ScrapperURL, "unexpected Bot.ScrapperURL")
+	assert.Equal(t, "test_token", cfg.Bot.APIToken, "unexpected Bot.APIToken")
+	assert.Equal(t, ":8081", cfg.Bot.URL, "unexpected default Bot.URL")
+	assert.Equal(t, "http://localhost:8080", cfg.Bot.ScrapperURL, "unexpected Bot.ScrapperURL")
 
-	assert.Equal(t, ":8080", config.Scrapper.URL, "unexpected default Scrapper.URL")
-	assert.Equal(t, "http://localhost:8081", config.Scrapper.BotURL, "unexpected Scrapper.BotURL")
+	assert.Equal(t, ":8080", cfg.Scrapper.URL, "unexpected default Scrapper.URL")
+	assert.Equal(t, "http://localhost:8081", cfg.Scrapper.BotURL, "unexpected Scrapper.BotURL")
 
-	assert.Equal(t, 6*time.Second, config.Client.DialTimeout, "unexpected Client.DialTimeout")
+	assert.Equal(t, 6*time.Second, cfg.Client.DialTimeout, "unexpected Client.DialTimeout")
 
-	assert.Equal(t, 12*time.Second, config.Server.ReadTimeout, "unexpected Server.ReadTimeout")
+	assert.Equal(t, 12*time.Second, cfg.Server.ReadTimeout, "unexpected Server.ReadTimeout")
 	assert.Equal(
 		t,
 		10*time.Second,
-		config.Server.ReadHeaderTimeout,
+		cfg.Server.ReadHeaderTimeout,
 		"unexpected default Server.ReadHeaderTimeout",
 	)
 
-	assert.Equal(t, "github_test_token", config.GitHub.Token, "unexpected GitHub.Token")
+	assert.Equal(t, "github_test_token", cfg.GitHub.Token, "unexpected GitHub.Token")
 
 	assert.Equal(
 		t,
 		2*time.Hour,
-		config.Scrapper.Scheduler.Interval,
+		cfg.Scrapper.Scheduler.Interval,
 		"unexpected Scheduler.Interval",
 	)
 	assert.Equal(
 		t,
 		uint(10),
-		config.Bot.Scheduler.AtHours,
+		cfg.Bot.Scheduler.AtHours,
 		"unexpected default Bot.Scheduler.AtHours",
 	)
 	assert.Equal(
 		t,
 		uint(0),
-		config.Bot.Scheduler.AtMinutes,
+		cfg.Bot.Scheduler.AtMinutes,
 		"unexpected default Bot.Scheduler.AtMinutes",
 	)
 	assert.Equal(
 		t,
 		uint(0),
-		config.Bot.Scheduler.AtSeconds,
+		cfg.Bot.Scheduler.AtSeconds,
 		"unexpected default Bot.Scheduler.AtSeconds",
 	)
 }

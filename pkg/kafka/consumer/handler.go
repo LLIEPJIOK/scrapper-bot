@@ -7,7 +7,7 @@ import (
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/kafka"
 )
 
-type ConsumerGroupHandler struct {
+type GroupHandler struct {
 	channels        Channels
 	messageChannels *kafka.MessageChannels
 }
@@ -15,22 +15,22 @@ type ConsumerGroupHandler struct {
 func NewConsumerGroupHandler(
 	channels Channels,
 	messageChannels *kafka.MessageChannels,
-) *ConsumerGroupHandler {
-	return &ConsumerGroupHandler{
+) *GroupHandler {
+	return &GroupHandler{
 		channels:        channels,
 		messageChannels: messageChannels,
 	}
 }
 
-func (ConsumerGroupHandler) Setup(_ sarama.ConsumerGroupSession) error {
+func (GroupHandler) Setup(_ sarama.ConsumerGroupSession) error {
 	return nil
 }
 
-func (ConsumerGroupHandler) Cleanup(_ sarama.ConsumerGroupSession) error {
+func (GroupHandler) Cleanup(_ sarama.ConsumerGroupSession) error {
 	return nil
 }
 
-func (h ConsumerGroupHandler) ConsumeClaim(
+func (h GroupHandler) ConsumeClaim(
 	sess sarama.ConsumerGroupSession,
 	claim sarama.ConsumerGroupClaim,
 ) error {

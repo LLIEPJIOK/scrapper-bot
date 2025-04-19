@@ -13,12 +13,14 @@ import (
 type TrackSaver struct {
 	client   Client
 	channels Channels
+	cache    Cache
 }
 
-func NewTrackSaver(client Client, channels Channels) *TrackSaver {
+func NewTrackSaver(client Client, channels Channels, cache Cache) *TrackSaver {
 	return &TrackSaver{
 		client:   client,
 		channels: channels,
+		cache:    cache,
 	}
 }
 
@@ -50,6 +52,14 @@ func (h *TrackSaver) Handle(ctx context.Context, state *State) *fsm.Result[*Stat
 			Result:           state,
 			Error:            fmt.Errorf("client.AddLink(ctx, %q): %w", link, err),
 		}
+	}
+
+	if err := h.cache.InvalidateListLinks(ctx, state.ChatID); err != nil {
+		slog.Error(
+			"failed to invalidate links in cache",
+			slog.Any("error", err),
+			slog.Int64("chat_id", state.ChatID),
+		)
 	}
 
 	ans := "Ссылка успешно добавлена!"

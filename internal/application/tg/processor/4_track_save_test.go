@@ -11,6 +11,7 @@ import (
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,7 +20,9 @@ func TestTrackSaver_Handle_InvalidObject(t *testing.T) {
 
 	channels := domain.NewChannels()
 	client := mocks.NewMockClient(t)
-	saver := processor.NewTrackSaver(client, channels)
+	cache := mocks.NewMockCache(t)
+
+	saver := processor.NewTrackSaver(client, channels, cache)
 
 	state := &processor.State{
 		Message:   "any message",
@@ -62,7 +65,9 @@ func TestTrackSaver_Handle_ClientError(t *testing.T) {
 	client := mocks.NewMockClient(t)
 	client.On("AddLink", context.Background(), link).Return(expErr)
 
-	saver := processor.NewTrackSaver(client, channels)
+	cache := mocks.NewMockCache(t)
+
+	saver := processor.NewTrackSaver(client, channels, cache)
 
 	result := saver.Handle(context.Background(), state)
 	assert.Equal(
@@ -102,7 +107,12 @@ func TestTrackSaver_Handle_SuccessNewMessage(t *testing.T) {
 	client := mocks.NewMockClient(t)
 	client.On("AddLink", context.Background(), link).Return(nil)
 
-	saver := processor.NewTrackSaver(client, channels)
+	cache := mocks.NewMockCache(t)
+	cache.On("InvalidateListLinks", mock.Anything, int64(300)).
+		Return(nil).
+		Once()
+
+	saver := processor.NewTrackSaver(client, channels, cache)
 
 	wg := sync.WaitGroup{}
 	wg.Add(1)
@@ -143,7 +153,12 @@ func TestTrackSaver_Handle_SuccessEditMessage(t *testing.T) {
 	client := mocks.NewMockClient(t)
 	client.On("AddLink", context.Background(), link).Return(nil)
 
-	saver := processor.NewTrackSaver(client, channels)
+	cache := mocks.NewMockCache(t)
+	cache.On("InvalidateListLinks", mock.Anything, int64(300)).
+		Return(nil).
+		Once()
+
+	saver := processor.NewTrackSaver(client, channels, cache)
 
 	wg := sync.WaitGroup{}
 	wg.Add(1)

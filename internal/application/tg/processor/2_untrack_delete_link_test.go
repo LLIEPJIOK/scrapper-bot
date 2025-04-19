@@ -12,6 +12,7 @@ import (
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -24,7 +25,12 @@ func TestUntrackLinkDeleter_Handle(t *testing.T) {
 		Return(nil).
 		Once()
 
-	handler := processor.NewUntrackLinkDeleter(client, channels)
+	cache := mocks.NewMockCache(t)
+	cache.On("InvalidateListLinks", mock.Anything, int64(42)).
+		Return(nil).
+		Once()
+
+	handler := processor.NewUntrackLinkDeleter(client, channels, cache)
 
 	state := &processor.State{
 		Message:  "https://example.com",
@@ -67,7 +73,9 @@ func TestUntrackLinkDeleter_Handle_UserError(t *testing.T) {
 		Return(userErr).
 		Once()
 
-	handler := processor.NewUntrackLinkDeleter(client, channels)
+	cache := mocks.NewMockCache(t)
+
+	handler := processor.NewUntrackLinkDeleter(client, channels, cache)
 
 	state := &processor.State{
 		Message:  "https://example.com",
@@ -110,7 +118,9 @@ func TestUntrackLinkDeleter_Handle_GenericError(t *testing.T) {
 		Return(genericErr).
 		Once()
 
-	handler := processor.NewUntrackLinkDeleter(client, channels)
+	cache := mocks.NewMockCache(t)
+
+	handler := processor.NewUntrackLinkDeleter(client, channels, cache)
 
 	state := &processor.State{
 		Message:  "https://example.com",

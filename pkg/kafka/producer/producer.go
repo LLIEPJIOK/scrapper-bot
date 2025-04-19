@@ -25,27 +25,27 @@ type Producer struct {
 }
 
 func New(cfg *config.Kafka, channels Channels) (*Producer, error) {
-	config := sarama.NewConfig()
-	config.Producer.Return.Successes = cfg.Producer.ReturnSuccesses
-	config.Producer.Return.Errors = cfg.Producer.ReturnErrors
-	config.Producer.RequiredAcks = sarama.RequiredAcks(cfg.Producer.RequiredAcks)
-	config.Producer.Retry.Max = cfg.Producer.RetryMax
+	saramaConfig := sarama.NewConfig()
+	saramaConfig.Producer.Return.Successes = cfg.Producer.ReturnSuccesses
+	saramaConfig.Producer.Return.Errors = cfg.Producer.ReturnErrors
+	saramaConfig.Producer.RequiredAcks = sarama.RequiredAcks(cfg.Producer.RequiredAcks)
+	saramaConfig.Producer.Retry.Max = cfg.Producer.RetryMax
 
 	switch cfg.Producer.Partitioner {
 	case "random":
-		config.Producer.Partitioner = sarama.NewRandomPartitioner
+		saramaConfig.Producer.Partitioner = sarama.NewRandomPartitioner
 
 	case "roundrobin":
-		config.Producer.Partitioner = sarama.NewRoundRobinPartitioner
+		saramaConfig.Producer.Partitioner = sarama.NewRoundRobinPartitioner
 
 	case "hash":
-		config.Producer.Partitioner = sarama.NewHashPartitioner
+		saramaConfig.Producer.Partitioner = sarama.NewHashPartitioner
 
 	default:
-		config.Producer.Partitioner = sarama.NewRandomPartitioner
+		saramaConfig.Producer.Partitioner = sarama.NewRandomPartitioner
 	}
 
-	producer, err := sarama.NewSyncProducer(cfg.Brokers, config)
+	producer, err := sarama.NewSyncProducer(cfg.Brokers, saramaConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create producer: %w", err)
 	}
@@ -88,7 +88,7 @@ func (p *Producer) Run(ctx context.Context) error {
 	}
 }
 
-func (p *Producer) produce(ctx context.Context, topic, key, value string) error {
+func (p *Producer) produce(_ context.Context, topic, key, value string) error {
 	msg := &sarama.ProducerMessage{
 		Topic: topic,
 		Key:   sarama.StringEncoder(key),

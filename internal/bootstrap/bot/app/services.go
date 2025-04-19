@@ -22,6 +22,8 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
+const local = "local"
+
 type runService = func(ctx context.Context, stop context.CancelFunc, wg *sync.WaitGroup)
 
 func (a *App) services() []runService {
@@ -77,7 +79,7 @@ func (a *App) runProcessor(ctx context.Context, stop context.CancelFunc, wg *syn
 	}
 
 	scrap := scrapper.NewClient(ogenClient)
-	proc := processor.New(scrap, a.channels)
+	proc := processor.New(scrap, a.channels, a.cache)
 
 	if err := proc.Run(ctx); err != nil {
 		slog.Error("failed to run processor", slog.Any("err", err))
@@ -142,6 +144,10 @@ func (a *App) runCoreKafkaConsumer(
 	stop context.CancelFunc,
 	wg *sync.WaitGroup,
 ) {
+	if a.cfg.App.Env == local {
+		return
+	}
+
 	defer wg.Done()
 	defer stop()
 	defer slog.Info("core kafka consumer stopped")
@@ -161,13 +167,17 @@ func (a *App) runAppKafkaConsumer(
 	stop context.CancelFunc,
 	wg *sync.WaitGroup,
 ) {
+	if a.cfg.App.Env == local {
+		return
+	}
+
 	defer wg.Done()
 	defer stop()
 	defer slog.Info("app kafka consumer stopped")
 
-	consumer := kafka.NewConsumer(a.repo, a.channels)
+	kafkaConsumer := kafka.NewConsumer(a.repo, a.channels)
 
-	if err := consumer.Run(ctx); err != nil {
+	if err := kafkaConsumer.Run(ctx); err != nil {
 		slog.Error("failed to run app kafka consumer", slog.Any("error", err))
 	}
 }

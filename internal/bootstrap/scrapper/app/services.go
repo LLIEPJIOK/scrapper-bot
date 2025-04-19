@@ -115,12 +115,12 @@ func (a *App) runCoreKafkaProducer(
 	defer stop()
 	defer slog.Info("core kafka producer stopped")
 
-	producer, err := producer.New(&a.cfg.Kafka.Core, a.channels)
+	kafkaProducer, err := producer.New(&a.cfg.Kafka.Core, a.channels)
 	if err != nil {
 		slog.Error("failed to create core kafka producer", slog.Any("error", err))
 	}
 
-	if err := producer.Run(ctx); err != nil {
+	if err := kafkaProducer.Run(ctx); err != nil {
 		slog.Error("failed to run core kafka producer", slog.Any("error", err))
 	}
 }

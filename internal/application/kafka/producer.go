@@ -21,7 +21,7 @@ func NewProducer(topic string, channels *domain.Channels) *Producer {
 	}
 }
 
-func (k *Producer) UpdatesPost(ctx context.Context, update *domain.Update) error {
+func (k *Producer) UpdatesPost(_ context.Context, update *domain.Update) error {
 	raw, err := json.Marshal(update)
 	if err != nil {
 		return fmt.Errorf("failed to marshal update: %w", err)

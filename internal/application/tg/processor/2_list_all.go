@@ -2,9 +2,12 @@ package processor
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 
+	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/cache/bot"
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/fsm"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -12,17 +15,27 @@ import (
 type AllLister struct {
 	client   Client
 	channels Channels
+	cache    Cache
 }
 
-func NewAllLister(client Client, channels Channels) *AllLister {
+func NewAllLister(client Client, channels Channels, cache Cache) *AllLister {
 	return &AllLister{
 		client:   client,
 		channels: channels,
+		cache:    cache,
 	}
 }
 
 func (h *AllLister) Handle(ctx context.Context, state *State) *fsm.Result[*State] {
-	links, err := h.client.GetLinks(ctx, state.ChatID, "")
+	list, err := h.cache.GetListLinks(ctx, state.ChatID, "")
+	if err == nil {
+		return h.sendList(ctx, state, list)
+	}
+
+	if errors.As(err, &bot.ErrNoData{}) {
+		list, err = h.getLinks(ctx, state.ChatID)
+	}
+
 	if err != nil {
 		state.ShowError = "не удалось получить ссылки"
 
@@ -30,19 +43,29 @@ func (h *AllLister) Handle(ctx context.Context, state *State) *fsm.Result[*State
 			NextState:        fail,
 			IsAutoTransition: true,
 			Result:           state,
-			Error:            fmt.Errorf("h.client.GetLinks(ctx, %d): %w", state.ChatID, err),
+			Error:            err,
 		}
 	}
 
-	if len(links) == 0 {
-		ans := "У вас нет ни одной ссылки. Для добавления ссылки воспользуйтесь командой /track"
-		msg := tgbotapi.NewEditMessageText(state.ChatID, state.MessageID, ans)
-		h.channels.TelegramResp() <- msg
+	if err := h.cache.SetListLinks(ctx, state.ChatID, "", list); err != nil {
+		slog.Error(
+			"failed to set list links",
+			slog.Int64("chat_id", state.ChatID),
+			slog.Any("error", err),
+		)
+	}
 
-		return &fsm.Result[*State]{
-			IsAutoTransition: false,
-			Result:           state,
-		}
+	return h.sendList(ctx, state, list)
+}
+
+func (h *AllLister) getLinks(ctx context.Context, chatID int64) (string, error) {
+	links, err := h.client.GetLinks(ctx, chatID, "")
+	if err != nil {
+		return "", fmt.Errorf("h.client.GetLinks(ctx, %d, \"\"): %w", chatID, err)
+	}
+
+	if len(links) == 0 {
+		return "У вас нет ни одной ссылки. Для добавления ссылки воспользуйтесь командой /track", nil
 	}
 
 	ansBuilder := strings.Builder{}
@@ -62,7 +85,11 @@ func (h *AllLister) Handle(ctx context.Context, state *State) *fsm.Result[*State
 		ansBuilder.WriteString("\n")
 	}
 
-	msg := tgbotapi.NewEditMessageText(state.ChatID, state.MessageID, ansBuilder.String())
+	return ansBuilder.String(), nil
+}
+
+func (h *AllLister) sendList(_ context.Context, state *State, list string) *fsm.Result[*State] {
+	msg := tgbotapi.NewEditMessageText(state.ChatID, state.MessageID, list)
 	msg.ParseMode = tgbotapi.ModeMarkdown
 	msg.DisableWebPagePreview = true
 	h.channels.TelegramResp() <- msg

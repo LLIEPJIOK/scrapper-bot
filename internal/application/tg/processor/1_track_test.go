@@ -34,7 +34,7 @@ func TestHandle_Tracker(t *testing.T) {
 		require.True(t, ok, "not tg edit message")
 		assert.Equal(t, `Введите ссылку на ресурс, который хотите отслеживать.
 Доступные сайты:
-	- GitHub (repo, issue, pull request)
+	- GitHub
 	- StackOverflow
 `, msg.Text, "Message text should match trackerAnswer")
 		assert.Equal(t, state.ChatID, msg.ChatID, "ChatID should match the state's ChatID")

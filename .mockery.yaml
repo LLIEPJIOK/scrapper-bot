@@ -8,6 +8,7 @@ packages:
       dir: ./internal/application/tg/processor/mocks
     interfaces:
       Client:
+      Cache:
   github.com/es-debug/backend-academy-2024-go-template/internal/application/http/server/scrapper:
     config:
       dir: ./internal/application/http/server/scrapper/mocks

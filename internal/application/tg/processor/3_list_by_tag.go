@@ -2,9 +2,12 @@ package processor
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 
+	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/cache/bot"
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/fsm"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -12,19 +15,29 @@ import (
 type ByTagLister struct {
 	client   Client
 	channels Channels
+	cache    Cache
 }
 
-func NewByTagLister(client Client, channels Channels) *ByTagLister {
+func NewByTagLister(client Client, channels Channels, cache Cache) *ByTagLister {
 	return &ByTagLister{
 		client:   client,
 		channels: channels,
+		cache:    cache,
 	}
 }
 
 func (h *ByTagLister) Handle(ctx context.Context, state *State) *fsm.Result[*State] {
 	state.Message = strings.TrimSpace(state.Message)
 
-	links, err := h.client.GetLinks(ctx, state.ChatID, state.Message)
+	list, err := h.cache.GetListLinks(ctx, state.ChatID, state.Message)
+	if err == nil {
+		return h.sendList(ctx, state, list)
+	}
+
+	if errors.As(err, &bot.ErrNoData{}) {
+		list, err = h.getLinks(ctx, state)
+	}
+
 	if err != nil {
 		state.ShowError = "не удалось получить ссылки"
 
@@ -32,22 +45,38 @@ func (h *ByTagLister) Handle(ctx context.Context, state *State) *fsm.Result[*Sta
 			NextState:        fail,
 			IsAutoTransition: true,
 			Result:           state,
-			Error:            fmt.Errorf("h.client.GetLinks(ctx, %d): %w", state.ChatID, err),
+			Error:            err,
 		}
 	}
 
+	if err := h.cache.SetListLinks(ctx, state.ChatID, state.Message, list); err != nil {
+		slog.Error(
+			"failed to set list links",
+			slog.Int64("chat_id", state.ChatID),
+			slog.String("tag", state.Message),
+			slog.Any("error", err),
+		)
+	}
+
+	return h.sendList(ctx, state, list)
+}
+
+func (h *ByTagLister) getLinks(ctx context.Context, state *State) (string, error) {
+	links, err := h.client.GetLinks(ctx, state.ChatID, state.Message)
+	if err != nil {
+		return "", fmt.Errorf(
+			"h.client.GetLinks(ctx, %d, %q): %w",
+			state.ChatID,
+			state.Message,
+			err,
+		)
+	}
+
 	if len(links) == 0 {
-		ans := fmt.Sprintf(
+		return fmt.Sprintf(
 			"У вас нет ссылок с тегом #%s. Для добавления ссылки воспользуйтесь командой /track",
 			state.Message,
-		)
-		msg := tgbotapi.NewMessage(state.ChatID, ans)
-		h.channels.TelegramResp() <- msg
-
-		return &fsm.Result[*State]{
-			IsAutoTransition: false,
-			Result:           state,
-		}
+		), nil
 	}
 
 	ansBuilder := strings.Builder{}
@@ -67,7 +96,11 @@ func (h *ByTagLister) Handle(ctx context.Context, state *State) *fsm.Result[*Sta
 		ansBuilder.WriteString("\n")
 	}
 
-	msg := tgbotapi.NewMessage(state.ChatID, ansBuilder.String())
+	return ansBuilder.String(), nil
+}
+
+func (h *ByTagLister) sendList(_ context.Context, state *State, list string) *fsm.Result[*State] {
+	msg := tgbotapi.NewMessage(state.ChatID, list)
 	msg.ParseMode = tgbotapi.ModeMarkdown
 	msg.DisableWebPagePreview = true
 	h.channels.TelegramResp() <- msg

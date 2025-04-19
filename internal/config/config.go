@@ -17,9 +17,11 @@ type Config struct {
 	GitHub   GitHub   `envPrefix:"GITHUB_"`
 	SOF      SOF      `envPrefix:"SOF_"`
 	Kafka    Kafka    `envPrefix:"KAFKA_"`
+	Redis    Redis    `envPrefix:"REDIS_"`
 }
 
 type App struct {
+	Env              string        `env:"ENV"               envDefault:"local"`
 	TerminateTimeout time.Duration `env:"TERMINATE_TIMEOUT" envDefault:"5s"`
 	ShutdownTimeout  time.Duration `env:"SHUTDOWN_TIMEOUT"  envDefault:"2s"`
 }
@@ -88,6 +90,30 @@ type Database struct {
 type Kafka struct {
 	Core        kafkacfg.Kafka
 	UpdateTopic string `env:"UPDATE_TOPIC,required"`
+}
+
+type Redis struct {
+	Address  string `env:"ADDRESS,required"`
+	Password string `env:"PASSWORD"`
+
+	DB int `env:"DB" envDefault:"0"`
+
+	DialTimeout  time.Duration `env:"DIAL_TIMEOUT"  envDefault:"5s"`
+	ReadTimeout  time.Duration `env:"READ_TIMEOUT"  envDefault:"3s"`
+	WriteTimeout time.Duration `env:"WRITE_TIMEOUT" envDefault:"3s"`
+
+	PoolSize     int           `env:"POOL_SIZE"      envDefault:"10"`
+	MinIdleConns int           `env:"MIN_IDLE_CONNS" envDefault:"3"`
+	PoolTimeout  time.Duration `env:"POOL_TIMEOUT"   envDefault:"4s"`
+
+	IdleTimeout        time.Duration `env:"IDLE_TIMEOUT"         envDefault:"5m"`
+	IdleCheckFrequency time.Duration `env:"IDLE_CHECK_FREQUENCY" envDefault:"1m"`
+
+	MaxRetries      int           `env:"MAX_RETRIES"       envDefault:"2"`
+	MinRetryBackoff time.Duration `env:"MIN_RETRY_BACKOFF" envDefault:"100ms"`
+	MaxRetryBackoff time.Duration `env:"MAX_RETRY_BACKOFF" envDefault:"1s"`
+
+	DefaultTTL time.Duration `env:"DEFAULT_TTL" envDefault:"5m"`
 }
 
 func Load() (*Config, error) {

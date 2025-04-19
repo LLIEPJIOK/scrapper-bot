@@ -24,6 +24,21 @@ type Channels interface {
 	TelegramResp() chan tgbotapi.Chattable
 }
 
+type Cache interface {
+	GetListLinks(
+		ctx context.Context,
+		chatID int64,
+		tag string,
+	) (string, error)
+	SetListLinks(
+		ctx context.Context,
+		chatID int64,
+		tag string,
+		list string,
+	) error
+	InvalidateListLinks(ctx context.Context, chatID int64) error
+}
+
 type Processor struct {
 	fsm      *fsm.FSM[*State]
 	client   Client
@@ -32,7 +47,7 @@ type Processor struct {
 	states   map[int64]*State
 }
 
-func New(client Client, channels Channels) *Processor {
+func New(client Client, channels Channels, cache Cache) *Processor {
 	fsmBuilder := fsm.NewBuilder[*State]()
 	fsmBuilder.
 		AddState(callback, NewCallbacker(channels)).
@@ -43,13 +58,13 @@ func New(client Client, channels Channels) *Processor {
 		AddState(trackAddLink, NewTrackLinkAdder(client, channels)).
 		AddState(trackAddFilters, NewTrackFilterAdder(channels)).
 		AddState(trackAddTags, NewTrackTagAdder(channels)).
-		AddState(trackSave, NewTrackSaver(client, channels)).
+		AddState(trackSave, NewTrackSaver(client, channels, cache)).
 		AddState(list, NewLister(channels)).
-		AddState(listAll, NewAllLister(client, channels)).
+		AddState(listAll, NewAllLister(client, channels, cache)).
 		AddState(listByTagInput, NewByTagInputLister(channels)).
-		AddState(listByTag, NewByTagLister(client, channels)).
+		AddState(listByTag, NewByTagLister(client, channels, cache)).
 		AddState(untrack, NewUntracker(channels)).
-		AddState(untrackDeleteLink, NewUntrackLinkDeleter(client, channels)).
+		AddState(untrackDeleteLink, NewUntrackLinkDeleter(client, channels, cache)).
 		AddState(fail, NewFailer(channels)).
 		AddTransition(callback, trackAddTags).
 		AddTransition(callback, trackAddFilters).
@@ -74,6 +89,7 @@ func New(client Client, channels Channels) *Processor {
 		AddTransition(trackAddTags, callback).
 		AddTransition(trackSave, fail).
 		AddTransition(list, fail).
+		AddTransition(listAll, fail).
 		AddTransition(listByTag, fail).
 		AddTransition(untrack, untrackDeleteLink).
 		AddTransition(untrackDeleteLink, fail)

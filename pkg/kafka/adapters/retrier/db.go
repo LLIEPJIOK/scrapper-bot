@@ -3,7 +3,6 @@ package retrier
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"time"
 
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/kafka"
@@ -67,7 +66,6 @@ func (r *Retrier) getRetryMessages(
 	ctx context.Context,
 	from, to time.Time,
 ) ([]*kafka.Message, error) {
-	slog.Info("get retry messages")
 	dbMessages := make([]*DatabaseMessage, 0)
 
 	err := pgxscan.Select(
