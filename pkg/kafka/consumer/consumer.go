@@ -33,11 +33,10 @@ type Consumer struct {
 	messageChannels *kafka.MessageChannels
 }
 
-func NewConsumer(
+func New(
 	cfg *config.Kafka,
 	db *pgxpool.Pool,
 	channels Channels,
-	messageChannels *kafka.MessageChannels,
 ) (*Consumer, error) {
 	saramaCfg := sarama.NewConfig()
 	saramaCfg.Consumer.Return.Errors = cfg.Consumer.ReturnErrors
@@ -49,6 +48,8 @@ func NewConsumer(
 
 	closers := make([]Closer, 0)
 	closers = append(closers, consumer.Close)
+
+	messageChannels := kafka.NewMessageChannels()
 
 	return &Consumer{
 		consumer:        consumer,

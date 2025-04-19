@@ -57,9 +57,10 @@ func (s *Scheduler) Run(ctx context.Context) error {
 			1,
 			gocron.NewAtTimes(gocron.NewAtTime(s.atHours, s.atMinutes, s.atSeconds)),
 		),
-		gocron.NewTask(func() {
-			s.SendUpdates(ctx)
-		}),
+		gocron.NewTask(
+			s.SendUpdates,
+			ctx,
+		),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create scheduler job: %w", err)

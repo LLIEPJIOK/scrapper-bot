@@ -8,19 +8,22 @@ import (
 	"syscall"
 
 	"github.com/es-debug/backend-academy-2024-go-template/internal/config"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
 	repo "github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/repository/scrapper"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type App struct {
-	cfg  *config.Config
-	db   *pgxpool.Pool
-	repo repo.Repository
+	cfg      *config.Config
+	db       *pgxpool.Pool
+	repo     repo.Repository
+	channels *domain.Channels
 }
 
 func New(cfg *config.Config) *App {
 	return &App{
-		cfg: cfg,
+		cfg:      cfg,
+		channels: domain.NewChannels(),
 	}
 }
 

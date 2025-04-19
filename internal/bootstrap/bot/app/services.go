@@ -11,12 +11,14 @@ import (
 
 	"github.com/es-debug/backend-academy-2024-go-template/internal/application/http/client/scrapper"
 	botsrv "github.com/es-debug/backend-academy-2024-go-template/internal/application/http/server/bot"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/kafka"
 	botscheduler "github.com/es-debug/backend-academy-2024-go-template/internal/application/scheduler/bot"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/application/tg/bot"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/application/tg/processor"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/config"
 	botapi "github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/bot"
 	scrapperapi "github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/scrapper"
+	"github.com/es-debug/backend-academy-2024-go-template/pkg/kafka/consumer"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -28,6 +30,8 @@ func (a *App) services() []runService {
 		a.runProcessor,
 		a.runServer,
 		a.runScheduler,
+		a.runCoreKafkaConsumer,
+		a.runAppKafkaConsumer,
 	}
 }
 
@@ -130,6 +134,41 @@ func (a *App) runScheduler(ctx context.Context, stop context.CancelFunc, wg *syn
 		slog.Error("failed to run scheduler", slog.Any("error", err))
 
 		return
+	}
+}
+
+func (a *App) runCoreKafkaConsumer(
+	ctx context.Context,
+	stop context.CancelFunc,
+	wg *sync.WaitGroup,
+) {
+	defer wg.Done()
+	defer stop()
+	defer slog.Info("core kafka consumer stopped")
+
+	core, err := consumer.New(&a.cfg.Kafka.Core, a.db, a.channels)
+	if err != nil {
+		slog.Error("failed to create core kafka consumer", slog.Any("error", err))
+	}
+
+	if err := core.Run(ctx); err != nil {
+		slog.Error("failed to run core kafka consumer", slog.Any("error", err))
+	}
+}
+
+func (a *App) runAppKafkaConsumer(
+	ctx context.Context,
+	stop context.CancelFunc,
+	wg *sync.WaitGroup,
+) {
+	defer wg.Done()
+	defer stop()
+	defer slog.Info("app kafka consumer stopped")
+
+	consumer := kafka.NewConsumer(a.repo, a.channels)
+
+	if err := consumer.Run(ctx); err != nil {
+		slog.Error("failed to run app kafka consumer", slog.Any("error", err))
 	}
 }
 

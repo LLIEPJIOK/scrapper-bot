@@ -3,6 +3,8 @@ package retrier
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"time"
 
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/kafka"
 	"github.com/georgysavva/scany/v2/pgxscan"
@@ -14,7 +16,7 @@ CREATE TABLE IF NOT EXISTS %s (
 	value TEXT NOT NULL,
 	topic TEXT NOT NULL,
 	partition INT NOT NULL,
-	offset INT NOT NULL,
+	kafka_offset INT NOT NULL,
 	retry_count INT NOT NULL,
 	retry_at TIMESTAMPTZ NOT NULL,
 	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW ()
@@ -31,7 +33,7 @@ func (r *Retrier) initTable(ctx context.Context) error {
 }
 
 const saveMessageQuery = `
-INSERT INTO %s (value, topic, partition, offset, retry_count, retry_at)
+INSERT INTO %s (value, topic, partition, kafka_offset, retry_count, retry_at)
 VALUES ($1, $2, $3, $4, $5, $6)
 `
 
@@ -56,12 +58,16 @@ func (r *Retrier) saveMessage(ctx context.Context, msg *kafka.Message) error {
 }
 
 const getRetryMessagesQuery = `
-SELECT id, value, topic, partition, offset, retry_count, retry_at, created_at
+SELECT id, value, topic, partition, kafka_offset, retry_count, retry_at, created_at
 FROM %s
-WHERE retry_at <= NOW()
+WHERE $1 < retry_at AND retry_at <= $2
 `
 
-func (r *Retrier) getRetryMessages(ctx context.Context) ([]*kafka.Message, error) {
+func (r *Retrier) getRetryMessages(
+	ctx context.Context,
+	from, to time.Time,
+) ([]*kafka.Message, error) {
+	slog.Info("get retry messages")
 	dbMessages := make([]*DatabaseMessage, 0)
 
 	err := pgxscan.Select(
@@ -69,6 +75,8 @@ func (r *Retrier) getRetryMessages(ctx context.Context) ([]*kafka.Message, error
 		r.db,
 		&dbMessages,
 		fmt.Sprintf(getRetryMessagesQuery, r.cfg.TableName),
+		from,
+		to,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get retry messages: %w", err)

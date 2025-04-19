@@ -29,3 +29,17 @@ func NewErrUnknownDBType(tpe string) error {
 func (e ErrUnknownDBType) Error() string {
 	return fmt.Sprintf("unknown db type: %s", e.Type)
 }
+
+type ErrUnknownTransport struct {
+	Transport string
+}
+
+func NewErrUnknownTransport(transport string) error {
+	return ErrUnknownTransport{
+		Transport: transport,
+	}
+}
+
+func (e ErrUnknownTransport) Error() string {
+	return fmt.Sprintf("unknown transport: %s", e.Transport)
+}

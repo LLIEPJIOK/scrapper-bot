@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS %s (
 	value TEXT NOT NULL,
 	topic TEXT NOT NULL,
 	partition INT NOT NULL,
-	offset INT NOT NULL,
+	kafka_offset INT NOT NULL,
 	retry_count INT NOT NULL,
 	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW ()
 );
@@ -29,7 +29,7 @@ func (d *DLQ) initTable(ctx context.Context) error {
 }
 
 const saveMessageQuery = `
-INSERT INTO %s (value, topic, partition, offset, retry_at)
+INSERT INTO %s (value, topic, partition, kafka_offset, retry_count)
 VALUES ($1, $2, $3, $4, $5)
 `
 

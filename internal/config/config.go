@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/caarlos0/env/v11"
+	kafkacfg "github.com/es-debug/backend-academy-2024-go-template/pkg/kafka/config"
 )
 
 type Config struct {
@@ -15,6 +16,7 @@ type Config struct {
 	Server   Server   `envPrefix:"SERVER_"`
 	GitHub   GitHub   `envPrefix:"GITHUB_"`
 	SOF      SOF      `envPrefix:"SOF_"`
+	Kafka    Kafka    `envPrefix:"KAFKA_"`
 }
 
 type App struct {
@@ -68,8 +70,9 @@ type BotScheduler struct {
 }
 
 type ScrapperScheduler struct {
-	Interval time.Duration `env:"INTERVAL"  envDefault:"1h"`
-	PageSize uint          `env:"PAGE_SIZE" envDefault:"100"`
+	Interval  time.Duration `env:"INTERVAL"  envDefault:"1h"`
+	PageSize  uint          `env:"PAGE_SIZE" envDefault:"100"`
+	Transport string        `env:"TRANSPORT" envDefault:"http"`
 }
 
 type Database struct {
@@ -80,6 +83,11 @@ type Database struct {
 	Name     string `env:"NAME,required"`
 	SSLMode  string `env:"SSL_MODE,required"`
 	Type     string `env:"TYPE,required"`
+}
+
+type Kafka struct {
+	Core        kafkacfg.Kafka
+	UpdateTopic string `env:"UPDATE_TOPIC,required"`
 }
 
 func Load() (*Config, error) {

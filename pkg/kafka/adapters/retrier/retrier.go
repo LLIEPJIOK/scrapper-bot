@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/kafka"
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/kafka/config"
@@ -24,6 +25,7 @@ type Retrier struct {
 
 	channels        Channels
 	messageChannels *kafka.MessageChannels
+	lastCheck       time.Time
 
 	closers []Closer
 }
@@ -38,6 +40,7 @@ func NewRetrier(
 		db:              db,
 		cfg:             cfg,
 		channels:        channels,
+		lastCheck:       time.Now(),
 		messageChannels: messageChannels,
 		closers:         make([]Closer, 0),
 	}
@@ -57,11 +60,19 @@ func (r *Retrier) Run(ctx context.Context) error {
 		gocron.DurationJob(
 			r.cfg.CheckInterval,
 		),
-		gocron.NewTask(r.sendRetries, ctx),
+		gocron.NewTask(func() {
+			if err := r.sendRetries(ctx); err != nil {
+				slog.Error("failed to send retries", slog.Any("error", err))
+
+				return
+			}
+		}),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create job: %w", err)
 	}
+
+	scheduler.Start()
 
 	r.closers = append(r.closers, scheduler.Shutdown)
 
@@ -79,8 +90,8 @@ func (r *Retrier) Run(ctx context.Context) error {
 
 			slog.Debug("message to retrier received")
 
-			if msg.RetryCount() >= r.cfg.MaxRetries {
-				msg.Nack()
+			if msg.RetryCount() > r.cfg.MaxRetries {
+				msg.NackToDLQ()
 
 				continue
 			}
@@ -88,24 +99,33 @@ func (r *Retrier) Run(ctx context.Context) error {
 			err := r.saveMessage(ctx, msg)
 			if err != nil {
 				slog.Error("failed to save message", slog.Any("error", err))
+
+				continue
 			}
+
+			// mark as done
+			msg.Ack()
 		}
 	}
 }
 
-func (r *Retrier) sendRetries(ctx context.Context) {
-	msgs, err := r.getRetryMessages(ctx)
-	if err != nil {
-		slog.Error("failed to get retry messages", slog.Any("error", err))
+func (r *Retrier) sendRetries(ctx context.Context) error {
+	retryTime := time.Now()
 
-		return
+	msgs, err := r.getRetryMessages(ctx, r.lastCheck, retryTime)
+	if err != nil {
+		return fmt.Errorf("failed to get retry messages: %w", err)
 	}
+
+	r.lastCheck = retryTime
 
 	slog.Debug("trying to retry messages", slog.Int("count", len(msgs)))
 
 	for _, msg := range msgs {
 		r.channels.KafkaOutput() <- msg
 	}
+
+	return nil
 }
 
 func (r *Retrier) close() error {

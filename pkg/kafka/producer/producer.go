@@ -24,7 +24,7 @@ type Producer struct {
 	closers []Closer
 }
 
-func NewProducer(cfg *config.Kafka, channels Channels) (*Producer, error) {
+func New(cfg *config.Kafka, channels Channels) (*Producer, error) {
 	config := sarama.NewConfig()
 	config.Producer.Return.Successes = cfg.Producer.ReturnSuccesses
 	config.Producer.Return.Errors = cfg.Producer.ReturnErrors

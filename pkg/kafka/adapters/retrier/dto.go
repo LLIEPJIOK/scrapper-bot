@@ -12,7 +12,7 @@ type DatabaseMessage struct {
 	Value      string    `db:"value"`
 	Topic      string    `db:"topic"`
 	Partition  int32     `db:"partition"`
-	Offset     int64     `db:"offset"`
+	Offset     int64     `db:"kafka_offset"`
 	RetryCount int32     `db:"retry_count"`
 	RetryAt    time.Time `db:"retry_at"`
 	CreatedAt  time.Time `db:"created_at"`

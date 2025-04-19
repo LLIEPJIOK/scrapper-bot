@@ -10,7 +10,7 @@ import (
 
 const trackerAnswer = `Введите ссылку на ресурс, который хотите отслеживать.
 Доступные сайты:
-	- GitHub (repo, issue, pull request)
+	- GitHub
 	- StackOverflow
 `
 

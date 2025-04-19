@@ -55,7 +55,12 @@ func (d *DLQ) Run(ctx context.Context) error {
 			err := d.saveMessage(ctx, msg)
 			if err != nil {
 				slog.Error("failed to save message", slog.Any("error", err))
+
+				continue
 			}
+
+			// mark as done
+			msg.Ack()
 		}
 	}
 }

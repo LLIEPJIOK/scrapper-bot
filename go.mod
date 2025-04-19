@@ -6,7 +6,7 @@ require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/caarlos0/env/v11 v11.3.1
 	github.com/georgysavva/scany/v2 v2.1.4
-	github.com/go-co-op/gocron/v2 v2.16.0
+	github.com/go-co-op/gocron/v2 v2.16.1
 	github.com/go-faster/errors v0.7.1
 	github.com/go-faster/jx v1.1.0
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
