@@ -9,6 +9,7 @@ import (
 
 type DatabaseMessage struct {
 	ID         int64     `db:"id"`
+	Key        string    `db:"key"`
 	Value      string    `db:"value"`
 	Topic      string    `db:"topic"`
 	Partition  int32     `db:"partition"`
@@ -21,6 +22,7 @@ type DatabaseMessage struct {
 func (r *Retrier) databaseMessageToKafkaMessage(dbMessage *DatabaseMessage) *kafka.Message {
 	base := &sarama.ConsumerMessage{
 		Topic:     dbMessage.Topic,
+		Key:       []byte(dbMessage.Key),
 		Value:     []byte(dbMessage.Value),
 		Partition: dbMessage.Partition,
 		Offset:    dbMessage.Offset,
@@ -31,6 +33,7 @@ func (r *Retrier) databaseMessageToKafkaMessage(dbMessage *DatabaseMessage) *kaf
 
 func (r *Retrier) kafkaMessageToDatabaseMessage(kafkaMessage *kafka.Message) *DatabaseMessage {
 	return &DatabaseMessage{
+		Key:        string(kafkaMessage.Base.Key),
 		Value:      string(kafkaMessage.Base.Value),
 		Topic:      kafkaMessage.Base.Topic,
 		Partition:  kafkaMessage.Base.Partition,

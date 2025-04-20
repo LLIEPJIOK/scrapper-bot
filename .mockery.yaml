@@ -39,3 +39,8 @@ packages:
       dir: ./internal/application/kafka/mocks
     interfaces:
       Repository:
+  github.com/es-debug/backend-academy-2024-go-template/pkg/kafka/consumer:
+    config:
+      dir: ./pkg/kafka/consumer/mocks
+    interfaces:
+      Channels:

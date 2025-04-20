@@ -67,6 +67,7 @@ func (r *Retrier) Run(ctx context.Context) error {
 				return
 			}
 		}),
+		gocron.WithSingletonMode(gocron.LimitModeReschedule),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create job: %w", err)

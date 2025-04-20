@@ -26,7 +26,9 @@ func (m *Message) Bind(v any) error {
 }
 
 func (m *Message) Ack() {
-	m.channels.Ack() <- m
+	if m.retryCount == 0 {
+		m.channels.Ack() <- m
+	}
 }
 
 func (m *Message) Nack() {

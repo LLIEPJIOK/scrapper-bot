@@ -12,6 +12,7 @@ import (
 const createTableQuery = `
 CREATE TABLE IF NOT EXISTS %s (
 	id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	key TEXT NOT NULL,
 	value TEXT NOT NULL,
 	topic TEXT NOT NULL,
 	partition INT NOT NULL,
@@ -32,8 +33,8 @@ func (r *Retrier) initTable(ctx context.Context) error {
 }
 
 const saveMessageQuery = `
-INSERT INTO %s (value, topic, partition, kafka_offset, retry_count, retry_at)
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO %s (key, value, topic, partition, kafka_offset, retry_count, retry_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 `
 
 func (r *Retrier) saveMessage(ctx context.Context, msg *kafka.Message) error {
@@ -42,6 +43,7 @@ func (r *Retrier) saveMessage(ctx context.Context, msg *kafka.Message) error {
 	_, err := r.db.Exec(
 		ctx,
 		fmt.Sprintf(saveMessageQuery, r.cfg.TableName),
+		dbMessage.Key,
 		dbMessage.Value,
 		dbMessage.Topic,
 		dbMessage.Partition,
@@ -57,7 +59,7 @@ func (r *Retrier) saveMessage(ctx context.Context, msg *kafka.Message) error {
 }
 
 const getRetryMessagesQuery = `
-SELECT id, value, topic, partition, kafka_offset, retry_count, retry_at, created_at
+SELECT id, key, value, topic, partition, kafka_offset, retry_count, retry_at, created_at
 FROM %s
 WHERE $1 < retry_at AND retry_at <= $2
 `

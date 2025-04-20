@@ -90,3 +90,7 @@ run:
 .PHONY: local
 local:
 	@docker-compose -f docker-compose.local.yml up -d --build --force-recreate --remove-orphans
+
+.PHONY: cover
+cover:
+	@go tool cover -html='$(COVERAGE_FILE)'
