@@ -91,7 +91,7 @@ func (a *App) runServer(ctx context.Context, stop context.CancelFunc, wg *sync.W
 	defer stop()
 	defer slog.Info("service stopped")
 
-	botServer := botsrv.NewServer(a.repo, a.channels)
+	botServer := botsrv.NewServer(a.cache, a.channels)
 
 	srv, err := botapi.NewServer(botServer)
 	if err != nil {
@@ -130,7 +130,7 @@ func (a *App) runScheduler(ctx context.Context, stop context.CancelFunc, wg *syn
 	defer stop()
 	defer slog.Info("scheduler stopped")
 
-	schedule := botscheduler.NewScheduler(&a.cfg.Bot.Scheduler, a.repo, a.channels)
+	schedule := botscheduler.NewScheduler(&a.cfg.Bot.Scheduler, a.cache, a.channels)
 
 	if err := schedule.Run(ctx); err != nil {
 		slog.Error("failed to run scheduler", slog.Any("error", err))
@@ -175,7 +175,7 @@ func (a *App) runAppKafkaConsumer(
 	defer stop()
 	defer slog.Info("app kafka consumer stopped")
 
-	kafkaConsumer := kafka.NewConsumer(a.repo, a.channels)
+	kafkaConsumer := kafka.NewConsumer(a.cache, a.channels)
 
 	if err := kafkaConsumer.Run(ctx); err != nil {
 		slog.Error("failed to run app kafka consumer", slog.Any("error", err))

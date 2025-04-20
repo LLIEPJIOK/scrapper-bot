@@ -12,7 +12,6 @@ import (
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,7 +22,7 @@ func TestScheduler_SendUpdates_GetUpdatesChatsError(t *testing.T) {
 
 	repoMock := mocks.NewMockRepository(t)
 	repoErr := errors.New("get updates error")
-	repoMock.On("GetUpdatesChats", ctx, mock.Anything, mock.Anything).Return(nil, repoErr).Once()
+	repoMock.On("GetUpdatesChats", ctx).Return(nil, repoErr).Once()
 
 	channels := domain.NewChannels()
 	cfg := &config.BotScheduler{}
@@ -49,8 +48,8 @@ func TestScheduler_SendUpdates_GetUpdatesError(t *testing.T) {
 	repoMock := mocks.NewMockRepository(t)
 	repoErr := errors.New("get updates error")
 
-	repoMock.On("GetUpdatesChats", ctx, mock.Anything, mock.Anything).Return([]int64{1}, nil).Once()
-	repoMock.On("GetUpdates", ctx, int64(1), mock.Anything, mock.Anything).
+	repoMock.On("GetUpdatesChats", ctx).Return([]int64{1}, nil).Once()
+	repoMock.On("GetAndClearUpdates", ctx, int64(1)).
 		Return(nil, repoErr).
 		Once()
 
@@ -77,32 +76,32 @@ func TestScheduler_SendUpdates_Success(t *testing.T) {
 
 	repoMock := mocks.NewMockRepository(t)
 
-	update1 := domain.Update{
+	update1 := &domain.Update{
 		ChatID:  1,
 		URL:     "link1",
 		Message: "message1\n",
 		Tags:    []string{"tag1"},
 	}
-	update2 := domain.Update{
+	update2 := &domain.Update{
 		ChatID:  1,
 		URL:     "link2",
 		Message: "message2\n",
 		Tags:    []string{"tag2"},
 	}
-	update3 := domain.Update{
+	update3 := &domain.Update{
 		ChatID:  2,
 		URL:     "link3",
 		Message: "message3\n",
 	}
 
-	repoMock.On("GetUpdatesChats", ctx, mock.Anything, mock.Anything).
+	repoMock.On("GetUpdatesChats", ctx).
 		Return([]int64{1, 2}, nil).
 		Once()
-	repoMock.On("GetUpdates", ctx, int64(1), mock.Anything, mock.Anything).
-		Return([]domain.Update{update1, update2}, nil).
+	repoMock.On("GetAndClearUpdates", ctx, int64(1)).
+		Return([]*domain.Update{update1, update2}, nil).
 		Once()
-	repoMock.On("GetUpdates", ctx, int64(2), mock.Anything, mock.Anything).
-		Return([]domain.Update{update3}, nil).
+	repoMock.On("GetAndClearUpdates", ctx, int64(2)).
+		Return([]*domain.Update{update3}, nil).
 		Once()
 
 	tm := time.Now().Add(time.Second).UTC()

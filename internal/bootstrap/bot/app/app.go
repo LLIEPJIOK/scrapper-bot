@@ -10,7 +10,6 @@ import (
 	"github.com/es-debug/backend-academy-2024-go-template/internal/config"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
 	cache "github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/cache/bot"
-	repo "github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/repository/bot"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 )
@@ -22,7 +21,6 @@ type App struct {
 	db  *pgxpool.Pool
 	rdb *redis.Client
 
-	repo  repo.Repository
 	cache *cache.Cache
 }
 

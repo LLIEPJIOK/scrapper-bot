@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	cache "github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/cache/bot"
-	repo "github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/repository/bot"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 )
@@ -15,7 +14,6 @@ type InitFunc func(ctx context.Context) error
 func (a *App) inits() []InitFunc {
 	return []InitFunc{
 		a.initDB,
-		a.initRepo,
 		a.initRedis,
 		a.initCache,
 	}
@@ -42,17 +40,6 @@ func (a *App) initDB(ctx context.Context) error {
 	}
 
 	a.db = db
-
-	return nil
-}
-
-func (a *App) initRepo(_ context.Context) error {
-	var err error
-
-	a.repo, err = repo.New(a.db, a.cfg.Scrapper.Database.Type)
-	if err != nil {
-		return fmt.Errorf("failed to create repository: %w", err)
-	}
 
 	return nil
 }
