@@ -34,3 +34,8 @@ packages:
       dir: ./internal/application/http/client/scrapper/mocks
     interfaces:
       ExternalClient:
+  github.com/es-debug/backend-academy-2024-go-template/internal/application/kafka:
+    config:
+      dir: ./internal/application/kafka/mocks
+    interfaces:
+      Repository:

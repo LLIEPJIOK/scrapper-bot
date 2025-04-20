@@ -42,10 +42,12 @@ func (c *Consumer) Run(ctx context.Context) error {
 			}
 
 			if update.SendImmediately.Value {
-				msg := tgbotapi.NewMessage(update.ChatID, update.Message)
-				msg.ParseMode = tgbotapi.ModeHTML
+				tgMessage := tgbotapi.NewMessage(update.ChatID, update.Message)
+				tgMessage.ParseMode = tgbotapi.ModeHTML
 
-				c.channels.TelegramResp() <- msg
+				c.channels.TelegramResp() <- tgMessage
+
+				msg.Ack()
 
 				continue
 			}
