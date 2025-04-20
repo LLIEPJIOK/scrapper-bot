@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/es-debug/backend-academy-2024-go-template/internal/config"
@@ -169,6 +170,10 @@ func (s *Scheduler) getUpdates(ctx context.Context, link *domain.CheckLink) {
 func (s *Scheduler) sendUpdates(ctx context.Context, link *domain.CheckLink, updates []string) {
 	for _, update := range updates {
 		for _, chat := range link.Chats {
+			if !isValidUpdate(update, chat.Filters) {
+				continue
+			}
+
 			err := s.client.UpdatesPost(ctx, &domain.Update{
 				ChatID:  chat.ChatID,
 				URL:     link.URL,
@@ -185,4 +190,20 @@ func (s *Scheduler) sendUpdates(ctx context.Context, link *domain.CheckLink, upd
 			}
 		}
 	}
+}
+
+func isValidUpdate(update string, filters []string) bool {
+	for _, filter := range filters {
+		switch {
+		case strings.HasPrefix(filter, "user="):
+			if strings.Contains(
+				update,
+				fmt.Sprintf("<b>Автор</b>: <i>%s</i>\n", strings.TrimPrefix(filter, "user=")),
+			) {
+				return false
+			}
+		}
+	}
+
+	return true
 }
