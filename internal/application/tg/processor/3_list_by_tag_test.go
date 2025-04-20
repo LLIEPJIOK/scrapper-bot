@@ -70,7 +70,7 @@ func TestHandle_ByTagLister_LinksWithoutTagsOrFilters(t *testing.T) {
 
 	channels := domain.NewChannels()
 	links := []*domain.Link{
-		{URL: "https://example.com"},
+		{URL: "https://example.com", SendImmediately: domain.NewNull(true)},
 		{URL: "https://test.com"},
 	}
 	client := mocks.NewMockClient(t)
@@ -100,8 +100,10 @@ func TestHandle_ByTagLister_LinksWithoutTagsOrFilters(t *testing.T) {
 
 		expectedText := `Ваши ссылки c тегом #tag:
 1) https://example.com
+*Время отправки:* сразу
 
 2) https://test.com
+*Время отправки:* по расписанию
 
 `
 		assert.Equal(
@@ -128,8 +130,17 @@ func TestHandle_ByTagLister_LinksWithTagsAndFilters(t *testing.T) {
 
 	channels := domain.NewChannels()
 	links := []*domain.Link{
-		{URL: "https://example.com", Tags: []string{"tag1", "tag2"}, Filters: []string{"filter1"}},
-		{URL: "https://test.com", Tags: []string{"tag3"}, Filters: []string{"filter2", "filter3"}},
+		{
+			URL:             "https://example.com",
+			Tags:            []string{"tag1", "tag2"},
+			Filters:         []string{"filter1"},
+			SendImmediately: domain.NewNull(true),
+		},
+		{
+			URL:     "https://test.com",
+			Tags:    []string{"tag3"},
+			Filters: []string{"filter2", "filter3"},
+		},
 	}
 	client := mocks.NewMockClient(t)
 	client.On("GetLinks", mock.Anything, int64(123), "tag").Return(links, nil).Once()
@@ -160,10 +171,12 @@ func TestHandle_ByTagLister_LinksWithTagsAndFilters(t *testing.T) {
 1) https://example.com
 *Фильтры:* filter1
 #tag1 #tag2
+*Время отправки:* сразу
 
 2) https://test.com
 *Фильтры:* filter2; filter3
 #tag3
+*Время отправки:* по расписанию
 
 `
 		assert.Equal(

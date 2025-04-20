@@ -70,7 +70,7 @@ func TestHandle_TrackLister_LinksWithoutTagsOrFilters(t *testing.T) {
 	channels := domain.NewChannels()
 	links := []*domain.Link{
 		{URL: "https://example.com"},
-		{URL: "https://test.com"},
+		{URL: "https://test.com", SendImmediately: domain.NewNull(true)},
 	}
 	client := mocks.NewMockClient(t)
 	client.On("GetLinks", mock.Anything, int64(123), "").Return(links, nil).Once()
@@ -98,8 +98,10 @@ func TestHandle_TrackLister_LinksWithoutTagsOrFilters(t *testing.T) {
 
 		expectedText := `Ваши ссылки:
 1) https://example.com
+*Время отправки:* по расписанию
 
 2) https://test.com
+*Время отправки:* сразу
 
 `
 		assert.Equal(
@@ -157,10 +159,12 @@ func TestHandle_TrackLister_LinksWithTagsAndFilters(t *testing.T) {
 1) https://example.com
 *Фильтры:* filter1
 #tag1 #tag2
+*Время отправки:* по расписанию
 
 2) https://test.com
 *Фильтры:* filter2; filter3
 #tag3
+*Время отправки:* по расписанию
 
 `
 		assert.Equal(

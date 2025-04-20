@@ -75,6 +75,20 @@ func TestTrackFlow(t *testing.T) {
 		Message: "filter1 filter2",
 		Type:    domain.Message,
 	}
+	<-channels.TelegramResp()
+
+	// trackAddSetTime
+	channels.TelegramReq() <- domain.TelegramRequest{
+		ChatID:  1,
+		Message: "track_add_set_time",
+		Type:    domain.Callback,
+	}
+	<-channels.TelegramResp()
+	channels.TelegramReq() <- domain.TelegramRequest{
+		ChatID:  1,
+		Message: "track_add_set_time_immediately",
+		Type:    domain.Callback,
+	}
 
 	// save
 	client.On("AddLink", ctx, mock.MatchedBy(func(link *domain.Link) bool {

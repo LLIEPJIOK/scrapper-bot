@@ -135,14 +135,14 @@ func TestHandleTrackLinkAdder(t *testing.T) {
 				require.True(t, ok, "not tg message")
 				assert.Equal(
 					t,
-					"Можете добавить опциональные поля или сохранить ссылку в текущем состоянии.",
+					"Можете настроить ссылку или сохранить её в текущем состоянии.",
 					msg.Text,
 					"wrong message",
 				)
 
 				keyboard, ok := msg.ReplyMarkup.(tgbotapi.InlineKeyboardMarkup)
 				require.True(t, ok, "not tg keyboard")
-				assert.Equal(t, 3, len(keyboard.InlineKeyboard), "wrong keyboard")
+				assert.Equal(t, 4, len(keyboard.InlineKeyboard), "wrong keyboard")
 			}()
 
 			res := handler.Handle(ctx, tc.state)

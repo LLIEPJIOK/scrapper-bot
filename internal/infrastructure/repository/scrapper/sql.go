@@ -73,11 +73,11 @@ func (s *SQL) TrackLink(ctx context.Context, link *domain.Link) (*domain.Link, e
 	link.ID = id
 
 	queryLinkChat := `
-		INSERT INTO links_chats (link_id, chat_id)
-		VALUES ($1, $2)
+		INSERT INTO links_chats (link_id, chat_id, send_immediately)
+		VALUES ($1, $2, $3)
 	`
 
-	_, err = s.db.Exec(ctx, queryLinkChat, link.ID, link.ChatID)
+	_, err = s.db.Exec(ctx, queryLinkChat, link.ID, link.ChatID, link.SendImmediately.Value)
 	if err != nil {
 		return nil, fmt.Errorf("failed to add link chat: %w", err)
 	}
@@ -160,8 +160,14 @@ func (s *SQL) GetLink(ctx context.Context, chatID int64, url string) (*domain.Li
 		return nil, err
 	}
 
+	sendImmediately, err := s.getSendImmediately(ctx, link.ID, chatID)
+	if err != nil {
+		return nil, err
+	}
+
 	link.Tags = tags
 	link.Filters = filters
+	link.SendImmediately = domain.NewNull(sendImmediately)
 
 	return link, nil
 }
@@ -195,8 +201,14 @@ func (s *SQL) ListLinks(ctx context.Context, chatID int64) ([]*domain.Link, erro
 			return nil, err
 		}
 
+		sendImmediately, err := s.getSendImmediately(ctx, link.ID, chatID)
+		if err != nil {
+			return nil, err
+		}
+
 		links[i].Tags = tags
 		links[i].Filters = filters
+		links[i].SendImmediately = domain.NewNull(sendImmediately)
 	}
 
 	return links, nil
@@ -237,8 +249,14 @@ func (s *SQL) ListLinksByTag(
 			return nil, err
 		}
 
+		sendImmediately, err := s.getSendImmediately(ctx, link.ID, chatID)
+		if err != nil {
+			return nil, err
+		}
+
 		links[i].Tags = tags
 		links[i].Filters = filters
+		links[i].SendImmediately = domain.NewNull(sendImmediately)
 	}
 
 	return links, nil
@@ -397,11 +415,28 @@ func (s *SQL) getFilters(ctx context.Context, linkID, chatID int64) ([]string, e
 	return filters, nil
 }
 
+func (s *SQL) getSendImmediately(ctx context.Context, linkID, chatID int64) (bool, error) {
+	var sendImmediately bool
+
+	querySendImmediately := `
+		SELECT send_immediately
+		FROM links_chats
+		WHERE link_id = $1 AND chat_id = $2
+	`
+
+	err := s.db.QueryRow(ctx, querySendImmediately, linkID, chatID).Scan(&sendImmediately)
+	if err != nil {
+		return false, fmt.Errorf("failed to get send immediately: %w", err)
+	}
+
+	return sendImmediately, nil
+}
+
 func (s *SQL) getChats(ctx context.Context, linkID int64) ([]domain.LinkChat, error) {
 	chats := []domain.LinkChat{}
 
 	queryChats := `
-		SELECT chat_id
+		SELECT chat_id, send_immediately
 		FROM links_chats
 		WHERE link_id = $1
 	`

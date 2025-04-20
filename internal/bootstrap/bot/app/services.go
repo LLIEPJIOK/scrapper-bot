@@ -91,7 +91,7 @@ func (a *App) runServer(ctx context.Context, stop context.CancelFunc, wg *sync.W
 	defer stop()
 	defer slog.Info("service stopped")
 
-	botServer := botsrv.NewServer(a.repo)
+	botServer := botsrv.NewServer(a.repo, a.channels)
 
 	srv, err := botapi.NewServer(botServer)
 	if err != nil {

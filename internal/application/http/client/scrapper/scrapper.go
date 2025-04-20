@@ -68,9 +68,10 @@ func (s *Client) AddLink(ctx context.Context, link *domain.Link) error {
 	}
 
 	rawResp, err := s.client.LinksPost(ctx, &scrapper.AddLinkRequest{
-		Link:    scrapper.NewOptURI(*parsedURL),
-		Tags:    link.Tags,
-		Filters: link.Filters,
+		Link:            scrapper.NewOptURI(*parsedURL),
+		Tags:            link.Tags,
+		Filters:         link.Filters,
+		SendImmediately: scrapper.NewOptBool(link.SendImmediately.Value),
 	}, scrapper.LinksPostParams{
 		TgChatID: link.ChatID,
 	})
@@ -146,10 +147,11 @@ func linksToDomainLinks(links []scrapper.LinkResponse) []*domain.Link {
 	domainLinks := make([]*domain.Link, 0, len(links))
 	for i := range links {
 		domainLinks = append(domainLinks, &domain.Link{
-			ID:      links[i].ID.Value,
-			URL:     links[i].URL.Value.String(),
-			Tags:    links[i].Tags,
-			Filters: links[i].Filters,
+			ID:              links[i].ID.Value,
+			URL:             links[i].URL.Value.String(),
+			Tags:            links[i].Tags,
+			Filters:         links[i].Filters,
+			SendImmediately: domain.NewNull(links[i].SendImmediately.Value),
 		})
 	}
 

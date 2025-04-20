@@ -34,22 +34,30 @@ func (h GroupHandler) ConsumeClaim(
 	sess sarama.ConsumerGroupSession,
 	claim sarama.ConsumerGroupClaim,
 ) error {
+	go h.ackMessages(sess)
+
+	for msg := range claim.Messages() {
+		slog.Debug(
+			"message received",
+			slog.Any("topic", msg.Topic),
+			slog.Any("value", string(msg.Value)),
+			slog.Any("offset", msg.Offset),
+			slog.Any("partition", msg.Partition),
+		)
+
+		h.channels.KafkaOutput() <- kafka.NewMessage(msg, 0, h.messageChannels)
+	}
+
+	return nil
+}
+
+func (h GroupHandler) ackMessages(
+	sess sarama.ConsumerGroupSession,
+) {
 	for {
 		select {
-		case msg, ok := <-claim.Messages():
-			if !ok {
-				return nil
-			}
-
-			slog.Debug(
-				"message received",
-				slog.Any("topic", msg.Topic),
-				slog.Any("value", string(msg.Value)),
-				slog.Any("offset", msg.Offset),
-				slog.Any("partition", msg.Partition),
-			)
-
-			h.channels.KafkaOutput() <- kafka.NewMessage(msg, 0, h.messageChannels)
+		case <-sess.Context().Done():
+			return
 
 		case msg := <-h.messageChannels.Ack():
 			slog.Debug(

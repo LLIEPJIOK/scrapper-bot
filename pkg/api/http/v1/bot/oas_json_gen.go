@@ -190,13 +190,20 @@ func (s *LinkUpdate) encodeFields(e *jx.Encoder) {
 			e.ArrEnd()
 		}
 	}
+	{
+		if s.SendImmediately.Set {
+			e.FieldStart("send_immediately")
+			s.SendImmediately.Encode(e)
+		}
+	}
 }
 
-var jsonFieldsNameOfLinkUpdate = [4]string{
+var jsonFieldsNameOfLinkUpdate = [5]string{
 	0: "chat_id",
 	1: "url",
 	2: "message",
 	3: "tags",
+	4: "send_immediately",
 }
 
 // Decode decodes LinkUpdate from json.
@@ -256,6 +263,16 @@ func (s *LinkUpdate) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"tags\"")
 			}
+		case "send_immediately":
+			if err := func() error {
+				s.SendImmediately.Reset()
+				if err := s.SendImmediately.Decode(d); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"send_immediately\"")
+			}
 		default:
 			return d.Skip()
 		}
@@ -276,6 +293,41 @@ func (s *LinkUpdate) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements stdjson.Unmarshaler.
 func (s *LinkUpdate) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d)
+}
+
+// Encode encodes bool as json.
+func (o OptBool) Encode(e *jx.Encoder) {
+	if !o.Set {
+		return
+	}
+	e.Bool(bool(o.Value))
+}
+
+// Decode decodes bool from json.
+func (o *OptBool) Decode(d *jx.Decoder) error {
+	if o == nil {
+		return errors.New("invalid: unable to decode OptBool to nil")
+	}
+	o.Set = true
+	v, err := d.Bool()
+	if err != nil {
+		return err
+	}
+	o.Value = bool(v)
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s OptBool) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *OptBool) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
 }

@@ -73,7 +73,7 @@ func TestTrackFilterAdder_Handle(t *testing.T) {
 		msg, ok := ans.(tgbotapi.MessageConfig)
 		require.True(t, ok, "not tg edit message")
 
-		expectedText := "Можете добавить опциональные поля или сохранить ссылку в текущем состоянии."
+		expectedText := "Можете настроить ссылку или сохранить её в текущем состоянии."
 		assert.Equal(t, expectedText, msg.Text, "Expected message text to match")
 		assert.NotNil(t, msg.ReplyMarkup, "Expected ReplyMarkup to be set in the message")
 	}()

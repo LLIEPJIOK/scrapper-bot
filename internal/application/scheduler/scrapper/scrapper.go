@@ -175,10 +175,11 @@ func (s *Scheduler) sendUpdates(ctx context.Context, link *domain.CheckLink, upd
 			}
 
 			err := s.client.UpdatesPost(ctx, &domain.Update{
-				ChatID:  chat.ChatID,
-				URL:     link.URL,
-				Message: update,
-				Tags:    chat.Tags,
+				ChatID:          chat.ChatID,
+				URL:             link.URL,
+				Message:         update,
+				Tags:            chat.Tags,
+				SendImmediately: domain.NewNull(chat.SendImmediately),
 			})
 			if err != nil {
 				slog.Error(
@@ -194,12 +195,13 @@ func (s *Scheduler) sendUpdates(ctx context.Context, link *domain.CheckLink, upd
 
 func isValidUpdate(update string, filters []string) bool {
 	for _, filter := range filters {
-		switch {
-		case strings.HasPrefix(filter, "user="):
-			if strings.Contains(
+		if strings.HasPrefix(filter, "user=") {
+			hasAuthor := strings.Contains(
 				update,
 				fmt.Sprintf("<b>Автор</b>: <i>%s</i>\n", strings.TrimPrefix(filter, "user=")),
-			) {
+			)
+
+			if hasAuthor {
 				return false
 			}
 		}

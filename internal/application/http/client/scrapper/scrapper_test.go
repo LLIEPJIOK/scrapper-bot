@@ -84,17 +84,19 @@ func TestClient_AddLink_Success(t *testing.T) {
 	client := scrapper.NewClient(clientMock)
 
 	link := &domain.Link{
-		URL:     exampleLink,
-		Tags:    []string{"news"},
-		Filters: []string{"filter1"},
-		ChatID:  12345,
+		URL:             exampleLink,
+		Tags:            []string{"news"},
+		Filters:         []string{"filter1"},
+		ChatID:          12345,
+		SendImmediately: domain.NewNull(true),
 	}
 
 	parsedURL, _ := url.Parse(link.URL)
 	expectedRequest := &api.AddLinkRequest{
-		Link:    api.NewOptURI(*parsedURL),
-		Tags:    link.Tags,
-		Filters: link.Filters,
+		Link:            api.NewOptURI(*parsedURL),
+		Tags:            link.Tags,
+		Filters:         link.Filters,
+		SendImmediately: api.NewOptBool(link.SendImmediately.Value),
 	}
 
 	clientMock.On("LinksPost", mock.Anything, expectedRequest, api.LinksPostParams{TgChatID: link.ChatID}).
@@ -121,9 +123,10 @@ func TestClient_AddLink_Error(t *testing.T) {
 
 	parsedURL, _ := url.Parse(link.URL)
 	expectedRequest := &api.AddLinkRequest{
-		Link:    api.NewOptURI(*parsedURL),
-		Tags:    link.Tags,
-		Filters: link.Filters,
+		Link:            api.NewOptURI(*parsedURL),
+		Tags:            link.Tags,
+		Filters:         link.Filters,
+		SendImmediately: api.NewOptBool(link.SendImmediately.Value),
 	}
 
 	clientMock.On("LinksPost", mock.Anything, expectedRequest, api.LinksPostParams{TgChatID: link.ChatID}).
@@ -149,9 +152,10 @@ func TestClient_AddLink_APIError(t *testing.T) {
 	}
 	parsedURL, _ := url.Parse(link.URL)
 	expectedRequest := &api.AddLinkRequest{
-		Link:    api.NewOptURI(*parsedURL),
-		Tags:    link.Tags,
-		Filters: link.Filters,
+		Link:            api.NewOptURI(*parsedURL),
+		Tags:            link.Tags,
+		Filters:         link.Filters,
+		SendImmediately: api.NewOptBool(link.SendImmediately.Value),
 	}
 
 	clientMock.On("LinksPost", mock.Anything, expectedRequest, api.LinksPostParams{TgChatID: link.ChatID}).
@@ -286,7 +290,8 @@ func TestClient_GetLinks_Success(t *testing.T) {
 	}
 
 	clientMock.On("LinksGet", mock.Anything, api.LinksGetParams{TgChatID: chatID, Tag: api.NewOptString("tag")}).
-		Return(&api.ListLinksResponse{Links: apiLinks}, nil).Once()
+		Return(&api.ListLinksResponse{Links: apiLinks}, nil).
+		Once()
 
 	links, err := client.GetLinks(context.Background(), chatID, "tag")
 

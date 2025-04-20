@@ -49,8 +49,9 @@ func TestTrackTagAdder_Handle_CallbackBranch(t *testing.T) {
 	adder := processor.NewTrackTagAdder(channels)
 
 	link := &domain.Link{
-		Filters: nil,
-		Tags:    nil,
+		Filters:         nil,
+		Tags:            nil,
+		SendImmediately: domain.NewNull(true),
 	}
 	state := &processor.State{
 		Message:  "tag1 tag2",
@@ -69,7 +70,7 @@ func TestTrackTagAdder_Handle_CallbackBranch(t *testing.T) {
 		msg, ok := ans.(tgbotapi.MessageConfig)
 		require.True(t, ok, "not tg edit message")
 
-		expectedText := "Можете добавить опциональные поля или сохранить ссылку в текущем состоянии."
+		expectedText := "Можете настроить ссылку или сохранить её в текущем состоянии."
 		assert.Equal(t, expectedText, msg.Text, "Expected message text to match")
 		assert.NotNil(t, msg.ReplyMarkup, "Expected message ReplyMarkup to be set")
 	}()
@@ -101,8 +102,9 @@ func TestTrackTagAdder_Handle_TrackSaveBranch(t *testing.T) {
 	adder := processor.NewTrackTagAdder(channels)
 
 	link := &domain.Link{
-		Filters: []string{"filter1", "filter2"},
-		Tags:    nil,
+		Filters:         []string{"filter1", "filter2"},
+		Tags:            nil,
+		SendImmediately: domain.NewNull(true),
 	}
 	state := &processor.State{
 		Message:  "tag1 tag2",

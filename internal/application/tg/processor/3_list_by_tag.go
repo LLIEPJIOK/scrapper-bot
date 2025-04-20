@@ -93,6 +93,14 @@ func (h *ByTagLister) getLinks(ctx context.Context, state *State) (string, error
 			ansBuilder.WriteString(fmt.Sprintf("#%s\n", strings.Join(link.Tags, " #")))
 		}
 
+		ansBuilder.WriteString("*Время отправки:* ")
+
+		if link.SendImmediately.Value {
+			ansBuilder.WriteString("сразу\n")
+		} else {
+			ansBuilder.WriteString("по расписанию\n")
+		}
+
 		ansBuilder.WriteString("\n")
 	}
 

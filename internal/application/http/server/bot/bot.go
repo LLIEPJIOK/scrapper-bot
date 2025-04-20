@@ -6,6 +6,7 @@ import (
 
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/bot"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 type Repository interface {
@@ -13,17 +14,30 @@ type Repository interface {
 }
 
 type Server struct {
-	repo Repository
+	repo     Repository
+	channels *domain.Channels
 }
 
-func NewServer(repo Repository) *Server {
-	return &Server{repo: repo}
+func NewServer(repo Repository, channels *domain.Channels) *Server {
+	return &Server{
+		repo:     repo,
+		channels: channels,
+	}
 }
 
 func (s *Server) UpdatesPost(
 	ctx context.Context,
 	req *bot.LinkUpdate,
 ) (bot.UpdatesPostRes, error) {
+	if req.GetSendImmediately().Value {
+		msg := tgbotapi.NewMessage(req.GetChatID().Value, req.GetMessage().Value)
+		msg.ParseMode = tgbotapi.ModeHTML
+
+		s.channels.TelegramResp() <- msg
+
+		return &bot.UpdatesPostOK{}, nil
+	}
+
 	err := s.repo.AddUpdate(ctx, &domain.Update{
 		ChatID:  req.GetChatID().Value,
 		URL:     req.URL.Value.String(),

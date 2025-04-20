@@ -5,6 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 type Repository interface {
@@ -36,6 +37,15 @@ func (c *Consumer) Run(ctx context.Context) error {
 				slog.Error("failed to bind message", slog.Any("error", err))
 
 				msg.Nack()
+
+				continue
+			}
+
+			if update.SendImmediately.Value {
+				msg := tgbotapi.NewMessage(update.ChatID, update.Message)
+				msg.ParseMode = tgbotapi.ModeHTML
+
+				c.channels.TelegramResp() <- msg
 
 				continue
 			}

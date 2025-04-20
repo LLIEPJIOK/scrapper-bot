@@ -55,10 +55,11 @@ func (s *ScrapperSuite) TestTrackUntrackLink_Builder(t provider.T) {
 	require.NoError(t, err, "failed to register chat")
 
 	link := &domain.Link{
-		URL:     "https://example.com",
-		ChatID:  chatID,
-		Tags:    []string{"news", "tech"},
-		Filters: []string{"lang=en", "category=it"},
+		URL:             "https://example.com",
+		ChatID:          chatID,
+		Tags:            []string{"news", "tech"},
+		Filters:         []string{"lang=en", "category=it"},
+		SendImmediately: domain.NewNull(true),
 	}
 
 	t.Run("track new link", func(t provider.T) {
@@ -106,6 +107,17 @@ func (s *ScrapperSuite) TestTrackUntrackLink_Builder(t provider.T) {
 		require.NoError(t, err, "failed to scan filters")
 
 		assert.ElementsMatch(t, link.Filters, filters, "filters should be tracked")
+
+		var sendImmediately bool
+		err = s.pool.QueryRow(
+			ctx,
+			"SELECT send_immediately FROM links_chats WHERE link_id = $1 AND chat_id = $2",
+			tracked.ID,
+			chatID,
+		).
+			Scan(&sendImmediately)
+		require.NoError(t, err, "failed to scan send_immediately")
+		assert.True(t, sendImmediately, "link should be tracked")
 	})
 
 	t.Run("untrack link", func(t provider.T) {
@@ -141,10 +153,11 @@ func (s *ScrapperSuite) TestGetLink_Builder(t provider.T) {
 	require.NoError(t, err, "failed to register chat")
 
 	link := &domain.Link{
-		URL:     "https://example.org",
-		ChatID:  chatID,
-		Tags:    []string{"blog"},
-		Filters: []string{"author=john"},
+		URL:             "https://example.org",
+		ChatID:          chatID,
+		Tags:            []string{"blog"},
+		Filters:         []string{"author=john"},
+		SendImmediately: domain.NewNull(true),
 	}
 
 	tracked, err := repo.TrackLink(ctx, link)
@@ -157,6 +170,12 @@ func (s *ScrapperSuite) TestGetLink_Builder(t provider.T) {
 		require.Equal(t, link.URL, found.URL, "link url should be equal")
 		require.ElementsMatch(t, link.Tags, found.Tags, "tags should be equal")
 		require.ElementsMatch(t, link.Filters, found.Filters, "filters should be equal")
+		require.Equal(
+			t,
+			link.SendImmediately,
+			found.SendImmediately,
+			"send_immediately should be equal",
+		)
 	})
 
 	t.Run("get non-existent link", func(t provider.T) {
@@ -175,8 +194,18 @@ func (s *ScrapperSuite) TestListLinks_Builder(t provider.T) {
 	require.NoError(t, err, "failed to register chat")
 
 	links := []*domain.Link{
-		{URL: "https://link1.com", ChatID: chatID, Tags: []string{"t1"}},
-		{URL: "https://link2.com", ChatID: chatID, Filters: []string{"f1"}},
+		{
+			URL:             "https://link1.com",
+			ChatID:          chatID,
+			Tags:            []string{"t1"},
+			SendImmediately: domain.NewNull(true),
+		},
+		{
+			URL:             "https://link2.com",
+			ChatID:          chatID,
+			Filters:         []string{"f1"},
+			SendImmediately: domain.NewNull(false),
+		},
 	}
 
 	for _, l := range links {
@@ -196,10 +225,22 @@ func (s *ScrapperSuite) TestListLinks_Builder(t provider.T) {
 		assert.Equal(t, links[0].URL, result[0].URL, "link url should be equal")
 		assert.ElementsMatch(t, links[0].Tags, result[0].Tags, "link tags should be equal")
 		assert.ElementsMatch(t, links[0].Filters, result[0].Filters, "link filters should be equal")
+		assert.Equal(
+			t,
+			links[0].SendImmediately,
+			result[0].SendImmediately,
+			"send_immediately should be equal",
+		)
 
 		assert.Equal(t, links[1].URL, result[1].URL, "link url should be equal")
 		assert.ElementsMatch(t, links[1].Tags, result[1].Tags, "link tags should be equal")
 		assert.ElementsMatch(t, links[1].Filters, result[1].Filters, "link filters should be equal")
+		assert.Equal(
+			t,
+			links[1].SendImmediately,
+			result[1].SendImmediately,
+			"send_immediately should be equal",
+		)
 	})
 }
 
@@ -216,9 +257,22 @@ func (s *ScrapperSuite) TestGetCheckLinks_Builder(t provider.T) {
 	require.NoError(t, err, "failed to register chat")
 
 	links := []*domain.Link{
-		{URL: "https://link1.com", ChatID: chat1ID, Tags: []string{"t1"}},
-		{URL: "https://link2.com", ChatID: chat1ID, Filters: []string{"f1"}},
-		{URL: "https://link1.com", ChatID: chat2ID, Tags: []string{"t1"}},
+		{
+			URL:    "https://link1.com",
+			ChatID: chat1ID,
+			Tags:   []string{"t1"},
+		},
+		{
+			URL:             "https://link2.com",
+			ChatID:          chat1ID,
+			Filters:         []string{"f1"},
+			SendImmediately: domain.NewNull(true),
+		},
+		{
+			URL:    "https://link1.com",
+			ChatID: chat2ID,
+			Tags:   []string{"t2"},
+		},
 	}
 
 	for _, l := range links {
@@ -256,14 +310,26 @@ func (s *ScrapperSuite) TestGetCheckLinks_Builder(t provider.T) {
 		checkLinks[0].Chats[0].Filters,
 		"link filters should be equal",
 	)
+	assert.Equal(
+		t,
+		links[0].SendImmediately.Value,
+		checkLinks[0].Chats[0].SendImmediately,
+		"send_immediately should be equal",
+	)
 
 	assert.Equal(t, chat2ID, checkLinks[0].Chats[1].ChatID, "chat id should be equal")
-	assert.ElementsMatch(t, links[0].Tags, checkLinks[0].Chats[1].Tags, "link tags should be equal")
+	assert.ElementsMatch(t, links[2].Tags, checkLinks[0].Chats[1].Tags, "link tags should be equal")
 	assert.ElementsMatch(
 		t,
-		links[0].Filters,
+		links[2].Filters,
 		checkLinks[0].Chats[1].Filters,
 		"link filters should be equal",
+	)
+	assert.Equal(
+		t,
+		links[2].SendImmediately.Value,
+		checkLinks[0].Chats[1].SendImmediately,
+		"send_immediately should be equal",
 	)
 
 	assert.Equal(t, links[1].URL, checkLinks[1].URL, "link url should be equal")
@@ -275,6 +341,12 @@ func (s *ScrapperSuite) TestGetCheckLinks_Builder(t provider.T) {
 		links[1].Filters,
 		checkLinks[1].Chats[0].Filters,
 		"link filters should be equal",
+	)
+	assert.Equal(
+		t,
+		links[1].SendImmediately.Value,
+		checkLinks[1].Chats[0].SendImmediately,
+		"send_immediately should be equal",
 	)
 
 	err = repo.UpdateCheckTime(ctx, links[0].URL, time.Now())

@@ -85,10 +85,11 @@ func (s *Server) LinksPost(
 	params scrapper.LinksPostParams,
 ) (scrapper.LinksPostRes, error) {
 	link, err := s.repo.TrackLink(ctx, &domain.Link{
-		ChatID:  params.TgChatID,
-		URL:     req.Link.Value.String(),
-		Tags:    req.Tags,
-		Filters: req.Filters,
+		ChatID:          params.TgChatID,
+		URL:             req.Link.Value.String(),
+		Tags:            req.Tags,
+		Filters:         req.Filters,
+		SendImmediately: domain.NewNull(req.SendImmediately.Value),
 	})
 	if err != nil {
 		return &scrapper.ApiErrorResponse{
@@ -192,10 +193,11 @@ func domainLinksToResponse(links []*domain.Link) scrapper.LinksGetRes {
 		}
 
 		respLinks = append(respLinks, scrapper.LinkResponse{
-			ID:      scrapper.NewOptInt64(link.ID),
-			URL:     scrapper.NewOptURI(*parsedURL),
-			Tags:    link.Tags,
-			Filters: link.Filters,
+			ID:              scrapper.NewOptInt64(link.ID),
+			URL:             scrapper.NewOptURI(*parsedURL),
+			Tags:            link.Tags,
+			Filters:         link.Filters,
+			SendImmediately: scrapper.NewOptBool(link.SendImmediately.Value),
 		})
 	}
 

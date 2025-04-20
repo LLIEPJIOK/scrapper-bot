@@ -82,6 +82,14 @@ func (h *AllLister) getLinks(ctx context.Context, chatID int64) (string, error) 
 			ansBuilder.WriteString(fmt.Sprintf("#%s\n", strings.Join(link.Tags, " #")))
 		}
 
+		ansBuilder.WriteString("*Время отправки:* ")
+
+		if link.SendImmediately.Value {
+			ansBuilder.WriteString("сразу\n")
+		} else {
+			ansBuilder.WriteString("по расписанию\n")
+		}
+
 		ansBuilder.WriteString("\n")
 	}
 

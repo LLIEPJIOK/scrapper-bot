@@ -58,6 +58,9 @@ func New(client Client, channels Channels, cache Cache) *Processor {
 		AddState(trackAddLink, NewTrackLinkAdder(client, channels)).
 		AddState(trackAddFilters, NewTrackFilterAdder(channels)).
 		AddState(trackAddTags, NewTrackTagAdder(channels)).
+		AddState(trackAddSetTime, NewTrackAddTimeSetter(channels)).
+		AddState(trackAddSetTimeDigest, NewTrackAddTimeSetterDigest(channels)).
+		AddState(trackAddSetTimeImmediately, NewTrackAddTimeSetterImmediately(channels)).
 		AddState(trackSave, NewTrackSaver(client, channels, cache)).
 		AddState(list, NewLister(channels)).
 		AddState(listAll, NewAllLister(client, channels, cache)).
@@ -68,6 +71,9 @@ func New(client Client, channels Channels, cache Cache) *Processor {
 		AddState(fail, NewFailer(channels)).
 		AddTransition(callback, trackAddTags).
 		AddTransition(callback, trackAddFilters).
+		AddTransition(callback, trackAddSetTime).
+		AddTransition(callback, trackAddSetTimeDigest).
+		AddTransition(callback, trackAddSetTimeImmediately).
 		AddTransition(callback, trackSave).
 		AddTransition(callback, listAll).
 		AddTransition(callback, listByTagInput).
@@ -87,6 +93,10 @@ func New(client Client, channels Channels, cache Cache) *Processor {
 		AddTransition(trackAddFilters, callback).
 		AddTransition(trackAddTags, trackSave).
 		AddTransition(trackAddTags, callback).
+		AddTransition(trackAddSetTimeDigest, trackSave).
+		AddTransition(trackAddSetTimeDigest, callback).
+		AddTransition(trackAddSetTimeImmediately, trackSave).
+		AddTransition(trackAddSetTimeImmediately, callback).
 		AddTransition(trackSave, fail).
 		AddTransition(list, fail).
 		AddTransition(listAll, fail).

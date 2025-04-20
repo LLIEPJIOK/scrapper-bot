@@ -30,10 +30,11 @@ func (b *Client) UpdatesPost(ctx context.Context, update *domain.Update) error {
 	}
 
 	rawResp, err := b.client.UpdatesPost(ctx, &bot.LinkUpdate{
-		ChatID:  bot.NewOptInt64(update.ChatID),
-		URL:     bot.NewOptURI(*parsedURL),
-		Message: bot.NewOptString(update.Message),
-		Tags:    update.Tags,
+		ChatID:          bot.NewOptInt64(update.ChatID),
+		URL:             bot.NewOptURI(*parsedURL),
+		Message:         bot.NewOptString(update.Message),
+		Tags:            update.Tags,
+		SendImmediately: bot.NewOptBool(update.SendImmediately.Value),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to send updates: %w", err)

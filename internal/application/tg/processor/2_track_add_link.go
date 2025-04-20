@@ -135,6 +135,15 @@ func createKeyboard(link *domain.Link) tgbotapi.InlineKeyboardMarkup {
 		})
 	}
 
+	if !link.SendImmediately.Valid {
+		rows = append(rows, []tgbotapi.InlineKeyboardButton{
+			tgbotapi.NewInlineKeyboardButtonData(
+				"Настроить время отправления",
+				trackAddSetTime.String(),
+			),
+		})
+	}
+
 	rows = append(rows, []tgbotapi.InlineKeyboardButton{
 		tgbotapi.NewInlineKeyboardButtonData("Сохранить", trackSave.String()),
 	})
@@ -166,7 +175,7 @@ func updateField(
 	link = update(link, state.Message)
 	state.Object = link
 
-	ans := "Можете добавить опциональные поля или сохранить ссылку в текущем состоянии."
+	ans := "Можете настроить ссылку или сохранить её в текущем состоянии."
 	msg := tgbotapi.NewMessage(state.ChatID, ans)
 
 	keyboard := createKeyboard(link)

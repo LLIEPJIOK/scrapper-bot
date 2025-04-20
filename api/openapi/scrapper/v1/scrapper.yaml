@@ -157,6 +157,8 @@ components:
           type: array
           items:
             type: string
+        send_immediately:
+          type: boolean
     ApiErrorResponse:
       type: object
       properties:
@@ -186,6 +188,8 @@ components:
           type: array
           items:
             type: string
+        send_immediately:
+          type: boolean
     ListLinksResponse:
       type: object
       properties:

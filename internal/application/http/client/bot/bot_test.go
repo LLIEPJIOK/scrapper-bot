@@ -46,20 +46,22 @@ func TestClient_UpdatesPost_RequestError(t *testing.T) {
 	msg := "msg1"
 
 	expectedRequest := &api.LinkUpdate{
-		ChatID:  api.NewOptInt64(chatID),
-		URL:     api.NewOptURI(*parsedURL),
-		Message: api.NewOptString(msg),
-		Tags:    tags,
+		ChatID:          api.NewOptInt64(chatID),
+		URL:             api.NewOptURI(*parsedURL),
+		Message:         api.NewOptString(msg),
+		Tags:            tags,
+		SendImmediately: api.NewOptBool(true),
 	}
 	expectedErr := errors.New("network error")
 
 	clientMock.On("UpdatesPost", mock.Anything, expectedRequest).Return(nil, expectedErr).Once()
 
 	err = client.UpdatesPost(context.Background(), &domain.Update{
-		ChatID:  chatID,
-		URL:     testURL,
-		Message: msg,
-		Tags:    tags,
+		ChatID:          chatID,
+		URL:             testURL,
+		Message:         msg,
+		Tags:            tags,
+		SendImmediately: domain.NewNull(true),
 	})
 
 	assert.Error(t, err, "expected error")
@@ -81,20 +83,22 @@ func TestClient_UpdatesPost_Success(t *testing.T) {
 	msg := "msg2"
 
 	expectedRequest := &api.LinkUpdate{
-		ChatID:  api.NewOptInt64(chatID),
-		URL:     api.NewOptURI(*parsedURL),
-		Message: api.NewOptString(msg),
-		Tags:    tags,
+		ChatID:          api.NewOptInt64(chatID),
+		URL:             api.NewOptURI(*parsedURL),
+		Message:         api.NewOptString(msg),
+		Tags:            tags,
+		SendImmediately: api.NewOptBool(false),
 	}
 	clientMock.On("UpdatesPost", mock.Anything, expectedRequest).
 		Return(&api.UpdatesPostOK{}, nil).
 		Once()
 
 	err = client.UpdatesPost(context.Background(), &domain.Update{
-		ChatID:  chatID,
-		URL:     testURL,
-		Message: msg,
-		Tags:    tags,
+		ChatID:          chatID,
+		URL:             testURL,
+		Message:         msg,
+		Tags:            tags,
+		SendImmediately: domain.NewNull(false),
 	})
 
 	assert.NoError(t, err, "expected no error")
@@ -115,10 +119,11 @@ func TestClient_UpdatesPost_ApiErrorResponse(t *testing.T) {
 	msg := "msg3"
 
 	expectedRequest := &api.LinkUpdate{
-		ChatID:  api.NewOptInt64(chatID),
-		URL:     api.NewOptURI(*parsedURL),
-		Message: api.NewOptString(msg),
-		Tags:    tags,
+		ChatID:          api.NewOptInt64(chatID),
+		URL:             api.NewOptURI(*parsedURL),
+		Message:         api.NewOptString(msg),
+		Tags:            tags,
+		SendImmediately: api.NewOptBool(false),
 	}
 
 	apiErr := &api.ApiErrorResponse{

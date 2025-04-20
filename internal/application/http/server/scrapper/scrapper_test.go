@@ -143,19 +143,21 @@ func TestLinksPost_Success(t *testing.T) {
 			len(link.Tags) == 2 && link.Tags[0] == "tag1" && link.Tags[1] == "tag2" &&
 			len(link.Filters) == 1 && link.Filters[0] == "filter1"
 	})).Return(&domain.Link{
-		ID:      1001,
-		ChatID:  333,
-		URL:     validURL,
-		Tags:    []string{"tag1", "tag2"},
-		Filters: []string{"filter1"},
+		ID:              1001,
+		ChatID:          333,
+		URL:             validURL,
+		Tags:            []string{"tag1", "tag2"},
+		Filters:         []string{"filter1"},
+		SendImmediately: domain.NewNull(true),
 	}, nil).Once()
 
 	srv := scrapper.NewServer(repoMock)
 
 	req := &api.AddLinkRequest{
-		Link:    api.NewOptURI(*parsedValidURL),
-		Tags:    []string{"tag1", "tag2"},
-		Filters: []string{"filter1"},
+		Link:            api.NewOptURI(*parsedValidURL),
+		Tags:            []string{"tag1", "tag2"},
+		Filters:         []string{"filter1"},
+		SendImmediately: api.NewOptBool(true),
 	}
 	params := api.LinksPostParams{TgChatID: 333}
 
@@ -188,9 +190,10 @@ func TestLinksPost_TrackLinkError(t *testing.T) {
 	srv := scrapper.NewServer(repoMock)
 
 	req := &api.AddLinkRequest{
-		Link:    api.NewOptURI(*parsedValidURL),
-		Tags:    []string{},
-		Filters: []string{},
+		Link:            api.NewOptURI(*parsedValidURL),
+		Tags:            []string{},
+		Filters:         []string{},
+		SendImmediately: api.NewOptBool(false),
 	}
 	params := api.LinksPostParams{TgChatID: 444}
 
@@ -219,8 +222,20 @@ func TestLinksGet_Success(t *testing.T) {
 	ctx := context.Background()
 
 	links := []*domain.Link{
-		{ID: 1, URL: validURL, Tags: []string{"a"}, Filters: []string{"x"}},
-		{ID: 2, URL: validURL, Tags: []string{"b"}, Filters: []string{"y"}},
+		{
+			ID:              1,
+			URL:             validURL,
+			Tags:            []string{"a"},
+			Filters:         []string{"x"},
+			SendImmediately: domain.NewNull(true),
+		},
+		{
+			ID:              2,
+			URL:             validURL,
+			Tags:            []string{"b"},
+			Filters:         []string{"y"},
+			SendImmediately: domain.NewNull(false),
+		},
 	}
 	repoMock := mocks.NewMockRepository(t)
 	repoMock.On("ListLinks", ctx, int64(777)).Return(links, nil).Once()
