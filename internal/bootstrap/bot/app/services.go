@@ -2,10 +2,8 @@ package app
 
 import (
 	"context"
-	"crypto/tls"
 	"errors"
 	"log/slog"
-	"net"
 	"net/http"
 	"sync"
 
@@ -15,9 +13,9 @@ import (
 	botscheduler "github.com/es-debug/backend-academy-2024-go-template/internal/application/scheduler/bot"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/application/tg/bot"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/application/tg/processor"
-	"github.com/es-debug/backend-academy-2024-go-template/internal/config"
 	botapi "github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/bot"
 	scrapperapi "github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/scrapper"
+	"github.com/es-debug/backend-academy-2024-go-template/pkg/client"
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/kafka/consumer"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -72,7 +70,7 @@ func (a *App) runProcessor(ctx context.Context, stop context.CancelFunc, wg *syn
 
 	ogenClient, err := scrapperapi.NewClient(
 		a.cfg.Bot.ScrapperURL,
-		scrapperapi.WithClient(configureClient(&a.cfg.Client)),
+		scrapperapi.WithClient(client.New(&a.cfg.Client)),
 	)
 	if err != nil {
 		slog.Error("failed to create ogen scrapper client", slog.Any("error", err))
@@ -179,28 +177,5 @@ func (a *App) runAppKafkaConsumer(
 
 	if err := kafkaConsumer.Run(ctx); err != nil {
 		slog.Error("failed to run app kafka consumer", slog.Any("error", err))
-	}
-}
-
-func configureClient(cfg *config.Client) *http.Client {
-	transport := &http.Transport{
-		Proxy: http.ProxyFromEnvironment,
-		DialContext: (&net.Dialer{
-			Timeout:   cfg.DialTimeout,
-			KeepAlive: cfg.DialKeepAlive,
-		}).DialContext,
-		MaxIdleConns:          cfg.MaxIdleConns,
-		IdleConnTimeout:       cfg.IdleConnTimeout,
-		TLSHandshakeTimeout:   cfg.TLSHandshakeTimeout,
-		ExpectContinueTimeout: cfg.ExpectContinueTimeout,
-		ForceAttemptHTTP2:     true,
-		TLSNextProto: make(
-			map[string]func(authority string, c *tls.Conn) http.RoundTripper,
-		),
-	}
-
-	return &http.Client{
-		Transport: transport,
-		Timeout:   cfg.Timeout,
 	}
 }

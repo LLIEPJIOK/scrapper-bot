@@ -5,19 +5,20 @@ import (
 	"time"
 
 	"github.com/caarlos0/env/v11"
+	clientcfg "github.com/es-debug/backend-academy-2024-go-template/pkg/client/config"
 	kafkacfg "github.com/es-debug/backend-academy-2024-go-template/pkg/kafka/config"
 )
 
 type Config struct {
-	App      App      `envPrefix:"APP_"`
-	Bot      Bot      `envPrefix:"BOT_"`
-	Scrapper Scrapper `envPrefix:"SCRAPPER_"`
-	Client   Client   `envPrefix:"CLIENT_"`
-	Server   Server   `envPrefix:"SERVER_"`
-	GitHub   GitHub   `envPrefix:"GITHUB_"`
-	SOF      SOF      `envPrefix:"SOF_"`
-	Kafka    Kafka    `envPrefix:"KAFKA_"`
-	Redis    Redis    `envPrefix:"REDIS_"`
+	App      App              `envPrefix:"APP_"`
+	Bot      Bot              `envPrefix:"BOT_"`
+	Scrapper Scrapper         `envPrefix:"SCRAPPER_"`
+	Client   clientcfg.Config `envPrefix:"CLIENT_"`
+	Server   Server           `envPrefix:"SERVER_"`
+	GitHub   GitHub           `envPrefix:"GITHUB_"`
+	SOF      SOF              `envPrefix:"SOF_"`
+	Kafka    Kafka            `envPrefix:"KAFKA_"`
+	Redis    Redis            `envPrefix:"REDIS_"`
 }
 
 type App struct {
@@ -39,16 +40,6 @@ type Scrapper struct {
 	BotURL    string            `env:"BOT_URL,required"`
 	Database  Database          `                                          envPrefix:"DATABASE_"`
 	Scheduler ScrapperScheduler `                                          envPrefix:"SCHEDULER_"`
-}
-
-type Client struct {
-	DialTimeout           time.Duration `env:"DIAL_TIMEOUT"            envDefault:"5s"`
-	DialKeepAlive         time.Duration `env:"DIAL_KEEP_ALIVE"         envDefault:"30s"`
-	MaxIdleConns          int           `env:"MAX_IDLE_CONNS"          envDefault:"100"`
-	IdleConnTimeout       time.Duration `env:"IDLE_CONN_TIMEOUT"       envDefault:"90s"`
-	TLSHandshakeTimeout   time.Duration `env:"TLS_HANDSHAKE_TIMEOUT"   envDefault:"10s"`
-	ExpectContinueTimeout time.Duration `env:"EXPECT_CONTINUE_TIMEOUT" envDefault:"1s"`
-	Timeout               time.Duration `env:"TIMEOUT"                 envDefault:"30s"`
 }
 
 type Server struct {

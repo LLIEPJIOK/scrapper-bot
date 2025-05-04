@@ -17,7 +17,7 @@ func TestLoad_Success(t *testing.T) {
 
 	assert.NoError(t, os.Setenv("APP_TERMINATE_TIMEOUT", "7s"))
 	assert.NoError(t, os.Setenv("APP_SHUTDOWN_TIMEOUT", "3s"))
-	assert.NoError(t, os.Setenv("CLIENT_DIAL_TIMEOUT", "6s"))
+	assert.NoError(t, os.Setenv("CLIENT_HTTP_DIAL_TIMEOUT", "6s"))
 	assert.NoError(t, os.Setenv("SERVER_READ_TIMEOUT", "12s"))
 	assert.NoError(t, os.Setenv("SCRAPPER_SCHEDULER_INTERVAL", "2h"))
 
@@ -60,7 +60,12 @@ func TestLoad_Success(t *testing.T) {
 	assert.Equal(t, ":8080", cfg.Scrapper.URL, "unexpected default Scrapper.URL")
 	assert.Equal(t, "http://localhost:8081", cfg.Scrapper.BotURL, "unexpected Scrapper.BotURL")
 
-	assert.Equal(t, 6*time.Second, cfg.Client.DialTimeout, "unexpected Client.DialTimeout")
+	assert.Equal(
+		t,
+		6*time.Second,
+		cfg.Client.HTTPClient.DialTimeout,
+		"unexpected Client.DialTimeout",
+	)
 
 	assert.Equal(t, 12*time.Second, cfg.Server.ReadTimeout, "unexpected Server.ReadTimeout")
 	assert.Equal(

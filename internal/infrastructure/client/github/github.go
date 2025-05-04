@@ -23,8 +23,12 @@ const (
 	// pullURL  = "https://api.github.com/repos/%s/%s/pulls/%s"
 )
 
+type Client interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
 type GitHub struct {
-	client    *http.Client
+	client    Client
 	repoRegex *regexp.Regexp
 	// issueRegex *regexp.Regexp
 	// pullRegex  *regexp.Regexp
@@ -32,9 +36,9 @@ type GitHub struct {
 	pageSize string
 }
 
-func New(cfg *config.GitHub, httpClient *http.Client) *GitHub {
+func New(cfg *config.GitHub, client Client) *GitHub {
 	return &GitHub{
-		client:    httpClient,
+		client:    client,
 		repoRegex: regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)$`),
 		// issueRegex: regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)/issues/(\d+)$`),
 		// pullRegex:  regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)/pull/(\d+)$`),

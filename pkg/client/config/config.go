@@ -3,7 +3,7 @@ package config
 import "time"
 
 type Config struct {
-	HTTPClient     HTTPClient     `envPrefix:"HTTP_CLIENT_"`
+	HTTPClient     HTTPClient     `envPrefix:"HTTP_"`
 	Retry          Retry          `envPrefix:"RETRY_"`
 	CircuitBreaker CircuitBreaker `envPrefix:"CIRCUIT_BREAKER_"`
 }

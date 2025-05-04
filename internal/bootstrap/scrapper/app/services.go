@@ -2,11 +2,9 @@ package app
 
 import (
 	"context"
-	"crypto/tls"
 	"errors"
 	"fmt"
 	"log/slog"
-	"net"
 	"net/http"
 	"sync"
 
@@ -14,11 +12,11 @@ import (
 	scrapsrv "github.com/es-debug/backend-academy-2024-go-template/internal/application/http/server/scrapper"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/application/kafka"
 	scrshed "github.com/es-debug/backend-academy-2024-go-template/internal/application/scheduler/scrapper"
-	"github.com/es-debug/backend-academy-2024-go-template/internal/config"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/client/github"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/client/sof"
 	botapi "github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/bot"
 	scrapperapi "github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/scrapper"
+	"github.com/es-debug/backend-academy-2024-go-template/pkg/client"
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/kafka/producer"
 )
 
@@ -85,7 +83,7 @@ func (a *App) runScheduler(ctx context.Context, stop context.CancelFunc, wg *syn
 		return
 	}
 
-	httpClient := configureClient(&a.cfg.Client)
+	httpClient := client.New(&a.cfg.Client)
 	ghClient := github.New(&a.cfg.GitHub, httpClient)
 	sofClient := sof.New(&a.cfg.SOF, httpClient)
 
@@ -125,33 +123,10 @@ func (a *App) runCoreKafkaProducer(
 	}
 }
 
-func configureClient(cfg *config.Client) *http.Client {
-	transport := &http.Transport{
-		Proxy: http.ProxyFromEnvironment,
-		DialContext: (&net.Dialer{
-			Timeout:   cfg.DialTimeout,
-			KeepAlive: cfg.DialKeepAlive,
-		}).DialContext,
-		MaxIdleConns:          cfg.MaxIdleConns,
-		IdleConnTimeout:       cfg.IdleConnTimeout,
-		TLSHandshakeTimeout:   cfg.TLSHandshakeTimeout,
-		ExpectContinueTimeout: cfg.ExpectContinueTimeout,
-		ForceAttemptHTTP2:     true,
-		TLSNextProto: make(
-			map[string]func(authority string, c *tls.Conn) http.RoundTripper,
-		),
-	}
-
-	return &http.Client{
-		Transport: transport,
-		Timeout:   cfg.Timeout,
-	}
-}
-
 func (a *App) getBotClient() (scrshed.Client, error) {
 	switch a.cfg.Scrapper.Scheduler.Transport {
 	case "http":
-		httpClient := configureClient(&a.cfg.Client)
+		httpClient := client.New(&a.cfg.Client)
 
 		ogenClient, err := botapi.NewClient(
 			a.cfg.Scrapper.BotURL,
