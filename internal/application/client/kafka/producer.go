@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/client"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/config"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/kafka"
@@ -63,5 +64,9 @@ func (k *Producer) UpdatesPost(_ context.Context, update *domain.Update) error {
 		return "ok", nil
 	})
 
-	return err
+	if err != nil {
+		return client.NewErrServiceUnavailable(err)
+	}
+
+	return nil
 }

@@ -67,9 +67,9 @@ type BotScheduler struct {
 }
 
 type ScrapperScheduler struct {
-	Interval  time.Duration `env:"INTERVAL"  envDefault:"1h"`
-	PageSize  uint          `env:"PAGE_SIZE" envDefault:"100"`
-	Transport string        `env:"TRANSPORT" envDefault:"http"`
+	Interval   time.Duration `env:"INTERVAL"   envDefault:"1h"`
+	PageSize   uint          `env:"PAGE_SIZE"  envDefault:"100"`
+	Transports []string      `env:"TRANSPORTS" envDefault:"http"`
 }
 
 type Database struct {

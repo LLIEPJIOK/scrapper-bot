@@ -9,14 +9,14 @@ packages:
     interfaces:
       Client:
       Cache:
-  github.com/es-debug/backend-academy-2024-go-template/internal/application/http/server/scrapper:
+  github.com/es-debug/backend-academy-2024-go-template/internal/application/server/http/scrapper:
     config:
-      dir: ./internal/application/http/server/scrapper/mocks
+      dir: ./internal/application/server/http/scrapper/mocks
     interfaces:
       Repository:
-  github.com/es-debug/backend-academy-2024-go-template/internal/application/http/server/bot:
+  github.com/es-debug/backend-academy-2024-go-template/internal/application/server/http/bot:
     config:
-      dir: ./internal/application/http/server/bot/mocks
+      dir: ./internal/application/server/http/bot/mocks
     interfaces:
       Repository:
   github.com/es-debug/backend-academy-2024-go-template/internal/application/scheduler/bot:
@@ -24,19 +24,19 @@ packages:
       dir: ./internal/application/scheduler/bot/mocks
     interfaces:
       Repository:
-  github.com/es-debug/backend-academy-2024-go-template/internal/application/http/client/bot:
+  github.com/es-debug/backend-academy-2024-go-template/internal/application/client/http/bot:
     config:
-      dir: ./internal/application/http/client/bot/mocks
+      dir: ./internal/application/client/http/bot/mocks
     interfaces:
       ExternalClient:
-  github.com/es-debug/backend-academy-2024-go-template/internal/application/http/client/scrapper:
+  github.com/es-debug/backend-academy-2024-go-template/internal/application/client/http/scrapper:
     config:
-      dir: ./internal/application/http/client/scrapper/mocks
+      dir: ./internal/application/client/http/scrapper/mocks
     interfaces:
       ExternalClient:
-  github.com/es-debug/backend-academy-2024-go-template/internal/application/kafka:
+  github.com/es-debug/backend-academy-2024-go-template/internal/application/client/kafka:
     config:
-      dir: ./internal/application/kafka/mocks
+      dir: ./internal/application/client/kafka/mocks
     interfaces:
       Repository:
   github.com/es-debug/backend-academy-2024-go-template/pkg/middleware/ratelimiter/repository:
@@ -44,3 +44,8 @@ packages:
       dir: ./pkg/middleware/ratelimiter/repository/mocks
     interfaces:
       Repository:
+  github.com/es-debug/backend-academy-2024-go-template/internal/application/updater:
+    config:
+      dir: ./internal/application/updater/mocks
+    interfaces:
+      Handler:

@@ -7,7 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/es-debug/backend-academy-2024-go-template/internal/application/kafka"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/client"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/client/kafka"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/config"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
 	"github.com/sony/gobreaker/v2"
@@ -100,7 +101,8 @@ func TestProducer_UpdatesPost_Error(t *testing.T) {
 	}()
 
 	err := producer.UpdatesPost(context.Background(), testUpdate)
-	assert.Error(t, err, "should fail")
+	require.Error(t, err, "should fail")
+	assert.ErrorAs(t, err, &client.ErrServiceUnavailable{}, "should be ErrServiceUnavailable")
 
 	wg.Wait()
 }
@@ -153,11 +155,13 @@ func TestProducer_UpdatesPost_CircuitBreaker(t *testing.T) {
 		err := producer.UpdatesPost(context.Background(), testUpdate)
 		require.Error(t, err, "should fail")
 		assert.ErrorIs(t, err, assert.AnError, "should be a test error")
+		assert.ErrorAs(t, err, &client.ErrServiceUnavailable{}, "should be ErrServiceUnavailable")
 	}
 
 	err := producer.UpdatesPost(context.Background(), testUpdate)
 	require.Error(t, err, "should fail")
 	assert.ErrorIs(t, err, gobreaker.ErrOpenState, "cb should be open")
+	assert.ErrorAs(t, err, &client.ErrServiceUnavailable{}, "should be ErrServiceUnavailable")
 
 	// simulate recovery
 	time.Sleep(2 * cfg.CircuitBreaker.Timeout)

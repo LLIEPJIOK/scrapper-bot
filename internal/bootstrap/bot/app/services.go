@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/es-debug/backend-academy-2024-go-template/internal/application/http/client/scrapper"
-	botsrv "github.com/es-debug/backend-academy-2024-go-template/internal/application/http/server/bot"
-	"github.com/es-debug/backend-academy-2024-go-template/internal/application/kafka"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/client/http/scrapper"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/client/kafka"
 	botscheduler "github.com/es-debug/backend-academy-2024-go-template/internal/application/scheduler/bot"
+	botsrv "github.com/es-debug/backend-academy-2024-go-template/internal/application/server/http/bot"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/application/tg/bot"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/application/tg/processor"
 	botapi "github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/bot"

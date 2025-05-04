@@ -3,9 +3,9 @@
 package mocks
 
 import (
-	bot "github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/bot"
-
 	context "context"
+
+	bot "github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/bot"
 
 	mock "github.com/stretchr/testify/mock"
 )

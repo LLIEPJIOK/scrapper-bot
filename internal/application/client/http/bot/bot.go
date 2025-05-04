@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/client"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/bot"
 )
@@ -17,9 +18,9 @@ type Client struct {
 	client ExternalClient
 }
 
-func NewClient(client ExternalClient) *Client {
+func NewClient(externalClient ExternalClient) *Client {
 	return &Client{
-		client: client,
+		client: externalClient,
 	}
 }
 
@@ -37,7 +38,7 @@ func (b *Client) UpdatesPost(ctx context.Context, update *domain.Update) error {
 		SendImmediately: bot.NewOptBool(update.SendImmediately.Value),
 	})
 	if err != nil {
-		return fmt.Errorf("failed to send updates: %w", err)
+		return client.NewErrServiceUnavailable(fmt.Errorf("failed to send updates: %w", err))
 	}
 
 	switch resp := rawResp.(type) {
@@ -45,10 +46,12 @@ func (b *Client) UpdatesPost(ctx context.Context, update *domain.Update) error {
 		return nil
 
 	case *bot.ApiErrorResponse:
-		return NewErrResponse(fmt.Sprintf("failed to add link: %s", resp.Description.Value))
+		return client.NewErrServiceUnavailable(
+			NewErrResponse(fmt.Sprintf("failed to add link: %s", resp.Description.Value)),
+		)
 
 	case *bot.UpdatesPostTooManyRequests:
-		return NewErrResponse("too many requests")
+		return client.NewErrServiceUnavailable(NewErrResponse("too many requests"))
 
 	default:
 		return NewErrResponse("invalid response type")

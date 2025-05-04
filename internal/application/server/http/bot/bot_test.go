@@ -8,8 +8,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/es-debug/backend-academy-2024-go-template/internal/application/http/server/bot"
-	"github.com/es-debug/backend-academy-2024-go-template/internal/application/http/server/bot/mocks"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/server/http/bot"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/server/http/bot/mocks"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
 	api "github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/bot"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"

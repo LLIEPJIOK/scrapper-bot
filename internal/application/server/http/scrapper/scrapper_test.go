@@ -7,8 +7,8 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/es-debug/backend-academy-2024-go-template/internal/application/http/server/scrapper"
-	"github.com/es-debug/backend-academy-2024-go-template/internal/application/http/server/scrapper/mocks"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/server/http/scrapper"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/server/http/scrapper/mocks"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
 	repository "github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/repository/scrapper"
 	api "github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/scrapper"

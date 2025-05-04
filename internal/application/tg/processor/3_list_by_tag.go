@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/es-debug/backend-academy-2024-go-template/internal/application/http/client/scrapper"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/client/http/scrapper"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/cache/bot"
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/fsm"

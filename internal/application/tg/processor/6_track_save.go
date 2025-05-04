@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/es-debug/backend-academy-2024-go-template/internal/application/http/client/scrapper"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/client/http/scrapper"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/fsm"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"

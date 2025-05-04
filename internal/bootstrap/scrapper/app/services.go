@@ -8,10 +8,11 @@ import (
 	"net/http"
 	"sync"
 
-	botclient "github.com/es-debug/backend-academy-2024-go-template/internal/application/http/client/bot"
-	scrapsrv "github.com/es-debug/backend-academy-2024-go-template/internal/application/http/server/scrapper"
-	"github.com/es-debug/backend-academy-2024-go-template/internal/application/kafka"
+	botclient "github.com/es-debug/backend-academy-2024-go-template/internal/application/client/http/bot"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/client/kafka"
 	scrshed "github.com/es-debug/backend-academy-2024-go-template/internal/application/scheduler/scrapper"
+	scrapsrv "github.com/es-debug/backend-academy-2024-go-template/internal/application/server/http/scrapper"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/updater"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/client/github"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/client/sof"
 	botapi "github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/bot"
@@ -23,7 +24,7 @@ import (
 	raterepository "github.com/es-debug/backend-academy-2024-go-template/pkg/middleware/ratelimiter/repository"
 )
 
-const kafkaTransport = "kafka"
+const local = "local"
 
 type runService = func(ctx context.Context, stop context.CancelFunc, wg *sync.WaitGroup)
 
@@ -82,7 +83,7 @@ func (a *App) runScheduler(ctx context.Context, stop context.CancelFunc, wg *syn
 	defer stop()
 	defer slog.Info("scheduler stopped")
 
-	botClient, err := a.getBotClient()
+	upd, err := a.getBotClient()
 	if err != nil {
 		slog.Error("failed to create bot client", slog.Any("error", err))
 
@@ -96,7 +97,7 @@ func (a *App) runScheduler(ctx context.Context, stop context.CancelFunc, wg *syn
 	schedule := scrshed.NewScheduler(
 		&a.cfg.Scrapper.Scheduler,
 		a.repo,
-		botClient,
+		upd,
 		ghClient,
 		sofClient,
 	)
@@ -111,7 +112,7 @@ func (a *App) runCoreKafkaProducer(
 	stop context.CancelFunc,
 	wg *sync.WaitGroup,
 ) {
-	if a.cfg.Scrapper.Scheduler.Transport != kafkaTransport {
+	if a.cfg.App.Env == local {
 		return
 	}
 
@@ -129,25 +130,30 @@ func (a *App) runCoreKafkaProducer(
 	}
 }
 
-func (a *App) getBotClient() (scrshed.Client, error) {
-	switch a.cfg.Scrapper.Scheduler.Transport {
-	case "http":
-		httpClient := client.New(&a.cfg.Client)
+const UpdateHandlerCount = 2
 
-		ogenClient, err := botapi.NewClient(
-			a.cfg.Scrapper.BotURL,
-			botapi.WithClient(httpClient),
-		)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create http bot client: %w", err)
+func (a *App) getBotClient() (*updater.Updater, error) {
+	handlers := make([]updater.Handler, 0, len(a.cfg.Scrapper.Scheduler.Transports))
+
+	for _, transport := range a.cfg.Scrapper.Scheduler.Transports {
+		switch transport {
+		case "http":
+			httpClient := client.New(&a.cfg.Client)
+
+			ogenClient, err := botapi.NewClient(
+				a.cfg.Scrapper.BotURL,
+				botapi.WithClient(httpClient),
+			)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create http bot client: %w", err)
+			}
+
+			handlers = append(handlers, botclient.NewClient(ogenClient))
+
+		case "kafka":
+			handlers = append(handlers, kafka.NewProducer(&a.cfg.Kafka, a.channels))
 		}
-
-		botClient := botclient.NewClient(ogenClient)
-
-		return botClient, nil
-	case "kafka":
-		return kafka.NewProducer(&a.cfg.Kafka, a.channels), nil
 	}
 
-	return nil, fmt.Errorf("unknown transport: %s", a.cfg.Scrapper.Scheduler.Transport)
+	return updater.New(handlers...), nil
 }

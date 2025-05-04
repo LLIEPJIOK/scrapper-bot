@@ -6,8 +6,9 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/es-debug/backend-academy-2024-go-template/internal/application/http/client/bot"
-	"github.com/es-debug/backend-academy-2024-go-template/internal/application/http/client/bot/mocks"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/client"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/client/http/bot"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/client/http/bot/mocks"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
 	api "github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/bot"
 	"github.com/stretchr/testify/assert"
@@ -21,9 +22,9 @@ func TestClient_UpdatesPost_InvalidURL(t *testing.T) {
 	t.Parallel()
 
 	clientMock := mocks.NewMockExternalClient(t)
-	client := bot.NewClient(clientMock)
+	botClient := bot.NewClient(clientMock)
 
-	err := client.UpdatesPost(context.Background(), &domain.Update{
+	err := botClient.UpdatesPost(context.Background(), &domain.Update{
 		URL: "://invalid-url",
 	})
 
@@ -35,7 +36,7 @@ func TestClient_UpdatesPost_RequestError(t *testing.T) {
 	t.Parallel()
 
 	clientMock := mocks.NewMockExternalClient(t)
-	client := bot.NewClient(clientMock)
+	botClient := bot.NewClient(clientMock)
 
 	testURL := exampleLink
 	parsedURL, err := url.Parse(testURL)
@@ -56,7 +57,7 @@ func TestClient_UpdatesPost_RequestError(t *testing.T) {
 
 	clientMock.On("UpdatesPost", mock.Anything, expectedRequest).Return(nil, expectedErr).Once()
 
-	err = client.UpdatesPost(context.Background(), &domain.Update{
+	err = botClient.UpdatesPost(context.Background(), &domain.Update{
 		ChatID:          chatID,
 		URL:             testURL,
 		Message:         msg,
@@ -64,7 +65,8 @@ func TestClient_UpdatesPost_RequestError(t *testing.T) {
 		SendImmediately: domain.NewNull(true),
 	})
 
-	assert.Error(t, err, "expected error")
+	require.Error(t, err, "expected error")
+	assert.ErrorAs(t, err, &client.ErrServiceUnavailable{}, "should be ErrServiceUnavailable")
 	assert.Contains(t, err.Error(), "failed to send updates")
 }
 
@@ -72,7 +74,7 @@ func TestClient_UpdatesPost_Success(t *testing.T) {
 	t.Parallel()
 
 	clientMock := mocks.NewMockExternalClient(t)
-	client := bot.NewClient(clientMock)
+	botClient := bot.NewClient(clientMock)
 
 	testURL := exampleLink
 	parsedURL, err := url.Parse(testURL)
@@ -93,7 +95,7 @@ func TestClient_UpdatesPost_Success(t *testing.T) {
 		Return(&api.UpdatesPostOK{}, nil).
 		Once()
 
-	err = client.UpdatesPost(context.Background(), &domain.Update{
+	err = botClient.UpdatesPost(context.Background(), &domain.Update{
 		ChatID:          chatID,
 		URL:             testURL,
 		Message:         msg,
@@ -108,7 +110,7 @@ func TestClient_UpdatesPost_ApiErrorResponse(t *testing.T) {
 	t.Parallel()
 
 	clientMock := mocks.NewMockExternalClient(t)
-	client := bot.NewClient(clientMock)
+	botClient := bot.NewClient(clientMock)
 
 	testURL := exampleLink
 	parsedURL, err := url.Parse(testURL)
@@ -132,13 +134,14 @@ func TestClient_UpdatesPost_ApiErrorResponse(t *testing.T) {
 
 	clientMock.On("UpdatesPost", mock.Anything, expectedRequest).Return(apiErr, nil).Once()
 
-	err = client.UpdatesPost(context.Background(), &domain.Update{
+	err = botClient.UpdatesPost(context.Background(), &domain.Update{
 		ChatID:  chatID,
 		URL:     testURL,
 		Message: msg,
 		Tags:    tags,
 	})
 
-	assert.Error(t, err, "expected error")
+	require.Error(t, err, "expected error")
+	assert.ErrorAs(t, err, &client.ErrServiceUnavailable{}, "should be ErrServiceUnavailable")
 	assert.Contains(t, err.Error(), "failed to add link: invalid link")
 }

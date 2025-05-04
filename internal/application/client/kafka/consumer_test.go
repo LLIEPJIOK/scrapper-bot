@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/IBM/sarama"
-	"github.com/es-debug/backend-academy-2024-go-template/internal/application/kafka"
-	"github.com/es-debug/backend-academy-2024-go-template/internal/application/kafka/mocks"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/client/kafka"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/client/kafka/mocks"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
 	pkgkafka "github.com/es-debug/backend-academy-2024-go-template/pkg/kafka"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
