@@ -39,7 +39,8 @@ func TestLoad_Success(t *testing.T) {
 	assert.NoError(t, os.Setenv("KAFKA_CONSUMER_TOPICS", "topics"))
 	assert.NoError(t, os.Setenv("KAFKA_BROKERS", "brokers"))
 	assert.NoError(t, os.Setenv("KAFKA_UPDATE_TOPIC", "update_topic"))
-	assert.NoError(t, os.Setenv("REDIS_ADDRESS", "localhost:6379"))
+	assert.NoError(t, os.Setenv("BOT_REDIS_ADDRESS", "localhost:6379"))
+	assert.NoError(t, os.Setenv("SCRAPPER_REDIS_ADDRESS", "localhost:6379"))
 
 	os.Unsetenv("SCRAPPER_URL")
 	os.Unsetenv("SERVER_READ_HEADER_TIMEOUT")

@@ -54,6 +54,9 @@ func decodeUpdatesPostResponse(resp *http.Response) (res UpdatesPostRes, _ error
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
+	case 429:
+		// Code 429.
+		return &UpdatesPostTooManyRequests{}, nil
 	}
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }

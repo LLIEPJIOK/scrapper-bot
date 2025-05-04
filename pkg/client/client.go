@@ -24,6 +24,7 @@ func New(cfg *config.Config) *Client {
 	//nolint:bodyclose // nothing to close
 	retry.Backoff = customBackoff(cfg.Retry.BackoffType)
 	retry.HTTPClient = configureHTTPClient(cfg)
+	retry.ErrorHandler = retryablehttp.PassthroughErrorHandler
 
 	return &Client{
 		retry: retry,

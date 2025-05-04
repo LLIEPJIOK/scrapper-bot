@@ -56,6 +56,9 @@ func (s *Client) RegisterChat(ctx context.Context, id int64) error {
 	case *scrapper.ApiErrorResponse:
 		return NewErrResponse(fmt.Sprintf("failed to register chat: %s", resp.Description.Value))
 
+	case *scrapper.TgChatIDPostTooManyRequests:
+		return NewErrUserResponse("Слишком много запросов. Повторите, пожалуйста, через некоторое время")
+
 	default:
 		return NewErrResponse("invalid response type")
 	}
@@ -85,6 +88,9 @@ func (s *Client) AddLink(ctx context.Context, link *domain.Link) error {
 
 	case *scrapper.ApiErrorResponse:
 		return NewErrResponse(fmt.Sprintf("failed to add link: %s", resp.Description.Value))
+
+	case *scrapper.LinksPostTooManyRequests:
+		return NewErrUserResponse("Слишком много запросов. Повторите, пожалуйста, через некоторое время")
 
 	default:
 		return NewErrResponse("invalid response type")
@@ -117,6 +123,9 @@ func (s *Client) DeleteLink(ctx context.Context, chatID int64, linkURL string) e
 	case *scrapper.LinksDeleteNotFound:
 		return NewErrUserResponse(fmt.Sprintf("Ссылка %q не найдена", linkURL))
 
+	case *scrapper.LinksDeleteTooManyRequests:
+		return NewErrUserResponse("Слишком много запросов. Повторите, пожалуйста, через некоторое время")
+
 	default:
 		return NewErrResponse("invalid response type")
 	}
@@ -137,6 +146,9 @@ func (s *Client) GetLinks(ctx context.Context, chatID int64, tag string) ([]*dom
 
 	case *scrapper.ApiErrorResponse:
 		return nil, NewErrResponse(fmt.Sprintf("failed to get links: %s", resp.Description.Value))
+
+	case *scrapper.LinksGetTooManyRequests:
+		return nil, NewErrUserResponse("Слишком много запросов. Повторите, пожалуйста, через некоторое время")
 
 	default:
 		return nil, NewErrResponse("invalid response type")

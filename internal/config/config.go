@@ -7,6 +7,7 @@ import (
 	"github.com/caarlos0/env/v11"
 	clientcfg "github.com/es-debug/backend-academy-2024-go-template/pkg/client/config"
 	kafkacfg "github.com/es-debug/backend-academy-2024-go-template/pkg/kafka/config"
+	"github.com/es-debug/backend-academy-2024-go-template/pkg/middleware/ratelimiter"
 )
 
 type Config struct {
@@ -18,7 +19,6 @@ type Config struct {
 	GitHub   GitHub           `envPrefix:"GITHUB_"`
 	SOF      SOF              `envPrefix:"SOF_"`
 	Kafka    Kafka            `envPrefix:"KAFKA_"`
-	Redis    Redis            `envPrefix:"REDIS_"`
 }
 
 type App struct {
@@ -28,18 +28,22 @@ type App struct {
 }
 
 type Bot struct {
-	APIToken    string       `env:"API_TOKEN,required"`
-	URL         string       `env:"URL"                   envDefault:":8081"`
-	ScrapperURL string       `env:"SCRAPPER_URL,required"`
-	Database    Database     `                                               envPrefix:"DATABASE_"`
-	Scheduler   BotScheduler `                                               envPrefix:"SCHEDULER_"`
+	APIToken    string             `env:"API_TOKEN,required"`
+	URL         string             `env:"URL"                   envDefault:":8081"`
+	ScrapperURL string             `env:"SCRAPPER_URL,required"`
+	Database    Database           `                                               envPrefix:"DATABASE_"`
+	Scheduler   BotScheduler       `                                               envPrefix:"SCHEDULER_"`
+	Redis       Redis              `                                               envPrefix:"REDIS_"`
+	RateLimiter ratelimiter.Config `                                               envPrefix:"RATE_LIMITER_"`
 }
 
 type Scrapper struct {
-	URL       string            `env:"URL"              envDefault:":8080"`
-	BotURL    string            `env:"BOT_URL,required"`
-	Database  Database          `                                          envPrefix:"DATABASE_"`
-	Scheduler ScrapperScheduler `                                          envPrefix:"SCHEDULER_"`
+	URL         string             `env:"URL"              envDefault:":8080"`
+	BotURL      string             `env:"BOT_URL,required"`
+	Database    Database           `                                          envPrefix:"DATABASE_"`
+	Scheduler   ScrapperScheduler  `                                          envPrefix:"SCHEDULER_"`
+	Redis       Redis              `                                          envPrefix:"REDIS_"`
+	RateLimiter ratelimiter.Config `                                          envPrefix:"RATE_LIMITER_"`
 }
 
 type Server struct {

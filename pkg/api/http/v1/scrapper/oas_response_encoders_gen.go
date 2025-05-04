@@ -52,6 +52,12 @@ func encodeLinksDeleteResponse(response LinksDeleteRes, w http.ResponseWriter, s
 
 		return nil
 
+	case *LinksDeleteTooManyRequests:
+		w.WriteHeader(429)
+		span.SetStatus(codes.Error, http.StatusText(429))
+
+		return nil
+
 	default:
 		return errors.Errorf("unexpected response type: %T", response)
 	}
@@ -85,6 +91,12 @@ func encodeLinksGetResponse(response LinksGetRes, w http.ResponseWriter, span tr
 
 		return nil
 
+	case *LinksGetTooManyRequests:
+		w.WriteHeader(429)
+		span.SetStatus(codes.Error, http.StatusText(429))
+
+		return nil
+
 	default:
 		return errors.Errorf("unexpected response type: %T", response)
 	}
@@ -115,6 +127,12 @@ func encodeLinksPostResponse(response LinksPostRes, w http.ResponseWriter, span 
 		if _, err := e.WriteTo(w); err != nil {
 			return errors.Wrap(err, "write")
 		}
+
+		return nil
+
+	case *LinksPostTooManyRequests:
+		w.WriteHeader(429)
+		span.SetStatus(codes.Error, http.StatusText(429))
 
 		return nil
 
@@ -157,6 +175,12 @@ func encodeTgChatIDDeleteResponse(response TgChatIDDeleteRes, w http.ResponseWri
 
 		return nil
 
+	case *TgChatIDDeleteTooManyRequests:
+		w.WriteHeader(429)
+		span.SetStatus(codes.Error, http.StatusText(429))
+
+		return nil
+
 	default:
 		return errors.Errorf("unexpected response type: %T", response)
 	}
@@ -180,6 +204,12 @@ func encodeTgChatIDPostResponse(response TgChatIDPostRes, w http.ResponseWriter,
 		if _, err := e.WriteTo(w); err != nil {
 			return errors.Wrap(err, "write")
 		}
+
+		return nil
+
+	case *TgChatIDPostTooManyRequests:
+		w.WriteHeader(429)
+		span.SetStatus(codes.Error, http.StatusText(429))
 
 		return nil
 

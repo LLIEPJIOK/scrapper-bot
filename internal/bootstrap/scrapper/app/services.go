@@ -18,6 +18,9 @@ import (
 	scrapperapi "github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/scrapper"
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/client"
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/kafka/producer"
+	"github.com/es-debug/backend-academy-2024-go-template/pkg/middleware"
+	"github.com/es-debug/backend-academy-2024-go-template/pkg/middleware/ratelimiter"
+	raterepository "github.com/es-debug/backend-academy-2024-go-template/pkg/middleware/ratelimiter/repository"
 )
 
 const kafkaTransport = "kafka"
@@ -46,9 +49,12 @@ func (a *App) runServer(ctx context.Context, stop context.CancelFunc, wg *sync.W
 		return
 	}
 
+	repo := raterepository.NewRedis(a.rdb)
+	rateLimiter := ratelimiter.NewSlidingWindow(repo, &a.cfg.Scrapper.RateLimiter)
+
 	httpServer := &http.Server{
 		Addr:              a.cfg.Scrapper.URL,
-		Handler:           srv,
+		Handler:           middleware.Wrap(srv, rateLimiter),
 		ReadTimeout:       a.cfg.Server.ReadTimeout,
 		ReadHeaderTimeout: a.cfg.Server.ReadHeaderTimeout,
 	}

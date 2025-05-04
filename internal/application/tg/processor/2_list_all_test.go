@@ -220,7 +220,7 @@ func TestHandle_TrackLister_GetLinksError(t *testing.T) {
 	assert.Contains(
 		t,
 		result.Error.Error(),
-		"h.client.GetLinks(ctx, 123, \"\"): failed to get links",
+		"failed to get links",
 		"Error should contains get links error",
 	)
 }

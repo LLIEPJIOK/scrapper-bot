@@ -23,19 +23,19 @@ const staterAnswer = `*Привет! Я LinkTracker – твой помощни�
 Начни с /track и будь в курсе важных событий! 🚀
 `
 
-type Stater struct {
+type Starter struct {
 	client   Client
 	channels Channels
 }
 
-func NewStater(client Client, channels Channels) *Stater {
-	return &Stater{
+func NewStater(client Client, channels Channels) *Starter {
+	return &Starter{
 		client:   client,
 		channels: channels,
 	}
 }
 
-func (h *Stater) Handle(ctx context.Context, state *State) *fsm.Result[*State] {
+func (h *Starter) Handle(ctx context.Context, state *State) *fsm.Result[*State] {
 	if err := h.client.RegisterChat(ctx, state.ChatID); err != nil {
 		state.ShowError = "ошибка регистрации чата"
 

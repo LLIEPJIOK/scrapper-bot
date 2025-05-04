@@ -255,7 +255,7 @@ func TestClient_Do_CircuitBreakerOpens(t *testing.T) {
 		assert.NoError(t, err, "failed to close response body")
 	}
 
-	require.Error(t, err1, "should return retry error")
+	require.NoError(t, err1, "shouldn't return retry error")
 
 	resp2, err2 := c.Do(req.Clone(context.Background()))
 	if resp2 != nil {
@@ -263,7 +263,7 @@ func TestClient_Do_CircuitBreakerOpens(t *testing.T) {
 		assert.NoError(t, err, "failed to close response body")
 	}
 
-	require.Error(t, err2, "should return retry error")
+	require.NoError(t, err2, "shouldn't return retry error")
 
 	resp3, err3 := c.Do(req.Clone(context.Background()))
 	if resp3 != nil {
@@ -322,7 +322,7 @@ func TestClient_Do_CircuitBreakerRecovers(t *testing.T) {
 		assert.NoError(t, err, "failed to close response body")
 	}
 
-	require.Error(t, err1, "should return retry error")
+	require.NoError(t, err1, "shouldn't return retry error")
 
 	resp2, err2 := c.Do(req.Clone(context.Background()))
 	if resp2 != nil {
@@ -330,7 +330,7 @@ func TestClient_Do_CircuitBreakerRecovers(t *testing.T) {
 		assert.NoError(t, err, "failed to close response body")
 	}
 
-	require.Error(t, err2, "should return retry error")
+	require.NoError(t, err2, "shouldn't return retry error")
 
 	resp3, err3 := c.Do(req.Clone(context.Background()))
 	if resp3 != nil {

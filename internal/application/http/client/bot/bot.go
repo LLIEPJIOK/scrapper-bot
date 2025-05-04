@@ -47,6 +47,9 @@ func (b *Client) UpdatesPost(ctx context.Context, update *domain.Update) error {
 	case *bot.ApiErrorResponse:
 		return NewErrResponse(fmt.Sprintf("failed to add link: %s", resp.Description.Value))
 
+	case *bot.UpdatesPostTooManyRequests:
+		return NewErrResponse("too many requests")
+
 	default:
 		return NewErrResponse("invalid response type")
 	}

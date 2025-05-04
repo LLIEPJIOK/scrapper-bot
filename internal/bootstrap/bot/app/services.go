@@ -17,6 +17,9 @@ import (
 	scrapperapi "github.com/es-debug/backend-academy-2024-go-template/pkg/api/http/v1/scrapper"
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/client"
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/kafka/consumer"
+	"github.com/es-debug/backend-academy-2024-go-template/pkg/middleware"
+	"github.com/es-debug/backend-academy-2024-go-template/pkg/middleware/ratelimiter"
+	raterepository "github.com/es-debug/backend-academy-2024-go-template/pkg/middleware/ratelimiter/repository"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -91,16 +94,19 @@ func (a *App) runServer(ctx context.Context, stop context.CancelFunc, wg *sync.W
 
 	botServer := botsrv.NewServer(a.cache, a.channels)
 
-	srv, err := botapi.NewServer(botServer, botapi.WithMiddleware())
+	srv, err := botapi.NewServer(botServer)
 	if err != nil {
 		slog.Error("failed to create bot server", slog.Any("error", err))
 
 		return
 	}
 
+	repo := raterepository.NewRedis(a.rdb)
+	rateLimiter := ratelimiter.NewSlidingWindow(repo, &a.cfg.Bot.RateLimiter)
+
 	httpServer := &http.Server{
 		Addr:              a.cfg.Bot.URL,
-		Handler:           srv,
+		Handler:           middleware.Wrap(srv, rateLimiter),
 		ReadTimeout:       a.cfg.Server.ReadTimeout,
 		ReadHeaderTimeout: a.cfg.Server.ReadHeaderTimeout,
 	}
@@ -153,6 +159,8 @@ func (a *App) runCoreKafkaConsumer(
 	core, err := consumer.New(&a.cfg.Kafka.Core, a.db, a.channels)
 	if err != nil {
 		slog.Error("failed to create core kafka consumer", slog.Any("error", err))
+
+		return
 	}
 
 	if err := core.Run(ctx); err != nil {
