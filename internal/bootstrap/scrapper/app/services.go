@@ -146,7 +146,7 @@ func (a *App) getBotClient() (scrshed.Client, error) {
 
 		return botClient, nil
 	case "kafka":
-		return kafka.NewProducer(a.cfg.Kafka.UpdateTopic, a.channels), nil
+		return kafka.NewProducer(&a.cfg.Kafka, a.channels), nil
 	}
 
 	return nil, fmt.Errorf("unknown transport: %s", a.cfg.Scrapper.Scheduler.Transport)

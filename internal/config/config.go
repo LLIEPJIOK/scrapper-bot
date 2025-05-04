@@ -83,8 +83,9 @@ type Database struct {
 }
 
 type Kafka struct {
-	Core        kafkacfg.Kafka
-	UpdateTopic string `env:"UPDATE_TOPIC,required"`
+	Core           kafkacfg.Kafka
+	CircuitBreaker CircuitBreaker `envPrefix:"CIRCUIT_BREAKER_"`
+	UpdateTopic    string         `                             env:"UPDATE_TOPIC,required"`
 }
 
 type Redis struct {
@@ -109,6 +110,15 @@ type Redis struct {
 	MaxRetryBackoff time.Duration `env:"MAX_RETRY_BACKOFF" envDefault:"1s"`
 
 	DefaultTTL time.Duration `env:"DEFAULT_TTL" envDefault:"5m"`
+}
+
+type CircuitBreaker struct {
+	MaxHalfOpenRequests uint32        `env:"MAX_HALF_OPEN_REQUESTS" envDefault:"5"`
+	Interval            time.Duration `env:"INTERVAL"               envDefault:"60s"`
+	Timeout             time.Duration `env:"TIMEOUT"                envDefault:"30s"`
+	MinRequests         uint32        `env:"MIN_REQUESTS"           envDefault:"10"`
+	ConsecutiveFailures uint32        `env:"CONSECUTIVE_FAILURES"   envDefault:"5"`
+	FailureRate         float64       `env:"FAILURE_RATE"           envDefault:"0.6"`
 }
 
 func Load() (*Config, error) {
