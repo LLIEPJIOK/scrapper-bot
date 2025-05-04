@@ -91,7 +91,7 @@ func (a *App) runServer(ctx context.Context, stop context.CancelFunc, wg *sync.W
 
 	botServer := botsrv.NewServer(a.cache, a.channels)
 
-	srv, err := botapi.NewServer(botServer)
+	srv, err := botapi.NewServer(botServer, botapi.WithMiddleware())
 	if err != nil {
 		slog.Error("failed to create bot server", slog.Any("error", err))
 

@@ -39,8 +39,8 @@ packages:
       dir: ./internal/application/kafka/mocks
     interfaces:
       Repository:
-  github.com/es-debug/backend-academy-2024-go-template/pkg/kafka/consumer:
+  github.com/es-debug/backend-academy-2024-go-template/pkg/middleware/ratelimiter/repository:
     config:
-      dir: ./pkg/kafka/consumer/mocks
+      dir: ./pkg/middleware/ratelimiter/repository/mocks
     interfaces:
-      Channels:
+      Repository:
