@@ -27,10 +27,13 @@ func (k *Producer) UpdatesPost(_ context.Context, update *domain.Update) error {
 		return fmt.Errorf("failed to marshal update: %w", err)
 	}
 
-	k.channels.KafkaInput() <- &kafka.Input{
+	err = kafka.Send(k.channels.KafkaInput(), &kafka.Input{
 		Topic: k.topic,
 		Value: string(raw),
 		Key:   update.URL,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to send update: %w", err)
 	}
 
 	return nil

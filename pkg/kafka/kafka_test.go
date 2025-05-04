@@ -159,11 +159,12 @@ func TestKafka(t *testing.T) {
 	time.Sleep(time.Second)
 
 	t.Run("success", func(t *testing.T) {
-		channels.KafkaInput() <- &kafka.Input{
+		err := kafka.Send(channels.KafkaInput(), &kafka.Input{
 			Topic: "test-topic",
 			Key:   "test-key",
 			Value: "test-value",
-		}
+		})
+		require.NoError(t, err, "failed to send message to kafka")
 
 		msg := <-channels.KafkaOutput()
 		assert.Equal(t, "test-topic", msg.Base.Topic, "topic does not match")
@@ -186,11 +187,12 @@ func TestKafka(t *testing.T) {
 	})
 
 	t.Run("dlq", func(t *testing.T) {
-		channels.KafkaInput() <- &kafka.Input{
+		err := kafka.Send(channels.KafkaInput(), &kafka.Input{
 			Topic: "test-topic",
 			Key:   "test-key",
 			Value: "test-value",
-		}
+		})
+		require.NoError(t, err, "failed to send message to kafka")
 
 		for range cfg.Retrier.MaxRetries + 1 {
 			msg := <-channels.KafkaOutput()

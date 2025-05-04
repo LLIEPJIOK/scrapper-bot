@@ -81,9 +81,7 @@ func (p *Producer) Run(ctx context.Context) error {
 			)
 
 			err := p.produce(ctx, msg.Topic, msg.Key, msg.Value)
-			if err != nil {
-				slog.Error("failed to produce message", slog.Any("error", err))
-			}
+			msg.ResChan <- err
 		}
 	}
 }

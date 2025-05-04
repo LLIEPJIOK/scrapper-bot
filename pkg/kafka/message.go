@@ -45,7 +45,8 @@ func (m *Message) RetryCount() int32 {
 }
 
 type Input struct {
-	Topic string
-	Key   string
-	Value string
+	Topic   string
+	Key     string
+	Value   string
+	ResChan chan error
 }
