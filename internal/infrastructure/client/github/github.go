@@ -23,8 +23,12 @@ const (
 	// pullURL  = "https://api.github.com/repos/%s/%s/pulls/%s"
 )
 
+type Client interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
 type GitHub struct {
-	client    *http.Client
+	client    Client
 	repoRegex *regexp.Regexp
 	// issueRegex *regexp.Regexp
 	// pullRegex  *regexp.Regexp
@@ -32,9 +36,9 @@ type GitHub struct {
 	pageSize string
 }
 
-func New(cfg *config.GitHub, httpClient *http.Client) *GitHub {
+func New(cfg *config.GitHub, client Client) *GitHub {
 	return &GitHub{
-		client:    httpClient,
+		client:    client,
 		repoRegex: regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)$`),
 		// issueRegex: regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)/issues/(\d+)$`),
 		// pullRegex:  regexp.MustCompile(`^https://github\.com/([\w.-]+)/([\w.-]+)/pull/(\d+)$`),
@@ -49,9 +53,9 @@ func (g *GitHub) GetUpdates(link string, from, to time.Time) ([]string, error) {
 	}
 
 	matches := g.repoRegex.FindStringSubmatch(link)
-	url := fmt.Sprintf(repoIssuesURL, matches[1], matches[2])
+	baseURL := fmt.Sprintf(repoIssuesURL, matches[1], matches[2])
 
-	msgs, err := g.getMessages(url, from, to)
+	msgs, err := g.getMessages(baseURL, from, to)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +63,7 @@ func (g *GitHub) GetUpdates(link string, from, to time.Time) ([]string, error) {
 	return msgs, nil
 }
 
-func (g *GitHub) getMessages(url string, from, to time.Time) ([]string, error) {
+func (g *GitHub) getMessages(baseURL string, from, to time.Time) ([]string, error) {
 	msgs := make([]string, 0)
 
 	page := 1
@@ -67,7 +71,7 @@ func (g *GitHub) getMessages(url string, from, to time.Time) ([]string, error) {
 	for {
 		data := make([]Data, 0)
 
-		err := g.getAndDecodeResponse(url, page, &data)
+		err := g.getAndDecodeResponse(baseURL, page, &data)
 		if err != nil {
 			return nil, err
 		}

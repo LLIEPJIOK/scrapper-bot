@@ -1,0 +1,132 @@
+services:
+  bot_migrator:
+    image: golang:1.23.2
+    container_name: bot_migrator
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: make migrate_bot
+    depends_on:
+      bot_postgres:
+        condition: service_healthy
+    networks:
+      - app_network
+
+  scrapper_migrator:
+    image: golang:1.23.2
+    container_name: scrapper_migrator
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: make migrate_scrapper
+    depends_on:
+      scrapper_postgres:
+        condition: service_healthy
+    networks:
+      - app_network
+
+  bot_postgres:
+    container_name: bot_postgres
+    hostname: bot_postgres
+    image: postgres:17-alpine
+    environment:
+      - POSTGRES_DB=bot
+      - POSTGRES_USER=bot
+      - POSTGRES_PASSWORD=postgres
+      - PGPORT=5434
+      - POSTGRES_SSL_MODE=disable
+      - PGDATA=/data/postgres
+    ports:
+      - "5434:5434"
+    volumes:
+      - bot_postgres_data:/data/postgres
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - app_network
+
+  scrapper_postgres:
+    container_name: scrapper_postgres
+    hostname: scrapper_postgres
+    image: postgres:17-alpine
+    environment:
+      - POSTGRES_DB=scrapper
+      - POSTGRES_USER=scrapper
+      - POSTGRES_PASSWORD=postgres
+      - PGPORT=5433
+      - POSTGRES_SSL_MODE=disable
+      - PGDATA=/data/postgres
+    ports:
+      - "5433:5433"
+    volumes:
+      - scrapper_postgres_data:/data/postgres
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scrapper"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - app_network
+
+  bot_redis:
+    image: redis:7.0
+    container_name: bot_redis
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_PASSWORD=redis
+    volumes:
+      - bot_redis_data:/data
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes",
+        "--requirepass",
+        "${REDIS_PASSWORD}",
+      ]
+    networks:
+      - app_network
+
+  scrapper_redis:
+    image: redis:7.0
+    container_name: scrapper_redis
+    ports:
+      - "6380:6379"
+    environment:
+      - REDIS_PASSWORD=redis
+    volumes:
+      - scrapper_redis_data:/data
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes",
+        "--requirepass",
+        "${REDIS_PASSWORD}",
+      ]
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  bot_postgres_data:
+  scrapper_postgres_data:
+  bot_redis_data:
+  scrapper_redis_data:

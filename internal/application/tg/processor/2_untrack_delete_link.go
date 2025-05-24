@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/url"
 
-	"github.com/es-debug/backend-academy-2024-go-template/internal/application/http/client/scrapper"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/client/http/scrapper"
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/fsm"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -14,12 +15,14 @@ import (
 type UntrackLinkDeleter struct {
 	client   Client
 	channels Channels
+	cache    Cache
 }
 
-func NewUntrackLinkDeleter(client Client, channels Channels) *UntrackLinkDeleter {
+func NewUntrackLinkDeleter(client Client, channels Channels, cache Cache) *UntrackLinkDeleter {
 	return &UntrackLinkDeleter{
 		client:   client,
 		channels: channels,
+		cache:    cache,
 	}
 }
 
@@ -65,6 +68,14 @@ func (h *UntrackLinkDeleter) Handle(ctx context.Context, state *State) *fsm.Resu
 				state.Message,
 			),
 		}
+	}
+
+	if err := h.cache.InvalidateListLinks(ctx, state.ChatID); err != nil {
+		slog.Error(
+			"failed to invalidate links in cache",
+			slog.Any("error", err),
+			slog.Int64("chat_id", state.ChatID),
+		)
 	}
 
 	ans := "Ссылка успешно удалена!"

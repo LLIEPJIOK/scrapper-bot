@@ -8,9 +8,10 @@ import (
 
 // Ref: #/components/schemas/AddLinkRequest
 type AddLinkRequest struct {
-	Link    OptURI   `json:"link"`
-	Tags    []string `json:"tags"`
-	Filters []string `json:"filters"`
+	Link            OptURI   `json:"link"`
+	Tags            []string `json:"tags"`
+	Filters         []string `json:"filters"`
+	SendImmediately OptBool  `json:"send_immediately"`
 }
 
 // GetLink returns the value of Link.
@@ -28,6 +29,11 @@ func (s *AddLinkRequest) GetFilters() []string {
 	return s.Filters
 }
 
+// GetSendImmediately returns the value of SendImmediately.
+func (s *AddLinkRequest) GetSendImmediately() OptBool {
+	return s.SendImmediately
+}
+
 // SetLink sets the value of Link.
 func (s *AddLinkRequest) SetLink(val OptURI) {
 	s.Link = val
@@ -41,6 +47,11 @@ func (s *AddLinkRequest) SetTags(val []string) {
 // SetFilters sets the value of Filters.
 func (s *AddLinkRequest) SetFilters(val []string) {
 	s.Filters = val
+}
+
+// SetSendImmediately sets the value of SendImmediately.
+func (s *AddLinkRequest) SetSendImmediately(val OptBool) {
+	s.SendImmediately = val
 }
 
 // Ref: #/components/schemas/ApiErrorResponse
@@ -108,10 +119,11 @@ func (*ApiErrorResponse) tgChatIDPostRes() {}
 
 // Ref: #/components/schemas/LinkResponse
 type LinkResponse struct {
-	ID      OptInt64 `json:"id"`
-	URL     OptURI   `json:"url"`
-	Tags    []string `json:"tags"`
-	Filters []string `json:"filters"`
+	ID              OptInt64 `json:"id"`
+	URL             OptURI   `json:"url"`
+	Tags            []string `json:"tags"`
+	Filters         []string `json:"filters"`
+	SendImmediately OptBool  `json:"send_immediately"`
 }
 
 // GetID returns the value of ID.
@@ -134,6 +146,11 @@ func (s *LinkResponse) GetFilters() []string {
 	return s.Filters
 }
 
+// GetSendImmediately returns the value of SendImmediately.
+func (s *LinkResponse) GetSendImmediately() OptBool {
+	return s.SendImmediately
+}
+
 // SetID sets the value of ID.
 func (s *LinkResponse) SetID(val OptInt64) {
 	s.ID = val
@@ -154,6 +171,11 @@ func (s *LinkResponse) SetFilters(val []string) {
 	s.Filters = val
 }
 
+// SetSendImmediately sets the value of SendImmediately.
+func (s *LinkResponse) SetSendImmediately(val OptBool) {
+	s.SendImmediately = val
+}
+
 func (*LinkResponse) linksDeleteRes() {}
 func (*LinkResponse) linksPostRes()   {}
 
@@ -164,6 +186,21 @@ func (*LinksDeleteBadRequest) linksDeleteRes() {}
 type LinksDeleteNotFound ApiErrorResponse
 
 func (*LinksDeleteNotFound) linksDeleteRes() {}
+
+// LinksDeleteTooManyRequests is response for LinksDelete operation.
+type LinksDeleteTooManyRequests struct{}
+
+func (*LinksDeleteTooManyRequests) linksDeleteRes() {}
+
+// LinksGetTooManyRequests is response for LinksGet operation.
+type LinksGetTooManyRequests struct{}
+
+func (*LinksGetTooManyRequests) linksGetRes() {}
+
+// LinksPostTooManyRequests is response for LinksPost operation.
+type LinksPostTooManyRequests struct{}
+
+func (*LinksPostTooManyRequests) linksPostRes() {}
 
 // Ref: #/components/schemas/ListLinksResponse
 type ListLinksResponse struct {
@@ -192,6 +229,52 @@ func (s *ListLinksResponse) SetSize(val OptInt32) {
 }
 
 func (*ListLinksResponse) linksGetRes() {}
+
+// NewOptBool returns new OptBool with value set to v.
+func NewOptBool(v bool) OptBool {
+	return OptBool{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptBool is optional bool.
+type OptBool struct {
+	Value bool
+	Set   bool
+}
+
+// IsSet returns true if OptBool was set.
+func (o OptBool) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptBool) Reset() {
+	var v bool
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptBool) SetTo(v bool) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptBool) Get() (v bool, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptBool) Or(d bool) bool {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
 
 // NewOptInt32 returns new OptInt32 with value set to v.
 func NewOptInt32(v int32) OptInt32 {
@@ -405,7 +488,17 @@ type TgChatIDDeleteOK struct{}
 
 func (*TgChatIDDeleteOK) tgChatIDDeleteRes() {}
 
+// TgChatIDDeleteTooManyRequests is response for TgChatIDDelete operation.
+type TgChatIDDeleteTooManyRequests struct{}
+
+func (*TgChatIDDeleteTooManyRequests) tgChatIDDeleteRes() {}
+
 // TgChatIDPostOK is response for TgChatIDPost operation.
 type TgChatIDPostOK struct{}
 
 func (*TgChatIDPostOK) tgChatIDPostRes() {}
+
+// TgChatIDPostTooManyRequests is response for TgChatIDPost operation.
+type TgChatIDPostTooManyRequests struct{}
+
+func (*TgChatIDPostTooManyRequests) tgChatIDPostRes() {}

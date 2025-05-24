@@ -69,10 +69,11 @@ func (*ApiErrorResponse) updatesPostRes() {}
 
 // Ref: #/components/schemas/LinkUpdate
 type LinkUpdate struct {
-	ChatID  OptInt64  `json:"chat_id"`
-	URL     OptURI    `json:"url"`
-	Message OptString `json:"message"`
-	Tags    []string  `json:"tags"`
+	ChatID          OptInt64  `json:"chat_id"`
+	URL             OptURI    `json:"url"`
+	Message         OptString `json:"message"`
+	Tags            []string  `json:"tags"`
+	SendImmediately OptBool   `json:"send_immediately"`
 }
 
 // GetChatID returns the value of ChatID.
@@ -95,6 +96,11 @@ func (s *LinkUpdate) GetTags() []string {
 	return s.Tags
 }
 
+// GetSendImmediately returns the value of SendImmediately.
+func (s *LinkUpdate) GetSendImmediately() OptBool {
+	return s.SendImmediately
+}
+
 // SetChatID sets the value of ChatID.
 func (s *LinkUpdate) SetChatID(val OptInt64) {
 	s.ChatID = val
@@ -113,6 +119,57 @@ func (s *LinkUpdate) SetMessage(val OptString) {
 // SetTags sets the value of Tags.
 func (s *LinkUpdate) SetTags(val []string) {
 	s.Tags = val
+}
+
+// SetSendImmediately sets the value of SendImmediately.
+func (s *LinkUpdate) SetSendImmediately(val OptBool) {
+	s.SendImmediately = val
+}
+
+// NewOptBool returns new OptBool with value set to v.
+func NewOptBool(v bool) OptBool {
+	return OptBool{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptBool is optional bool.
+type OptBool struct {
+	Value bool
+	Set   bool
+}
+
+// IsSet returns true if OptBool was set.
+func (o OptBool) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptBool) Reset() {
+	var v bool
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptBool) SetTo(v bool) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptBool) Get() (v bool, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptBool) Or(d bool) bool {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
 }
 
 // NewOptInt64 returns new OptInt64 with value set to v.
@@ -257,3 +314,8 @@ func (o OptURI) Or(d url.URL) url.URL {
 type UpdatesPostOK struct{}
 
 func (*UpdatesPostOK) updatesPostRes() {}
+
+// UpdatesPostTooManyRequests is response for UpdatesPost operation.
+type UpdatesPostTooManyRequests struct{}
+
+func (*UpdatesPostTooManyRequests) updatesPostRes() {}

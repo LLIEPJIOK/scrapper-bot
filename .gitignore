@@ -16,7 +16,7 @@ bin
 *.out
 
 # Dependency directories (remove the comment below to include it)
-# vendor/
+vendor/
 .vscode/
 
 # Go workspace file
@@ -29,3 +29,6 @@ go.work.sum
 
 # allure report
 allure-results/
+
+# backup
+.history/

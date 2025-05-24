@@ -9,15 +9,19 @@ import (
 
 	"github.com/es-debug/backend-academy-2024-go-template/internal/config"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
-	repo "github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/repository/bot"
+	cache "github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/cache/bot"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 )
 
 type App struct {
 	cfg      *config.Config
 	channels *domain.Channels
-	db       *pgxpool.Pool
-	repo     repo.Repository
+
+	db  *pgxpool.Pool
+	rdb *redis.Client
+
+	cache *cache.Cache
 }
 
 func New(cfg *config.Config) *App {

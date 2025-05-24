@@ -15,9 +15,10 @@ import (
 func TestTrackFlow(t *testing.T) {
 	channels := domain.NewChannels()
 	client := mocks.NewMockClient(t)
+	cache := mocks.NewMockCache(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	proc := processor.New(client, channels)
+	proc := processor.New(client, channels, cache)
 
 	wg := sync.WaitGroup{}
 	wg.Add(1)
@@ -74,6 +75,20 @@ func TestTrackFlow(t *testing.T) {
 		Message: "filter1 filter2",
 		Type:    domain.Message,
 	}
+	<-channels.TelegramResp()
+
+	// trackAddSetTime
+	channels.TelegramReq() <- domain.TelegramRequest{
+		ChatID:  1,
+		Message: "track_add_set_time",
+		Type:    domain.Callback,
+	}
+	<-channels.TelegramResp()
+	channels.TelegramReq() <- domain.TelegramRequest{
+		ChatID:  1,
+		Message: "track_add_set_time_immediately",
+		Type:    domain.Callback,
+	}
 
 	// save
 	client.On("AddLink", ctx, mock.MatchedBy(func(link *domain.Link) bool {
@@ -81,6 +96,9 @@ func TestTrackFlow(t *testing.T) {
 			link.Filters[0] == "filter1" && link.Filters[1] == "filter2" &&
 			link.Tags[0] == "tag1" && link.Tags[1] == "tag2"
 	})).Return(nil).Once()
+	cache.On("InvalidateListLinks", mock.Anything, int64(1)).
+		Return(nil).
+		Once()
 	<-channels.TelegramResp()
 
 	cancel()
@@ -90,9 +108,10 @@ func TestTrackFlow(t *testing.T) {
 func TestUntrackFlow(t *testing.T) {
 	channels := domain.NewChannels()
 	client := mocks.NewMockClient(t)
+	cache := mocks.NewMockCache(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	proc := processor.New(client, channels)
+	proc := processor.New(client, channels, cache)
 
 	wg := sync.WaitGroup{}
 	wg.Add(1)
@@ -121,6 +140,9 @@ func TestUntrackFlow(t *testing.T) {
 		Type:    domain.Message,
 	}
 	client.On("DeleteLink", ctx, int64(1), "https://github.com/LLIEPJIOK/nginxparser").
+		Return(nil).
+		Once()
+	cache.On("InvalidateListLinks", mock.Anything, int64(1)).
 		Return(nil).
 		Once()
 	<-channels.TelegramResp()

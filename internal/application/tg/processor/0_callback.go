@@ -17,6 +17,7 @@ func NewCallbacker(channels Channels) *Callbacker {
 	}
 }
 
+//nolint:funlen // fsm switch
 func (h *Callbacker) Handle(_ context.Context, state *State) *fsm.Result[*State] {
 	switch {
 	case state.Message == trackAddTags.String():
@@ -38,6 +39,27 @@ func (h *Callbacker) Handle(_ context.Context, state *State) *fsm.Result[*State]
 		return &fsm.Result[*State]{
 			NextState:        trackAddFilters,
 			IsAutoTransition: false,
+			Result:           state,
+		}
+
+	case state.Message == trackAddSetTime.String():
+		return &fsm.Result[*State]{
+			NextState:        trackAddSetTime,
+			IsAutoTransition: true,
+			Result:           state,
+		}
+
+	case state.Message == trackAddSetTimeDigest.String():
+		return &fsm.Result[*State]{
+			NextState:        trackAddSetTimeDigest,
+			IsAutoTransition: true,
+			Result:           state,
+		}
+
+	case state.Message == trackAddSetTimeImmediately.String():
+		return &fsm.Result[*State]{
+			NextState:        trackAddSetTimeImmediately,
+			IsAutoTransition: true,
 			Result:           state,
 		}
 

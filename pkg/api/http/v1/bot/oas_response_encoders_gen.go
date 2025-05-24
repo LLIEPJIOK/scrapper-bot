@@ -32,6 +32,12 @@ func encodeUpdatesPostResponse(response UpdatesPostRes, w http.ResponseWriter, s
 
 		return nil
 
+	case *UpdatesPostTooManyRequests:
+		w.WriteHeader(429)
+		span.SetStatus(codes.Error, http.StatusText(429))
+
+		return nil
+
 	default:
 		return errors.Errorf("unexpected response type: %T", response)
 	}

@@ -85,8 +85,8 @@ func (s *Builder) TrackLink(ctx context.Context, link *domain.Link) (*domain.Lin
 	link.ID = id
 
 	queryLinkChat, args, err := sq.Insert("links_chats").
-		Columns("link_id", "chat_id").
-		Values(link.ID, link.ChatID).
+		Columns("link_id", "chat_id", "send_immediately").
+		Values(link.ID, link.ChatID, link.SendImmediately.Value).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
@@ -172,8 +172,14 @@ func (s *Builder) GetLink(ctx context.Context, chatID int64, url string) (*domai
 		return nil, err
 	}
 
+	sendImmediately, err := s.getSendImmediately(ctx, link.ID, chatID)
+	if err != nil {
+		return nil, err
+	}
+
 	link.Tags = tags
 	link.Filters = filters
+	link.SendImmediately = domain.NewNull(sendImmediately)
 
 	return link, nil
 }
@@ -210,8 +216,14 @@ func (s *Builder) ListLinks(ctx context.Context, chatID int64) ([]*domain.Link, 
 			return nil, err
 		}
 
+		sendImmediately, err := s.getSendImmediately(ctx, link.ID, chatID)
+		if err != nil {
+			return nil, err
+		}
+
 		links[i].Tags = tags
 		links[i].Filters = filters
+		links[i].SendImmediately = domain.NewNull(sendImmediately)
 	}
 
 	return links, nil
@@ -255,8 +267,14 @@ func (s *Builder) ListLinksByTag(
 			return nil, err
 		}
 
+		sendImmediately, err := s.getSendImmediately(ctx, link.ID, chatID)
+		if err != nil {
+			return nil, err
+		}
+
 		links[i].Tags = tags
 		links[i].Filters = filters
+		links[i].SendImmediately = domain.NewNull(sendImmediately)
 	}
 
 	return links, nil
@@ -444,10 +462,30 @@ func (s *Builder) getFilters(ctx context.Context, linkID, chatID int64) ([]strin
 	return filters, nil
 }
 
+func (s *Builder) getSendImmediately(ctx context.Context, linkID, chatID int64) (bool, error) {
+	var sendImmediately bool
+
+	querySendImmediately, args, err := sq.Select("send_immediately").
+		From("links_chats").
+		Where(sq.Eq{"link_id": linkID, "chat_id": chatID}).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return false, fmt.Errorf("failed to build query for send immediately: %w", err)
+	}
+
+	err = s.db.QueryRow(ctx, querySendImmediately, args...).Scan(&sendImmediately)
+	if err != nil {
+		return false, fmt.Errorf("failed to get send immediately: %w", err)
+	}
+
+	return sendImmediately, nil
+}
+
 func (s *Builder) getChats(ctx context.Context, linkID int64) ([]domain.LinkChat, error) {
 	var chats []domain.LinkChat
 
-	queryChats, args, err := sq.Select("chat_id").
+	queryChats, args, err := sq.Select("chat_id", "send_immediately").
 		From("links_chats").
 		Where(sq.Eq{"link_id": linkID}).
 		PlaceholderFormat(sq.Dollar).

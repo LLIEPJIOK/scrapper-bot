@@ -178,3 +178,75 @@ func TestHandleUnknownCallback(t *testing.T) {
 	assert.Equal(t, "неопознанная команда", result.Result.ShowError, "ShowError should be set")
 	assert.Equal(t, state, result.Result, "Result should contain the modified state")
 }
+
+func TestHandleTrackAddSetTime(t *testing.T) {
+	t.Parallel()
+
+	channels := domain.NewChannels()
+	callbacker := processor.NewCallbacker(channels)
+
+	state := &processor.State{
+		ChatID:    123,
+		MessageID: 456,
+		Message:   "track_add_set_time",
+	}
+
+	result := callbacker.Handle(context.Background(), state)
+
+	assert.Equal(
+		t,
+		"track_add_set_time",
+		result.NextState.String(),
+		"NextState should be trackAddSetTime",
+	)
+	assert.True(t, result.IsAutoTransition, "IsAutoTransition should be true")
+	assert.Equal(t, state, result.Result, "Result should contain the original state")
+}
+
+func TestHandleTrackAddSetTimeDigest(t *testing.T) {
+	t.Parallel()
+
+	channels := domain.NewChannels()
+	callbacker := processor.NewCallbacker(channels)
+
+	state := &processor.State{
+		ChatID:    123,
+		MessageID: 456,
+		Message:   "track_add_set_time_digest",
+	}
+
+	result := callbacker.Handle(context.Background(), state)
+
+	assert.Equal(
+		t,
+		"track_add_set_time_digest",
+		result.NextState.String(),
+		"NextState should be trackAddSetTimeDigest",
+	)
+	assert.True(t, result.IsAutoTransition, "IsAutoTransition should be true")
+	assert.Equal(t, state, result.Result, "Result should contain the original state")
+}
+
+func TestHandleTrackAddSetTimeImmediately(t *testing.T) {
+	t.Parallel()
+
+	channels := domain.NewChannels()
+	callbacker := processor.NewCallbacker(channels)
+
+	state := &processor.State{
+		ChatID:    123,
+		MessageID: 456,
+		Message:   "track_add_set_time_immediately",
+	}
+
+	result := callbacker.Handle(context.Background(), state)
+
+	assert.Equal(
+		t,
+		"track_add_set_time_immediately",
+		result.NextState.String(),
+		"NextState should be trackAddSetTimeImmediately",
+	)
+	assert.True(t, result.IsAutoTransition, "IsAutoTransition should be true")
+	assert.Equal(t, state, result.Result, "Result should contain the original state")
+}

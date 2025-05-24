@@ -14,12 +14,11 @@ import (
 )
 
 type Repository interface {
-	GetUpdatesChats(ctx context.Context, from, to time.Time) ([]int64, error)
-	GetUpdates(
+	GetUpdatesChats(ctx context.Context) ([]int64, error)
+	GetAndClearUpdates(
 		ctx context.Context,
 		chatID int64,
-		from, to time.Time,
-	) ([]domain.Update, error)
+	) ([]*domain.Update, error)
 }
 
 type Channels interface {
@@ -27,22 +26,20 @@ type Channels interface {
 }
 
 type Scheduler struct {
-	repo       Repository
-	channels   Channels
-	atHours    uint
-	atMinutes  uint
-	atSeconds  uint
-	lastSended time.Time
+	repo      Repository
+	channels  Channels
+	atHours   uint
+	atMinutes uint
+	atSeconds uint
 }
 
 func NewScheduler(cfg *config.BotScheduler, repo Repository, channels Channels) *Scheduler {
 	return &Scheduler{
-		repo:       repo,
-		channels:   channels,
-		atHours:    cfg.AtHours,
-		atMinutes:  cfg.AtMinutes,
-		atSeconds:  cfg.AtSeconds,
-		lastSended: time.Now(),
+		repo:      repo,
+		channels:  channels,
+		atHours:   cfg.AtHours,
+		atMinutes: cfg.AtMinutes,
+		atSeconds: cfg.AtSeconds,
 	}
 }
 
@@ -57,9 +54,10 @@ func (s *Scheduler) Run(ctx context.Context) error {
 			1,
 			gocron.NewAtTimes(gocron.NewAtTime(s.atHours, s.atMinutes, s.atSeconds)),
 		),
-		gocron.NewTask(func() {
-			s.SendUpdates(ctx)
-		}),
+		gocron.NewTask(
+			s.SendUpdates,
+			ctx,
+		),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create scheduler job: %w", err)
@@ -78,9 +76,7 @@ func (s *Scheduler) Run(ctx context.Context) error {
 }
 
 func (s *Scheduler) SendUpdates(ctx context.Context) {
-	started := time.Now()
-
-	chats, err := s.repo.GetUpdatesChats(ctx, s.lastSended, started)
+	chats, err := s.repo.GetUpdatesChats(ctx)
 	if err != nil {
 		slog.Error("failed to get updates chats", slog.Any("error", err))
 
@@ -88,7 +84,7 @@ func (s *Scheduler) SendUpdates(ctx context.Context) {
 	}
 
 	for _, chat := range chats {
-		updates, err := s.repo.GetUpdates(ctx, chat, s.lastSended, started)
+		updates, err := s.repo.GetAndClearUpdates(ctx, chat)
 		if err != nil {
 			slog.Error("failed to get updates", slog.Any("error", err))
 
@@ -100,11 +96,9 @@ func (s *Scheduler) SendUpdates(ctx context.Context) {
 		msg.DisableWebPagePreview = true
 		s.channels.TelegramResp() <- msg
 	}
-
-	s.lastSended = started
 }
 
-func updatesToText(updates []domain.Update) string {
+func updatesToText(updates []*domain.Update) string {
 	builder := strings.Builder{}
 	builder.WriteString("Обновления по вашим ссылкам:\n\n")
 

@@ -25,6 +25,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiErrorResponse"
+        "429":
+          description: Слишком много запросов
     delete:
       summary: Удалить чат
       parameters:
@@ -49,6 +51,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiErrorResponse"
+        "429":
+          description: Слишком много запросов
   /links:
     get:
       summary: Получить все отслеживаемые ссылки
@@ -76,6 +80,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiErrorResponse"
+        "429":
+          description: Слишком много запросов
     post:
       summary: Добавить отслеживание ссылки
       parameters:
@@ -104,6 +110,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiErrorResponse"
+        "429":
+          description: Слишком много запросов
     delete:
       summary: Убрать отслеживание ссылки
       parameters:
@@ -138,6 +146,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiErrorResponse"
+        "429":
+          description: Слишком много запросов
 components:
   schemas:
     LinkResponse:
@@ -157,6 +167,8 @@ components:
           type: array
           items:
             type: string
+        send_immediately:
+          type: boolean
     ApiErrorResponse:
       type: object
       properties:
@@ -186,6 +198,8 @@ components:
           type: array
           items:
             type: string
+        send_immediately:
+          type: boolean
     ListLinksResponse:
       type: object
       properties:
