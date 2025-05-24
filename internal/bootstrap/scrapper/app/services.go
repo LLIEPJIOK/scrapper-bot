@@ -11,6 +11,7 @@ import (
 	botclient "github.com/es-debug/backend-academy-2024-go-template/internal/application/client/http/bot"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/application/client/kafka"
 	scrshed "github.com/es-debug/backend-academy-2024-go-template/internal/application/scheduler/scrapper"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/server/http/health"
 	scrapsrv "github.com/es-debug/backend-academy-2024-go-template/internal/application/server/http/scrapper"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/application/updater"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/client/github"
@@ -33,6 +34,7 @@ func (a *App) services() []runService {
 		a.runServer,
 		a.runScheduler,
 		a.runCoreKafkaProducer,
+		a.runHealthServer,
 	}
 }
 
@@ -127,6 +129,40 @@ func (a *App) runCoreKafkaProducer(
 
 	if err := kafkaProducer.Run(ctx); err != nil {
 		slog.Error("failed to run core kafka producer", slog.Any("error", err))
+	}
+}
+
+func (a *App) runHealthServer(ctx context.Context, stop context.CancelFunc, wg *sync.WaitGroup) {
+	defer wg.Done()
+	defer stop()
+	defer slog.Info("health server stopped")
+
+	srv := http.NewServeMux()
+	ctrl := health.New()
+	ctrl.RegisterRoutes(srv)
+
+	httpServer := &http.Server{
+		Addr:              a.cfg.Scrapper.HealthURL,
+		Handler:           srv,
+		ReadTimeout:       a.cfg.Server.ReadTimeout,
+		ReadHeaderTimeout: a.cfg.Server.ReadHeaderTimeout,
+	}
+
+	go func() {
+		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			slog.Error("failed to start health server", slog.Any("error", err))
+
+			stop()
+		}
+	}()
+
+	<-ctx.Done()
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), a.cfg.App.ShutdownTimeout)
+	defer cancel()
+
+	if err := httpServer.Shutdown(shutdownCtx); err != nil {
+		slog.Error("failed to shutdown health server", slog.Any("error", err))
 	}
 }
 

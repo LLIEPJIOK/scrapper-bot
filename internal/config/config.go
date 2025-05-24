@@ -30,20 +30,22 @@ type App struct {
 type Bot struct {
 	APIToken    string             `env:"API_TOKEN,required"`
 	URL         string             `env:"URL"                   envDefault:":8081"`
+	HealthURL   string             `env:"HEALTH_URL"            envDefault:":14002"`
 	ScrapperURL string             `env:"SCRAPPER_URL,required"`
-	Database    Database           `                                               envPrefix:"DATABASE_"`
-	Scheduler   BotScheduler       `                                               envPrefix:"SCHEDULER_"`
-	Redis       Redis              `                                               envPrefix:"REDIS_"`
-	RateLimiter ratelimiter.Config `                                               envPrefix:"RATE_LIMITER_"`
+	Database    Database           `                                                envPrefix:"DATABASE_"`
+	Scheduler   BotScheduler       `                                                envPrefix:"SCHEDULER_"`
+	Redis       Redis              `                                                envPrefix:"REDIS_"`
+	RateLimiter ratelimiter.Config `                                                envPrefix:"RATE_LIMITER_"`
 }
 
 type Scrapper struct {
 	URL         string             `env:"URL"              envDefault:":8080"`
+	HealthURL   string             `env:"HEALTH_URL"       envDefault:":14003"`
 	BotURL      string             `env:"BOT_URL,required"`
-	Database    Database           `                                          envPrefix:"DATABASE_"`
-	Scheduler   ScrapperScheduler  `                                          envPrefix:"SCHEDULER_"`
-	Redis       Redis              `                                          envPrefix:"REDIS_"`
-	RateLimiter ratelimiter.Config `                                          envPrefix:"RATE_LIMITER_"`
+	Database    Database           `                                           envPrefix:"DATABASE_"`
+	Scheduler   ScrapperScheduler  `                                           envPrefix:"SCHEDULER_"`
+	Redis       Redis              `                                           envPrefix:"REDIS_"`
+	RateLimiter ratelimiter.Config `                                           envPrefix:"RATE_LIMITER_"`
 }
 
 type Server struct {
