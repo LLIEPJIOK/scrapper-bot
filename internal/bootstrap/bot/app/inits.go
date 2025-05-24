@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	cache "github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/cache/bot"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/metrics"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 )
@@ -16,6 +17,7 @@ func (a *App) inits() []InitFunc {
 		a.initDB,
 		a.initRedis,
 		a.initCache,
+		a.initPrometheus,
 	}
 }
 
@@ -74,6 +76,12 @@ func (a *App) initRedis(ctx context.Context) error {
 
 func (a *App) initCache(_ context.Context) error {
 	a.cache = cache.New(a.rdb, a.cfg.Bot.Redis.DefaultTTL)
+
+	return nil
+}
+
+func (a *App) initPrometheus(ctx context.Context) error {
+	a.Prometheus = metrics.NewPrometheus("bot")
 
 	return nil
 }

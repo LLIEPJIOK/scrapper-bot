@@ -19,6 +19,7 @@ import (
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/client"
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/kafka/consumer"
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/middleware"
+	metricsmw "github.com/es-debug/backend-academy-2024-go-template/pkg/middleware/metrics"
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/middleware/ratelimiter"
 	raterepository "github.com/es-debug/backend-academy-2024-go-template/pkg/middleware/ratelimiter/repository"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -106,9 +107,11 @@ func (a *App) runServer(ctx context.Context, stop context.CancelFunc, wg *sync.W
 	repo := raterepository.NewRedis(a.rdb)
 	rateLimiter := ratelimiter.NewSlidingWindow(repo, &a.cfg.Bot.RateLimiter)
 
+	metrics := metricsmw.New(a.Prometheus)
+
 	httpServer := &http.Server{
 		Addr:              a.cfg.Bot.URL,
-		Handler:           middleware.Wrap(srv, rateLimiter),
+		Handler:           middleware.Wrap(srv, metrics, rateLimiter),
 		ReadTimeout:       a.cfg.Server.ReadTimeout,
 		ReadHeaderTimeout: a.cfg.Server.ReadHeaderTimeout,
 	}
