@@ -10,6 +10,7 @@ import (
 
 	botclient "github.com/es-debug/backend-academy-2024-go-template/internal/application/client/http/bot"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/application/client/kafka"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/mws"
 	scrshed "github.com/es-debug/backend-academy-2024-go-template/internal/application/scheduler/scrapper"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/application/server/http/health"
 	scrapsrv "github.com/es-debug/backend-academy-2024-go-template/internal/application/server/http/scrapper"
@@ -56,11 +57,12 @@ func (a *App) runServer(ctx context.Context, stop context.CancelFunc, wg *sync.W
 	repo := raterepository.NewRedis(a.rdb)
 	rateLimiter := ratelimiter.NewSlidingWindow(repo, &a.cfg.Scrapper.RateLimiter)
 
-	metrics := metricsmw.New(a.Prometheus)
+	metricsMW := metricsmw.New(a.Prometheus)
+	activeLinksMW := mws.NewLinksCounter(a.Prometheus)
 
 	httpServer := &http.Server{
 		Addr:              a.cfg.Scrapper.URL,
-		Handler:           middleware.Wrap(srv, metrics, rateLimiter),
+		Handler:           middleware.Wrap(srv, metricsMW, rateLimiter, activeLinksMW),
 		ReadTimeout:       a.cfg.Server.ReadTimeout,
 		ReadHeaderTimeout: a.cfg.Server.ReadHeaderTimeout,
 	}
