@@ -85,7 +85,7 @@ func (a *App) initRedis(ctx context.Context) error {
 	return nil
 }
 
-func (a *App) initPrometheus(ctx context.Context) error {
+func (a *App) initPrometheus(_ context.Context) error {
 	a.Prometheus = metrics.NewPrometheus("scrapper")
 
 	return nil

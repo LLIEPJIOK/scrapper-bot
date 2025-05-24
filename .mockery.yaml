@@ -9,6 +9,7 @@ packages:
     interfaces:
       Client:
       Cache:
+      Metrics:
   github.com/es-debug/backend-academy-2024-go-template/internal/application/server/http/scrapper:
     config:
       dir: ./internal/application/server/http/scrapper/mocks

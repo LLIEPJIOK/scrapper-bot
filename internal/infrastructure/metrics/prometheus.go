@@ -8,12 +8,12 @@ import (
 )
 
 type Prometheus struct {
-	httpRequestsTotal             *prometheus.CounterVec
-	httpRequestsDurationSeconds   *prometheus.HistogramVec
-	tgCommandsTotal               *prometheus.CounterVec
-	processorStateDurationSeconds *prometheus.HistogramVec
-	activeLinksTotal              *prometheus.GaugeVec
-	scrapeDurationSeconds         *prometheus.HistogramVec
+	httpRequestsTotal           *prometheus.CounterVec
+	httpRequestsDurationSeconds *prometheus.HistogramVec
+	tgRequestsTotal             *prometheus.CounterVec
+	tgRequestsDurationSeconds   *prometheus.HistogramVec
+	activeLinksTotal            *prometheus.GaugeVec
+	scrapeDurationSeconds       *prometheus.HistogramVec
 }
 
 func NewPrometheus(name string) *Prometheus {
@@ -32,19 +32,20 @@ func NewPrometheus(name string) *Prometheus {
 		},
 		[]string{"method", "path"},
 	)
-	tgCommandsTotal := promauto.NewCounterVec(
+	tgRequestsTotal := promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: name + "_tg_commands_total",
+			Name: name + "_tg_requests_total",
+			Help: "Total number of TG requests",
 		},
-		[]string{"command", "status"},
+		[]string{"state", "status"},
 	)
-	processorStateDurationSeconds := promauto.NewHistogramVec(
+	tgRequestsDurationSeconds := promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:    name + "_processor_state_duration_seconds",
-			Help:    "Histogram of processor state durations",
+			Name:    name + "_tg_requests_duration_seconds",
+			Help:    "Histogram of TG request durations",
 			Buckets: prometheus.DefBuckets,
 		},
-		[]string{"command", "status"},
+		[]string{"state"},
 	)
 	activeLinksTotal := promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -62,12 +63,12 @@ func NewPrometheus(name string) *Prometheus {
 	)
 
 	return &Prometheus{
-		httpRequestsTotal:             httpRequestsTotal,
-		httpRequestsDurationSeconds:   httpRequestsDurationSeconds,
-		tgCommandsTotal:               tgCommandsTotal,
-		processorStateDurationSeconds: processorStateDurationSeconds,
-		activeLinksTotal:              activeLinksTotal,
-		scrapeDurationSeconds:         scrapeDurationSeconds,
+		httpRequestsTotal:           httpRequestsTotal,
+		httpRequestsDurationSeconds: httpRequestsDurationSeconds,
+		tgRequestsTotal:             tgRequestsTotal,
+		tgRequestsDurationSeconds:   tgRequestsDurationSeconds,
+		activeLinksTotal:            activeLinksTotal,
+		scrapeDurationSeconds:       scrapeDurationSeconds,
 	}
 }
 
@@ -79,12 +80,12 @@ func (p *Prometheus) ObserveHTTPRequestsDurationSeconds(method, path string, sec
 	p.httpRequestsDurationSeconds.WithLabelValues(method, path).Observe(seconds)
 }
 
-func (p *Prometheus) IncTGCommandsTotal(command, status string) {
-	p.tgCommandsTotal.WithLabelValues(command, status).Inc()
+func (p *Prometheus) IncTGRequestsTotal(state, status string) {
+	p.tgRequestsTotal.WithLabelValues(state, status).Inc()
 }
 
-func (p *Prometheus) ObserveProcessorStateDurationSeconds(command, status string, seconds float64) {
-	p.processorStateDurationSeconds.WithLabelValues(command, status).Observe(seconds)
+func (p *Prometheus) ObserveTGRequestsDurationSeconds(state string, seconds float64) {
+	p.tgRequestsDurationSeconds.WithLabelValues(state).Observe(seconds)
 }
 
 func (p *Prometheus) IncActiveLinksTotal(linkType string) {

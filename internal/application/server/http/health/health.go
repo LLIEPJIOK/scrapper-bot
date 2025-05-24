@@ -1,6 +1,7 @@
 package health
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -18,7 +19,7 @@ func (s *Server) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("/metrics", promhttp.Handler())
 }
 
-func (s *Server) healthHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) healthHandler(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("healthy"))
+	fmt.Fprintf(w, "healthy")
 }

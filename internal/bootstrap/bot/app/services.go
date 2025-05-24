@@ -83,7 +83,7 @@ func (a *App) runProcessor(ctx context.Context, stop context.CancelFunc, wg *syn
 	}
 
 	scrap := scrapper.NewClient(ogenClient)
-	proc := processor.New(scrap, a.channels, a.cache)
+	proc := processor.New(scrap, a.channels, a.cache, a.Prometheus)
 
 	if err := proc.Run(ctx); err != nil {
 		slog.Error("failed to run processor", slog.Any("err", err))
