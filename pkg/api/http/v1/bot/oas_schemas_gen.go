@@ -314,3 +314,8 @@ func (o OptURI) Or(d url.URL) url.URL {
 type UpdatesPostOK struct{}
 
 func (*UpdatesPostOK) updatesPostRes() {}
+
+// UpdatesPostTooManyRequests is response for UpdatesPost operation.
+type UpdatesPostTooManyRequests struct{}
+
+func (*UpdatesPostTooManyRequests) updatesPostRes() {}

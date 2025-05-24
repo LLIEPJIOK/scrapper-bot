@@ -7,6 +7,8 @@ import (
 	"log/slog"
 	"strings"
 
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/client/http/scrapper"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/cache/bot"
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/fsm"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -32,20 +34,31 @@ func (h *AllLister) Handle(ctx context.Context, state *State) *fsm.Result[*State
 		return h.sendList(ctx, state, list)
 	}
 
-	if errors.As(err, &bot.ErrNoData{}) {
-		list, err = h.getLinks(ctx, state.ChatID)
+	if !errors.As(err, &bot.ErrNoData{}) {
+		return h.handleError(state, err)
+	}
+
+	links, err := h.client.GetLinks(ctx, state.ChatID, "")
+
+	userErr := &scrapper.ErrUserResponse{}
+
+	if errors.As(err, userErr) {
+		ans := userErr.Message
+		msg := tgbotapi.NewMessage(state.ChatID, ans)
+		h.channels.TelegramResp() <- msg
+
+		return &fsm.Result[*State]{
+			NextState:        state.FSMState,
+			IsAutoTransition: false,
+			Result:           state,
+		}
 	}
 
 	if err != nil {
-		state.ShowError = "не удалось получить ссылки"
-
-		return &fsm.Result[*State]{
-			NextState:        fail,
-			IsAutoTransition: true,
-			Result:           state,
-			Error:            err,
-		}
+		return h.handleError(state, err)
 	}
+
+	list = h.linksToText(links)
 
 	if err := h.cache.SetListLinks(ctx, state.ChatID, "", list); err != nil {
 		slog.Error(
@@ -58,14 +71,9 @@ func (h *AllLister) Handle(ctx context.Context, state *State) *fsm.Result[*State
 	return h.sendList(ctx, state, list)
 }
 
-func (h *AllLister) getLinks(ctx context.Context, chatID int64) (string, error) {
-	links, err := h.client.GetLinks(ctx, chatID, "")
-	if err != nil {
-		return "", fmt.Errorf("h.client.GetLinks(ctx, %d, \"\"): %w", chatID, err)
-	}
-
+func (h *AllLister) linksToText(links []*domain.Link) string {
 	if len(links) == 0 {
-		return "У вас нет ни одной ссылки. Для добавления ссылки воспользуйтесь командой /track", nil
+		return "У вас нет ни одной ссылки. Для добавления ссылки воспользуйтесь командой /track"
 	}
 
 	ansBuilder := strings.Builder{}
@@ -93,7 +101,7 @@ func (h *AllLister) getLinks(ctx context.Context, chatID int64) (string, error) 
 		ansBuilder.WriteString("\n")
 	}
 
-	return ansBuilder.String(), nil
+	return ansBuilder.String()
 }
 
 func (h *AllLister) sendList(_ context.Context, state *State, list string) *fsm.Result[*State] {
@@ -105,5 +113,16 @@ func (h *AllLister) sendList(_ context.Context, state *State, list string) *fsm.
 	return &fsm.Result[*State]{
 		IsAutoTransition: false,
 		Result:           state,
+	}
+}
+
+func (h *AllLister) handleError(state *State, err error) *fsm.Result[*State] {
+	state.ShowError = "не удалось получить ссылки"
+
+	return &fsm.Result[*State]{
+		NextState:        fail,
+		IsAutoTransition: true,
+		Result:           state,
+		Error:            err,
 	}
 }

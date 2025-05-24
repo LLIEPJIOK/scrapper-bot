@@ -106,6 +106,8 @@ services:
     depends_on:
       scrapper_migrator:
         condition: service_completed_successfully
+      scrapper_redis:
+        condition: service_started
     env_file:
       - .env
     networks:
@@ -178,7 +180,27 @@ services:
     environment:
       - REDIS_PASSWORD=redis
     volumes:
-      - redis-data:/data
+      - bot_redis_data:/data
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes",
+        "--requirepass",
+        "${REDIS_PASSWORD}",
+      ]
+    networks:
+      - app_network
+
+  scrapper_redis:
+    image: redis:7.0
+    container_name: scrapper_redis
+    ports:
+      - "6380:6379"
+    environment:
+      - REDIS_PASSWORD=redis
+    volumes:
+      - scrapper_redis_data:/data
     command:
       [
         "redis-server",
@@ -197,4 +219,5 @@ networks:
 volumes:
   bot_postgres_data:
   scrapper_postgres_data:
-  redis-data:
+  bot_redis_data:
+  scrapper_redis_data:

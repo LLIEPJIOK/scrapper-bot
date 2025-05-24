@@ -11,11 +11,13 @@ import (
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
 	repo "github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/repository/scrapper"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 )
 
 type App struct {
 	cfg      *config.Config
 	db       *pgxpool.Pool
+	rdb      *redis.Client
 	repo     repo.Repository
 	channels *domain.Channels
 }

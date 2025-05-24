@@ -46,21 +46,21 @@ func (a *App) initDB(ctx context.Context) error {
 
 func (a *App) initRedis(ctx context.Context) error {
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     a.cfg.Redis.Address,
-		Password: a.cfg.Redis.Password,
-		DB:       a.cfg.Redis.DB,
+		Addr:     a.cfg.Bot.Redis.Address,
+		Password: a.cfg.Bot.Redis.Password,
+		DB:       a.cfg.Bot.Redis.DB,
 
-		DialTimeout:  a.cfg.Redis.DialTimeout,
-		ReadTimeout:  a.cfg.Redis.ReadTimeout,
-		WriteTimeout: a.cfg.Redis.WriteTimeout,
+		DialTimeout:  a.cfg.Bot.Redis.DialTimeout,
+		ReadTimeout:  a.cfg.Bot.Redis.ReadTimeout,
+		WriteTimeout: a.cfg.Bot.Redis.WriteTimeout,
 
-		PoolSize:     a.cfg.Redis.PoolSize,
-		MinIdleConns: a.cfg.Redis.MinIdleConns,
-		PoolTimeout:  a.cfg.Redis.PoolTimeout,
+		PoolSize:     a.cfg.Bot.Redis.PoolSize,
+		MinIdleConns: a.cfg.Bot.Redis.MinIdleConns,
+		PoolTimeout:  a.cfg.Bot.Redis.PoolTimeout,
 
-		MaxRetries:      a.cfg.Redis.MaxRetries,
-		MinRetryBackoff: a.cfg.Redis.MinRetryBackoff,
-		MaxRetryBackoff: a.cfg.Redis.MaxRetryBackoff,
+		MaxRetries:      a.cfg.Bot.Redis.MaxRetries,
+		MinRetryBackoff: a.cfg.Bot.Redis.MinRetryBackoff,
+		MaxRetryBackoff: a.cfg.Bot.Redis.MaxRetryBackoff,
 	})
 
 	if err := rdb.Ping(ctx).Err(); err != nil {
@@ -73,7 +73,7 @@ func (a *App) initRedis(ctx context.Context) error {
 }
 
 func (a *App) initCache(_ context.Context) error {
-	a.cache = cache.New(a.rdb, a.cfg.Redis.DefaultTTL)
+	a.cache = cache.New(a.rdb, a.cfg.Bot.Redis.DefaultTTL)
 
 	return nil
 }

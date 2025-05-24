@@ -233,7 +233,7 @@ func TestHandle_ByTagLister_GetLinksError(t *testing.T) {
 	assert.Contains(
 		t,
 		result.Error.Error(),
-		"h.client.GetLinks(ctx, 123, \"tag\"): failed to get links",
+		"failed to get links",
 		"Error should contains get links error",
 	)
 }

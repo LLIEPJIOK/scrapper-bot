@@ -121,6 +121,9 @@ func decodeLinksDeleteResponse(resp *http.Response) (res LinksDeleteRes, _ error
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
+	case 429:
+		// Code 429.
+		return &LinksDeleteTooManyRequests{}, nil
 	}
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
@@ -197,6 +200,9 @@ func decodeLinksGetResponse(resp *http.Response) (res LinksGetRes, _ error) {
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
+	case 429:
+		// Code 429.
+		return &LinksGetTooManyRequests{}, nil
 	}
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
@@ -273,6 +279,9 @@ func decodeLinksPostResponse(resp *http.Response) (res LinksPostRes, _ error) {
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
+	case 429:
+		// Code 429.
+		return &LinksPostTooManyRequests{}, nil
 	}
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
@@ -352,6 +361,9 @@ func decodeTgChatIDDeleteResponse(resp *http.Response) (res TgChatIDDeleteRes, _
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
+	case 429:
+		// Code 429.
+		return &TgChatIDDeleteTooManyRequests{}, nil
 	}
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
@@ -396,6 +408,9 @@ func decodeTgChatIDPostResponse(resp *http.Response) (res TgChatIDPostRes, _ err
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
+	case 429:
+		// Code 429.
+		return &TgChatIDPostTooManyRequests{}, nil
 	}
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }

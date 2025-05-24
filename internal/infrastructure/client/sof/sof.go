@@ -20,14 +20,18 @@ const (
 	commentsURL        = "https://api.stackexchange.com/2.3/questions/%s/comments"
 )
 
+type Client interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
 type SOF struct {
-	client   *http.Client
+	client   Client
 	pageSize string
 }
 
-func New(cfg *config.SOF, httpClient *http.Client) *SOF {
+func New(cfg *config.SOF, client Client) *SOF {
 	return &SOF{
-		client:   httpClient,
+		client:   client,
 		pageSize: cfg.PageSize,
 	}
 }

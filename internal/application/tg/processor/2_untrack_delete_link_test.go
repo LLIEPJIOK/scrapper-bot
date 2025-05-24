@@ -6,7 +6,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/es-debug/backend-academy-2024-go-template/internal/application/http/client/scrapper"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/client/http/scrapper"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/application/tg/processor"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/application/tg/processor/mocks"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"

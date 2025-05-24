@@ -2,9 +2,11 @@ package processor
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 
+	"github.com/es-debug/backend-academy-2024-go-template/internal/application/client/http/scrapper"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
 	"github.com/es-debug/backend-academy-2024-go-template/pkg/fsm"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -43,6 +45,21 @@ func (h *TrackSaver) Handle(ctx context.Context, state *State) *fsm.Result[*Stat
 	state.Object = nil
 
 	err := h.client.AddLink(ctx, link)
+
+	userErr := &scrapper.ErrUserResponse{}
+
+	if errors.As(err, userErr) {
+		ans := userErr.Message
+		msg := tgbotapi.NewMessage(state.ChatID, ans)
+		h.channels.TelegramResp() <- msg
+
+		return &fsm.Result[*State]{
+			NextState:        state.FSMState,
+			IsAutoTransition: false,
+			Result:           state,
+		}
+	}
+
 	if err != nil {
 		state.ShowError = "ошибка при добавлении ссылки"
 

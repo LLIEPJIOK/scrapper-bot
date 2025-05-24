@@ -187,6 +187,21 @@ type LinksDeleteNotFound ApiErrorResponse
 
 func (*LinksDeleteNotFound) linksDeleteRes() {}
 
+// LinksDeleteTooManyRequests is response for LinksDelete operation.
+type LinksDeleteTooManyRequests struct{}
+
+func (*LinksDeleteTooManyRequests) linksDeleteRes() {}
+
+// LinksGetTooManyRequests is response for LinksGet operation.
+type LinksGetTooManyRequests struct{}
+
+func (*LinksGetTooManyRequests) linksGetRes() {}
+
+// LinksPostTooManyRequests is response for LinksPost operation.
+type LinksPostTooManyRequests struct{}
+
+func (*LinksPostTooManyRequests) linksPostRes() {}
+
 // Ref: #/components/schemas/ListLinksResponse
 type ListLinksResponse struct {
 	Links []LinkResponse `json:"links"`
@@ -473,7 +488,17 @@ type TgChatIDDeleteOK struct{}
 
 func (*TgChatIDDeleteOK) tgChatIDDeleteRes() {}
 
+// TgChatIDDeleteTooManyRequests is response for TgChatIDDelete operation.
+type TgChatIDDeleteTooManyRequests struct{}
+
+func (*TgChatIDDeleteTooManyRequests) tgChatIDDeleteRes() {}
+
 // TgChatIDPostOK is response for TgChatIDPost operation.
 type TgChatIDPostOK struct{}
 
 func (*TgChatIDPostOK) tgChatIDPostRes() {}
+
+// TgChatIDPostTooManyRequests is response for TgChatIDPost operation.
+type TgChatIDPostTooManyRequests struct{}
+
+func (*TgChatIDPostTooManyRequests) tgChatIDPostRes() {}
