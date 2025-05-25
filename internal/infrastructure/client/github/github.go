@@ -47,6 +47,10 @@ func New(cfg *config.GitHub, client Client) *GitHub {
 	}
 }
 
+func (g *GitHub) GetType() string {
+	return "github"
+}
+
 func (g *GitHub) GetUpdates(link string, from, to time.Time) ([]string, error) {
 	if !g.repoRegex.MatchString(link) {
 		return []string{}, nil

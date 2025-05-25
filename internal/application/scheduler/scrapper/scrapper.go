@@ -27,15 +27,22 @@ type Repository interface {
 
 type Checher interface {
 	GetUpdates(link string, from, to time.Time) ([]string, error)
+	GetType() string
 }
 
 type Client interface {
 	UpdatesPost(ctx context.Context, update *domain.Update) error
 }
 
+type Metrics interface {
+	ObserveScrapeDurationSeconds(scrapeType string, seconds float64)
+	IncScrapesTotal(scrapeType, status string)
+}
+
 type Scheduler struct {
 	repo     Repository
 	client   Client
+	metrics  Metrics
 	checkers []Checher
 	interval time.Duration
 	pageSize uint
@@ -45,11 +52,13 @@ func NewScheduler(
 	cfg *config.ScrapperScheduler,
 	repo Repository,
 	client Client,
+	metrics Metrics,
 	checkers ...Checher,
 ) *Scheduler {
 	return &Scheduler{
 		repo:     repo,
 		client:   client,
+		metrics:  metrics,
 		checkers: checkers,
 		interval: cfg.Interval,
 		pageSize: cfg.PageSize,
@@ -136,7 +145,7 @@ func (s *Scheduler) getUpdates(ctx context.Context, link *domain.CheckLink) {
 
 	if len(link.Chats) != 0 {
 		for _, checker := range s.checkers {
-			updates, err = checker.GetUpdates(link.URL, link.CheckedAt, tm)
+			updates, err = s.getCheckerUpdates(checker, link, tm)
 			if err != nil {
 				slog.Error(
 					"failed to get updates",
@@ -165,6 +174,27 @@ func (s *Scheduler) getUpdates(ctx context.Context, link *domain.CheckLink) {
 			)
 		}
 	}
+}
+
+func (s *Scheduler) getCheckerUpdates(
+	checker Checher,
+	link *domain.CheckLink,
+	tm time.Time,
+) ([]string, error) {
+	start := time.Now()
+	updates, err := checker.GetUpdates(link.URL, link.CheckedAt, tm)
+	duration := time.Since(start).Seconds()
+
+	s.metrics.ObserveScrapeDurationSeconds(checker.GetType(), duration)
+
+	status := "success"
+	if err != nil {
+		status = "error"
+	}
+
+	s.metrics.IncScrapesTotal(checker.GetType(), status)
+
+	return updates, err
 }
 
 func (s *Scheduler) sendUpdates(ctx context.Context, link *domain.CheckLink, updates []string) {

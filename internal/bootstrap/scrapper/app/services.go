@@ -105,6 +105,7 @@ func (a *App) runScheduler(ctx context.Context, stop context.CancelFunc, wg *syn
 		&a.cfg.Scrapper.Scheduler,
 		a.repo,
 		upd,
+		a.Prometheus,
 		ghClient,
 		sofClient,
 	)

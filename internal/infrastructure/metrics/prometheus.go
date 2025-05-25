@@ -13,6 +13,7 @@ type Prometheus struct {
 	tgRequestsTotal             *prometheus.CounterVec
 	tgRequestsDurationSeconds   *prometheus.HistogramVec
 	activeLinksTotal            *prometheus.GaugeVec
+	scrapesTotal                *prometheus.CounterVec
 	scrapeDurationSeconds       *prometheus.HistogramVec
 }
 
@@ -50,8 +51,16 @@ func NewPrometheus(name string) *Prometheus {
 	activeLinksTotal := promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: name + "_active_links_total",
+			Help: "Total number of active links",
 		},
 		[]string{"type"},
+	)
+	scrapesTotal := promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: name + "_scrapes_total",
+			Help: "Total number of scrapes",
+		},
+		[]string{"type", "status"},
 	)
 	scrapeDurationSeconds := promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
@@ -68,6 +77,7 @@ func NewPrometheus(name string) *Prometheus {
 		tgRequestsTotal:             tgRequestsTotal,
 		tgRequestsDurationSeconds:   tgRequestsDurationSeconds,
 		activeLinksTotal:            activeLinksTotal,
+		scrapesTotal:                scrapesTotal,
 		scrapeDurationSeconds:       scrapeDurationSeconds,
 	}
 }
@@ -94,6 +104,10 @@ func (p *Prometheus) IncActiveLinksTotal(linkType string) {
 
 func (p *Prometheus) DecActiveLinksTotal(linkType string) {
 	p.activeLinksTotal.WithLabelValues(linkType).Dec()
+}
+
+func (p *Prometheus) IncScrapesTotal(scrapeType, status string) {
+	p.scrapesTotal.WithLabelValues(scrapeType, status).Inc()
 }
 
 func (p *Prometheus) ObserveScrapeDurationSeconds(scrapeType string, seconds float64) {
