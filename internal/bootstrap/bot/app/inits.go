@@ -81,7 +81,7 @@ func (a *App) initCache(_ context.Context) error {
 }
 
 func (a *App) initPrometheus(_ context.Context) error {
-	a.Prometheus = metrics.NewPrometheus("bot")
+	a.prometheus = metrics.NewPrometheus("bot")
 
 	return nil
 }

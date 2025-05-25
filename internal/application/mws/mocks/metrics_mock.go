@@ -83,6 +83,40 @@ func (_c *MockMetrics_IncActiveLinksTotal_Call) RunAndReturn(run func(string)) *
 	return _c
 }
 
+// SetActiveLinksTotal provides a mock function with given fields: linkType, count
+func (_m *MockMetrics) SetActiveLinksTotal(linkType string, count int) {
+	_m.Called(linkType, count)
+}
+
+// MockMetrics_SetActiveLinksTotal_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetActiveLinksTotal'
+type MockMetrics_SetActiveLinksTotal_Call struct {
+	*mock.Call
+}
+
+// SetActiveLinksTotal is a helper method to define mock.On call
+//   - linkType string
+//   - count int
+func (_e *MockMetrics_Expecter) SetActiveLinksTotal(linkType interface{}, count interface{}) *MockMetrics_SetActiveLinksTotal_Call {
+	return &MockMetrics_SetActiveLinksTotal_Call{Call: _e.mock.On("SetActiveLinksTotal", linkType, count)}
+}
+
+func (_c *MockMetrics_SetActiveLinksTotal_Call) Run(run func(linkType string, count int)) *MockMetrics_SetActiveLinksTotal_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string), args[1].(int))
+	})
+	return _c
+}
+
+func (_c *MockMetrics_SetActiveLinksTotal_Call) Return() *MockMetrics_SetActiveLinksTotal_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *MockMetrics_SetActiveLinksTotal_Call) RunAndReturn(run func(string, int)) *MockMetrics_SetActiveLinksTotal_Call {
+	_c.Run(run)
+	return _c
+}
+
 // NewMockMetrics creates a new instance of MockMetrics. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockMetrics(t interface {

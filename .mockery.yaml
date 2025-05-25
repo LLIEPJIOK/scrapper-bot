@@ -60,3 +60,4 @@ packages:
       dir: ./internal/application/mws/mocks
     interfaces:
       Metrics:
+      Repository:

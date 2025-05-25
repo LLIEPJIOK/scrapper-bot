@@ -24,7 +24,7 @@ type App struct {
 
 	cache *cache.Cache
 
-	Prometheus *metrics.Prometheus
+	prometheus *metrics.Prometheus
 }
 
 func New(cfg *config.Config) *App {

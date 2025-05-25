@@ -2,6 +2,7 @@ package mws
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -12,13 +13,18 @@ import (
 
 const (
 	github        = "github"
-	stackOverflow = "stack_overflow"
+	stackOverflow = "stackoverflow"
 	unknown       = "unknown"
 )
+
+type Repository interface {
+	GetActiveLinks(ctx context.Context) (map[string]int, error)
+}
 
 type Metrics interface {
 	IncActiveLinksTotal(linkType string)
 	DecActiveLinksTotal(linkType string)
+	SetActiveLinksTotal(linkType string, count int)
 }
 
 type customWriter struct {
@@ -31,7 +37,19 @@ func (w *customWriter) WriteHeader(status int) {
 	w.ResponseWriter.WriteHeader(status)
 }
 
-func NewLinksCounter(m Metrics) func(http.Handler) http.Handler {
+func NewLinksCounter(repo Repository, m Metrics) func(http.Handler) http.Handler {
+	mp, err := repo.GetActiveLinks(context.Background())
+	if err != nil {
+		slog.Error(
+			"failed to get active links from repository in links middleware",
+			slog.Any("error", err),
+		)
+	}
+
+	for linkType, count := range mp {
+		m.SetActiveLinksTotal(linkType, count)
+	}
+
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path != "/links" ||

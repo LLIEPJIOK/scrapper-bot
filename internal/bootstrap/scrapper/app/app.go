@@ -22,7 +22,7 @@ type App struct {
 	repo     repo.Repository
 	channels *domain.Channels
 
-	Prometheus *metrics.Prometheus
+	prometheus *metrics.Prometheus
 }
 
 func New(cfg *config.Config) *App {

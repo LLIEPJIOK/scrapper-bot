@@ -57,8 +57,8 @@ func (a *App) runServer(ctx context.Context, stop context.CancelFunc, wg *sync.W
 	repo := raterepository.NewRedis(a.rdb)
 	rateLimiter := ratelimiter.NewSlidingWindow(repo, &a.cfg.Scrapper.RateLimiter)
 
-	metricsMW := metricsmw.New(a.Prometheus)
-	activeLinksMW := mws.NewLinksCounter(a.Prometheus)
+	metricsMW := metricsmw.New(a.prometheus)
+	activeLinksMW := mws.NewLinksCounter(a.repo, a.prometheus)
 
 	httpServer := &http.Server{
 		Addr:              a.cfg.Scrapper.URL,
@@ -105,7 +105,7 @@ func (a *App) runScheduler(ctx context.Context, stop context.CancelFunc, wg *syn
 		&a.cfg.Scrapper.Scheduler,
 		a.repo,
 		upd,
-		a.Prometheus,
+		a.prometheus,
 		ghClient,
 		sofClient,
 	)

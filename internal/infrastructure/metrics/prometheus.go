@@ -106,6 +106,10 @@ func (p *Prometheus) DecActiveLinksTotal(linkType string) {
 	p.activeLinksTotal.WithLabelValues(linkType).Dec()
 }
 
+func (p *Prometheus) SetActiveLinksTotal(linkType string, count int) {
+	p.activeLinksTotal.WithLabelValues(linkType).Set(float64(count))
+}
+
 func (p *Prometheus) IncScrapesTotal(scrapeType, status string) {
 	p.scrapesTotal.WithLabelValues(scrapeType, status).Inc()
 }

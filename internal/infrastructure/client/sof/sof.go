@@ -37,7 +37,7 @@ func New(cfg *config.SOF, client Client) *SOF {
 }
 
 func (s *SOF) GetType() string {
-	return "stack_overflow"
+	return "stackoverflow"
 }
 
 func (s *SOF) GetUpdates(link string, from, to time.Time) ([]string, error) {

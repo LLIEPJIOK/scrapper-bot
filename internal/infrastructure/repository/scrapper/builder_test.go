@@ -423,3 +423,26 @@ func (s *ScrapperSuite) TestGetCheckLinks_Pagination_Builder(t provider.T) {
 		"link filters should be equal",
 	)
 }
+
+func (s *ScrapperSuite) TestGetActiveLinks_Builder(t provider.T) {
+	ctx := context.Background()
+	repo := scrapper.NewBuilder(s.pool)
+
+	urls := []string{
+		"https://github.com/owner1/repo1",
+		"https://github.com/owner2/repo2",
+		"https://stackoverflow.com/questions/1",
+	}
+
+	for _, u := range urls {
+		_, err := s.pool.Exec(ctx, `INSERT INTO links (url, checked_at) VALUES ($1, NOW())`, u)
+		require.NoError(t, err, "failed to insert link %s", u)
+	}
+
+	result, err := repo.GetActiveLinks(ctx)
+	require.NoError(t, err, "failed to get active links")
+	require.Len(t, result, 2, "should return 2 active links")
+
+	assert.Equal(t, 2, result["github.com"], "github.com count should be 2")
+	assert.Equal(t, 1, result["stackoverflow.com"], "stackoverflow.com count should be 1")
+}

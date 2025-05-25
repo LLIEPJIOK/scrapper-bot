@@ -83,7 +83,7 @@ func (a *App) runProcessor(ctx context.Context, stop context.CancelFunc, wg *syn
 	}
 
 	scrap := scrapper.NewClient(ogenClient)
-	proc := processor.New(scrap, a.channels, a.cache, a.Prometheus)
+	proc := processor.New(scrap, a.channels, a.cache, a.prometheus)
 
 	if err := proc.Run(ctx); err != nil {
 		slog.Error("failed to run processor", slog.Any("err", err))
@@ -107,7 +107,7 @@ func (a *App) runServer(ctx context.Context, stop context.CancelFunc, wg *sync.W
 	repo := raterepository.NewRedis(a.rdb)
 	rateLimiter := ratelimiter.NewSlidingWindow(repo, &a.cfg.Bot.RateLimiter)
 
-	metrics := metricsmw.New(a.Prometheus)
+	metrics := metricsmw.New(a.prometheus)
 
 	httpServer := &http.Server{
 		Addr:              a.cfg.Bot.URL,

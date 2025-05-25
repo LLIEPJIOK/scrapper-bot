@@ -2,6 +2,7 @@ package mws_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -20,7 +21,7 @@ func TestNewLinksCounter(t *testing.T) {
 		path           string
 		requestBody    any
 		responseStatus int
-		setupMocks     func(mockMetrics *mocks.MockMetrics)
+		setupMocks     func(mockRepo *mocks.MockRepository, mockMetrics *mocks.MockMetrics)
 	}{
 		{
 			name:   "POST GitHub link - success",
@@ -30,7 +31,13 @@ func TestNewLinksCounter(t *testing.T) {
 				"link": "https://github.com/user/repo",
 			},
 			responseStatus: http.StatusOK,
-			setupMocks: func(mockMetrics *mocks.MockMetrics) {
+			setupMocks: func(mockRepo *mocks.MockRepository, mockMetrics *mocks.MockMetrics) {
+				mockRepo.On("GetActiveLinks", context.Background()).Return(map[string]int{
+					"github":        2,
+					"stackoverflow": 1,
+				}, nil)
+				mockMetrics.On("SetActiveLinksTotal", "github", 2).Once()
+				mockMetrics.On("SetActiveLinksTotal", "stackoverflow", 1).Once()
 				mockMetrics.On("IncActiveLinksTotal", "github").Once()
 			},
 		},
@@ -42,8 +49,14 @@ func TestNewLinksCounter(t *testing.T) {
 				"link": "https://stackoverflow.com/questions/123",
 			},
 			responseStatus: http.StatusOK,
-			setupMocks: func(mockMetrics *mocks.MockMetrics) {
-				mockMetrics.On("IncActiveLinksTotal", "stack_overflow").Once()
+			setupMocks: func(mockRepo *mocks.MockRepository, mockMetrics *mocks.MockMetrics) {
+				mockRepo.On("GetActiveLinks", context.Background()).Return(map[string]int{
+					"github":        2,
+					"stackoverflow": 1,
+				}, nil)
+				mockMetrics.On("SetActiveLinksTotal", "github", 2).Once()
+				mockMetrics.On("SetActiveLinksTotal", "stackoverflow", 1).Once()
+				mockMetrics.On("IncActiveLinksTotal", "stackoverflow").Once()
 			},
 		},
 		{
@@ -54,7 +67,11 @@ func TestNewLinksCounter(t *testing.T) {
 				"link": "https://example.com/some-link",
 			},
 			responseStatus: http.StatusOK,
-			setupMocks: func(mockMetrics *mocks.MockMetrics) {
+			setupMocks: func(mockRepo *mocks.MockRepository, mockMetrics *mocks.MockMetrics) {
+				mockRepo.On("GetActiveLinks", context.Background()).Return(map[string]int{
+					"example": 1,
+				}, nil)
+				mockMetrics.On("SetActiveLinksTotal", "example", 1).Once()
 				mockMetrics.On("IncActiveLinksTotal", "unknown").Once()
 			},
 		},
@@ -66,7 +83,15 @@ func TestNewLinksCounter(t *testing.T) {
 				"link": "https://github.com/user/repo",
 			},
 			responseStatus: http.StatusOK,
-			setupMocks: func(mockMetrics *mocks.MockMetrics) {
+			setupMocks: func(mockRepo *mocks.MockRepository, mockMetrics *mocks.MockMetrics) {
+				mockRepo.On("GetActiveLinks", context.Background()).Return(map[string]int{
+					"github":        2,
+					"stackoverflow": 1,
+					"example":       1,
+				}, nil)
+				mockMetrics.On("SetActiveLinksTotal", "github", 2).Once()
+				mockMetrics.On("SetActiveLinksTotal", "stackoverflow", 1).Once()
+				mockMetrics.On("SetActiveLinksTotal", "example", 1).Once()
 				mockMetrics.On("DecActiveLinksTotal", "github").Once()
 			},
 		},
@@ -78,7 +103,13 @@ func TestNewLinksCounter(t *testing.T) {
 				"link": "https://github.com/user/repo",
 			},
 			responseStatus: http.StatusBadRequest,
-			setupMocks: func(_ *mocks.MockMetrics) {
+			setupMocks: func(mockRepo *mocks.MockRepository, mockMetrics *mocks.MockMetrics) {
+				mockRepo.On("GetActiveLinks", context.Background()).Return(map[string]int{
+					"github":        2,
+					"stackoverflow": 1,
+				}, nil)
+				mockMetrics.On("SetActiveLinksTotal", "github", 2).Once()
+				mockMetrics.On("SetActiveLinksTotal", "stackoverflow", 1).Once()
 			},
 		},
 		{
@@ -89,7 +120,13 @@ func TestNewLinksCounter(t *testing.T) {
 				"link": "https://github.com/user/repo",
 			},
 			responseStatus: http.StatusOK,
-			setupMocks: func(_ *mocks.MockMetrics) {
+			setupMocks: func(mockRepo *mocks.MockRepository, mockMetrics *mocks.MockMetrics) {
+				mockRepo.On("GetActiveLinks", context.Background()).Return(map[string]int{
+					"github":        2,
+					"stackoverflow": 1,
+				}, nil)
+				mockMetrics.On("SetActiveLinksTotal", "github", 2).Once()
+				mockMetrics.On("SetActiveLinksTotal", "stackoverflow", 1).Once()
 			},
 		},
 		{
@@ -100,7 +137,13 @@ func TestNewLinksCounter(t *testing.T) {
 				"link": "https://github.com/user/repo",
 			},
 			responseStatus: http.StatusOK,
-			setupMocks: func(_ *mocks.MockMetrics) {
+			setupMocks: func(mockRepo *mocks.MockRepository, mockMetrics *mocks.MockMetrics) {
+				mockRepo.On("GetActiveLinks", context.Background()).Return(map[string]int{
+					"github":        2,
+					"stackoverflow": 1,
+				}, nil)
+				mockMetrics.On("SetActiveLinksTotal", "github", 2).Once()
+				mockMetrics.On("SetActiveLinksTotal", "stackoverflow", 1).Once()
 			},
 		},
 		{
@@ -109,17 +152,24 @@ func TestNewLinksCounter(t *testing.T) {
 			path:           "/links",
 			requestBody:    "invalid json",
 			responseStatus: http.StatusOK,
-			setupMocks: func(_ *mocks.MockMetrics) {
+			setupMocks: func(mockRepo *mocks.MockRepository, mockMetrics *mocks.MockMetrics) {
+				mockRepo.On("GetActiveLinks", context.Background()).Return(map[string]int{
+					"github":        2,
+					"stackoverflow": 1,
+				}, nil)
+				mockMetrics.On("SetActiveLinksTotal", "github", 2).Once()
+				mockMetrics.On("SetActiveLinksTotal", "stackoverflow", 1).Once()
 			},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			mockRepo := mocks.NewMockRepository(t)
 			mockMetrics := mocks.NewMockMetrics(t)
-			tc.setupMocks(mockMetrics)
+			tc.setupMocks(mockRepo, mockMetrics)
 
-			middleware := mws.NewLinksCounter(mockMetrics)
+			middleware := mws.NewLinksCounter(mockRepo, mockMetrics)
 
 			nextHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				w.WriteHeader(tc.responseStatus)
