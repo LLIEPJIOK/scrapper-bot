@@ -19,7 +19,7 @@
 	"editable": true,
 	"fiscalYearStartMonth": 0,
 	"graphTooltip": 0,
-	"id": 1,
+	"id": 2,
 	"links": [],
 	"panels": [
 		{
@@ -536,7 +536,7 @@
 				"overrides": []
 			},
 			"gridPos": {
-				"h": 9,
+				"h": 10,
 				"w": 12,
 				"x": 0,
 				"y": 2
@@ -727,7 +727,7 @@
 				"overrides": []
 			},
 			"gridPos": {
-				"h": 9,
+				"h": 10,
 				"w": 12,
 				"x": 12,
 				"y": 2
@@ -754,9 +754,10 @@
 						"type": "prometheus",
 						"uid": "PBFA97CFB590B2093"
 					},
-					"expr": "go_memstats_heap_alloc_bytes",
+					"expr": "go_memstats_heap_alloc_bytes{instance=\"$app\"}",
 					"format": "time_series",
 					"intervalFactor": 1,
+					"legendFormat": "go_memstats_heap_alloc_bytes",
 					"refId": "B"
 				},
 				{
@@ -764,9 +765,10 @@
 						"type": "prometheus",
 						"uid": "PBFA97CFB590B2093"
 					},
-					"expr": "go_memstats_heap_sys_bytes",
+					"expr": "go_memstats_heap_sys_bytes{instance=\"$app\"}",
 					"format": "time_series",
 					"intervalFactor": 1,
+					"legendFormat": "go_memstats_heap_sys_bytes",
 					"refId": "A"
 				},
 				{
@@ -774,9 +776,10 @@
 						"type": "prometheus",
 						"uid": "PBFA97CFB590B2093"
 					},
-					"expr": "go_memstats_heap_idle_bytes",
+					"expr": "go_memstats_heap_idle_bytes{instance=\"$app\"}",
 					"format": "time_series",
 					"intervalFactor": 1,
+					"legendFormat": "go_memstats_heap_idle_bytes",
 					"refId": "C"
 				},
 				{
@@ -784,10 +787,10 @@
 						"type": "prometheus",
 						"uid": "PBFA97CFB590B2093"
 					},
-					"expr": "go_memstats_heap_inuse_bytes",
+					"expr": "go_memstats_heap_inuse_bytes{instance=\"$app\"}",
 					"format": "time_series",
 					"intervalFactor": 1,
-					"legendFormat": "",
+					"legendFormat": "go_memstats_heap_inuse_bytes",
 					"refId": "D"
 				},
 				{
@@ -795,9 +798,10 @@
 						"type": "prometheus",
 						"uid": "PBFA97CFB590B2093"
 					},
-					"expr": "go_memstats_heap_released_bytes",
+					"expr": "go_memstats_heap_released_bytes{instance=\"$app\"}",
 					"format": "time_series",
 					"intervalFactor": 1,
+					"legendFormat": "go_memstats_heap_released_bytes",
 					"refId": "E"
 				}
 			],
@@ -868,7 +872,7 @@
 				"h": 8,
 				"w": 12,
 				"x": 0,
-				"y": 11
+				"y": 12
 			},
 			"id": 24,
 			"options": {
@@ -892,9 +896,10 @@
 						"type": "prometheus",
 						"uid": "PBFA97CFB590B2093"
 					},
-					"expr": "go_memstats_stack_inuse_bytes",
+					"expr": "go_memstats_stack_inuse_bytes{instance=\"$app\"}",
 					"format": "time_series",
 					"intervalFactor": 1,
+					"legendFormat": "go_memstats_stack_inuse_bytes",
 					"refId": "A"
 				},
 				{
@@ -902,9 +907,10 @@
 						"type": "prometheus",
 						"uid": "PBFA97CFB590B2093"
 					},
-					"expr": "go_memstats_stack_sys_bytes",
+					"expr": "go_memstats_stack_sys_bytes{instance=\"$app\"}",
 					"format": "time_series",
 					"intervalFactor": 1,
+					"legendFormat": "go_memstats_stack_sys_bytes",
 					"refId": "B"
 				}
 			],
@@ -975,7 +981,7 @@
 				"h": 8,
 				"w": 12,
 				"x": 12,
-				"y": 11
+				"y": 12
 			},
 			"id": 16,
 			"options": {
@@ -999,9 +1005,10 @@
 						"type": "prometheus",
 						"uid": "PBFA97CFB590B2093"
 					},
-					"expr": "go_memstats_sys_bytes",
+					"expr": "go_memstats_sys_bytes{instance=\"$app\"}",
 					"format": "time_series",
 					"intervalFactor": 1,
+					"legendFormat": "go_memstats_sys_bytes",
 					"refId": "A"
 				}
 			],
@@ -1072,7 +1079,7 @@
 				"h": 8,
 				"w": 12,
 				"x": 0,
-				"y": 19
+				"y": 20
 			},
 			"id": 22,
 			"options": {
@@ -1096,9 +1103,10 @@
 						"type": "prometheus",
 						"uid": "PBFA97CFB590B2093"
 					},
-					"expr": "go_memstats_mallocs_total - go_memstats_frees_total",
+					"expr": "go_memstats_mallocs_total{instance=\"$app\"} - go_memstats_frees_total{instance=\"$app\"}",
 					"format": "time_series",
 					"intervalFactor": 1,
+					"legendFormat": "go_memstats_live_objects",
 					"refId": "A"
 				}
 			],
@@ -1170,7 +1178,7 @@
 				"h": 8,
 				"w": 12,
 				"x": 12,
-				"y": 19
+				"y": 20
 			},
 			"id": 20,
 			"options": {
@@ -1194,9 +1202,10 @@
 						"type": "prometheus",
 						"uid": "PBFA97CFB590B2093"
 					},
-					"expr": "rate(go_memstats_mallocs_total[1m])",
+					"expr": "rate(go_memstats_mallocs_total{instance=\"$app\"}[1m])",
 					"format": "time_series",
 					"intervalFactor": 1,
+					"legendFormat": "go_memstats_mallocs_total",
 					"refId": "A"
 				}
 			],
@@ -1268,7 +1277,7 @@
 				"h": 8,
 				"w": 12,
 				"x": 0,
-				"y": 27
+				"y": 28
 			},
 			"id": 18,
 			"options": {
@@ -1292,9 +1301,10 @@
 						"type": "prometheus",
 						"uid": "PBFA97CFB590B2093"
 					},
-					"expr": "rate(go_memstats_lookups_total[1m])",
+					"expr": "rate(go_memstats_lookups_total{instance=\"$app\"}[1m])",
 					"format": "time_series",
 					"intervalFactor": 1,
+					"legendFormat": "go_memstats_lookups_total",
 					"refId": "A"
 				}
 			],
@@ -1365,7 +1375,7 @@
 				"h": 8,
 				"w": 12,
 				"x": 12,
-				"y": 27
+				"y": 28
 			},
 			"id": 8,
 			"options": {
@@ -1389,9 +1399,10 @@
 						"type": "prometheus",
 						"uid": "PBFA97CFB590B2093"
 					},
-					"expr": "go_goroutines",
+					"expr": "go_goroutines{instance=\"$app\"}",
 					"format": "time_series",
 					"intervalFactor": 1,
+					"legendFormat": "go_goroutines",
 					"refId": "A"
 				}
 			],
@@ -1462,7 +1473,7 @@
 				"h": 8,
 				"w": 12,
 				"x": 0,
-				"y": 35
+				"y": 36
 			},
 			"id": 14,
 			"options": {
@@ -1486,9 +1497,10 @@
 						"type": "prometheus",
 						"uid": "PBFA97CFB590B2093"
 					},
-					"expr": "rate(go_memstats_alloc_bytes_total[1m])",
+					"expr": "rate(go_memstats_alloc_bytes_total{instance=\"$app\"}[1m])",
 					"format": "time_series",
 					"intervalFactor": 1,
+					"legendFormat": "go_memstats_alloc_bytes_total",
 					"refId": "A"
 				}
 			],
@@ -1559,7 +1571,7 @@
 				"h": 8,
 				"w": 12,
 				"x": 12,
-				"y": 35
+				"y": 36
 			},
 			"id": 4,
 			"options": {
@@ -1583,9 +1595,10 @@
 						"type": "prometheus",
 						"uid": "PBFA97CFB590B2093"
 					},
-					"expr": "go_gc_duration_seconds",
+					"expr": "go_gc_duration_seconds{instance=\"$app\"}",
 					"format": "time_series",
 					"intervalFactor": 1,
+					"legendFormat": "go_gc_duration_seconds",
 					"refId": "A"
 				}
 			],
@@ -1626,5 +1639,5 @@
 	"timezone": "",
 	"title": "Scrapper",
 	"uid": "CgCw8jKZe",
-	"version": 3
+	"version": 1
 }
