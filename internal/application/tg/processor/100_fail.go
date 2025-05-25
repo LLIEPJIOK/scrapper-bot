@@ -35,6 +35,7 @@ func (h *Failer) Handle(_ context.Context, state *State) *fsm.Result[*State] {
 
 	return &fsm.Result[*State]{
 		IsAutoTransition: false,
+		Error:            NewErrFailedState(),
 		Result:           state,
 	}
 }
