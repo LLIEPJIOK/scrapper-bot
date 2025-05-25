@@ -50,6 +50,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    restart: unless-stopped
     networks:
       - app_network
 
@@ -78,6 +79,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    restart: unless-stopped
     networks:
       - app_network
 
@@ -93,6 +95,7 @@ services:
         condition: service_started
     env_file:
       - .env
+    restart: unless-stopped
     networks:
       - app_network
     ports:
@@ -110,6 +113,7 @@ services:
         condition: service_started
     env_file:
       - .env
+    restart: unless-stopped
     networks:
       - app_network
     ports:
@@ -123,6 +127,7 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
+    restart: unless-stopped
     networks:
       - app_network
 
@@ -138,6 +143,7 @@ services:
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka1:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    restart: unless-stopped
     networks:
       - app_network
 
@@ -153,6 +159,7 @@ services:
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka2:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    restart: unless-stopped
     networks:
       - app_network
 
@@ -164,6 +171,7 @@ services:
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka1:9092,kafka2:9092
+    restart: unless-stopped
     depends_on:
       kafka1:
         condition: service_started
@@ -189,6 +197,7 @@ services:
         "--requirepass",
         "${REDIS_PASSWORD}",
       ]
+    restart: unless-stopped
     networks:
       - app_network
 
@@ -209,6 +218,46 @@ services:
         "--requirepass",
         "${REDIS_PASSWORD}",
       ]
+    restart: unless-stopped
+    networks:
+      - app_network
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+    depends_on:
+      bot:
+        condition: service_started
+      scrapper:
+        condition: service_started
+    networks:
+      - app_network
+  grafana:
+    image: grafana/grafana-oss:latest
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_PATHS_DATA=/var/lib/grafana
+      - GF_PATHS_HOME=/usr/share/grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana/dashboards/default:/var/lib/grafana/dashboards/default:ro
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    depends_on:
+      prometheus:
+        condition: service_started
     networks:
       - app_network
 
@@ -221,3 +270,5 @@ volumes:
   scrapper_postgres_data:
   bot_redis_data:
   scrapper_redis_data:
+  prometheus_data:
+  grafana_data:

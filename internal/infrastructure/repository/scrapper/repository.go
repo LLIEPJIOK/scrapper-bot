@@ -25,6 +25,7 @@ type Repository interface {
 		limit uint,
 	) ([]*domain.CheckLink, error)
 	UpdateCheckTime(ctx context.Context, url string, checkedAt time.Time) error
+	GetActiveLinks(ctx context.Context) (map[string]int, error)
 }
 
 func New(db *pgxpool.Pool, tpe string) (Repository, error) {

@@ -520,3 +520,46 @@ func (s *Builder) getChats(ctx context.Context, linkID int64) ([]domain.LinkChat
 
 	return chats, nil
 }
+
+func (s *Builder) GetActiveLinks(ctx context.Context) (map[string]int, error) {
+	queryBuilder := sq.
+		Select(
+			`regexp_replace(url, '^https?://([^/]+)/.*$', '\1') AS host`,
+			"COUNT(*) AS link_count",
+		).
+		From("links").
+		GroupBy("host")
+
+	sqlStr, args, err := queryBuilder.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("failed to build SQL: %w", err)
+	}
+
+	rows, err := s.db.Query(ctx, sqlStr, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query DB: %w", err)
+	}
+
+	defer rows.Close()
+
+	activeLinks := make(map[string]int)
+
+	for rows.Next() {
+		var (
+			host  string
+			count int
+		)
+
+		if err := rows.Scan(&host, &count); err != nil {
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+
+		activeLinks[host] = count
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows iteration error: %w", err)
+	}
+
+	return activeLinks, nil
+}

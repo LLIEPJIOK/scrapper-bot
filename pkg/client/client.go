@@ -21,7 +21,6 @@ func New(cfg *config.Config) *Client {
 	retry.RetryMax = cfg.Retry.RetryMax
 	retry.RetryWaitMin = cfg.Retry.RetryWaitMin
 	retry.RetryWaitMax = cfg.Retry.RetryWaitMax
-	//nolint:bodyclose // nothing to close
 	retry.Backoff = customBackoff(cfg.Retry.BackoffType)
 	retry.HTTPClient = configureHTTPClient(cfg)
 	retry.ErrorHandler = retryablehttp.PassthroughErrorHandler

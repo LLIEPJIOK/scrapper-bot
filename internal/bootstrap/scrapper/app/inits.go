@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/metrics"
 	repo "github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/repository/scrapper"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
@@ -16,6 +17,7 @@ func (a *App) inits() []InitFunc {
 		a.initDB,
 		a.initRepo,
 		a.initRedis,
+		a.initPrometheus,
 	}
 }
 
@@ -79,6 +81,12 @@ func (a *App) initRedis(ctx context.Context) error {
 	}
 
 	a.rdb = rdb
+
+	return nil
+}
+
+func (a *App) initPrometheus(_ context.Context) error {
+	a.prometheus = metrics.NewPrometheus("scrapper")
 
 	return nil
 }
