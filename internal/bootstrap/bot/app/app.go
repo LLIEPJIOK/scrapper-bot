@@ -10,6 +10,7 @@ import (
 	"github.com/es-debug/backend-academy-2024-go-template/internal/config"
 	"github.com/es-debug/backend-academy-2024-go-template/internal/domain"
 	cache "github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/cache/bot"
+	"github.com/es-debug/backend-academy-2024-go-template/internal/infrastructure/metrics"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 )
@@ -22,6 +23,8 @@ type App struct {
 	rdb *redis.Client
 
 	cache *cache.Cache
+
+	prometheus *metrics.Prometheus
 }
 
 func New(cfg *config.Config) *App {

@@ -24,6 +24,11 @@ type Channels interface {
 	TelegramResp() chan tgbotapi.Chattable
 }
 
+type Metrics interface {
+	IncTGRequestsTotal(state, status string)
+	ObserveTGRequestsDurationSeconds(state string, seconds float64)
+}
+
 type Cache interface {
 	GetListLinks(
 		ctx context.Context,
@@ -40,14 +45,14 @@ type Cache interface {
 }
 
 type Processor struct {
-	fsm      *fsm.FSM[*State]
+	fsm      *CustomFSM
 	client   Client
 	channels Channels
 	mu       sync.RWMutex
 	states   map[int64]*State
 }
 
-func New(client Client, channels Channels, cache Cache) *Processor {
+func New(client Client, channels Channels, cache Cache, metrics Metrics) *Processor {
 	fsmBuilder := fsm.NewBuilder[*State]()
 	fsmBuilder.
 		AddState(callback, NewCallbacker(channels)).
@@ -107,7 +112,7 @@ func New(client Client, channels Channels, cache Cache) *Processor {
 	return &Processor{
 		client:   client,
 		channels: channels,
-		fsm:      fsmBuilder.Build(),
+		fsm:      NewCustomFSM(fsmBuilder.Build(), metrics),
 		mu:       sync.RWMutex{},
 		states:   make(map[int64]*State),
 	}

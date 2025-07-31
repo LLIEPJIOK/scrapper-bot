@@ -9,6 +9,7 @@ packages:
     interfaces:
       Client:
       Cache:
+      Metrics:
   github.com/es-debug/backend-academy-2024-go-template/internal/application/server/http/scrapper:
     config:
       dir: ./internal/application/server/http/scrapper/mocks
@@ -49,3 +50,14 @@ packages:
       dir: ./internal/application/updater/mocks
     interfaces:
       Handler:
+  github.com/es-debug/backend-academy-2024-go-template/pkg/middleware/metrics:
+    config:
+      dir: ./pkg/middleware/metrics/mocks
+    interfaces:
+      Metrics:
+  github.com/es-debug/backend-academy-2024-go-template/internal/application/mws:
+    config:
+      dir: ./internal/application/mws/mocks
+    interfaces:
+      Metrics:
+      Repository:
